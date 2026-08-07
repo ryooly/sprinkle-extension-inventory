@@ -32,8 +32,6 @@ export interface SearchOptions {
   perPage?: number;
   minStars?: number;
   token?: string;
-  geminiApiKey?: string;
-  categories?: Category[]; // daftar kategori kita sendiri, dioper ke AI
 }
 
 const MIN_CREATED_YEAR = 2017;
@@ -59,7 +57,7 @@ interface RepoCandidate {
 // -----------------------------------------------------------
 // Filter yang BUKAN tugas AI: buang repo tanpa deskripsi sama sekali
 // (gak ada bahan buat dianalisis) dan repo yang udah pernah diproses.
-// -----------------------------------------------------------
+// ----------------------------------------------------------
 async function filterNewRepos(
   items: Array<Record<string, any>>,
   perPage: number
@@ -94,8 +92,6 @@ export async function fetchBrowserExtensions(
     perPage = 20,
     minStars = 10,
     token,
-    geminiApiKey = process.env.GEMINI_API_KEY ?? "",
-    categories,
   } = options;
 
   const octokit = new Octokit({ auth: token });

@@ -262,7 +262,7 @@ class GithubAIEngine {
   // ke sini. Fungsi ini yang loop, ambil link tiap repo, dan proses
   // semuanya lewat AI (analyzeMany) sampai jadi array ExtensionRepo.
   async processGithubSearchResults(
-    searchResultItems: Array<{ link: string }>,
+    searchResultItems: Array<{ link: string }>, // bisa diganti bentuknya
     availableCategories: Category[] = AVAILABLE_CATEGORIES,
     concurrency: number = 3
   ): Promise<ExtensionRepo[]> {
