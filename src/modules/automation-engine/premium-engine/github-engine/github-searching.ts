@@ -60,7 +60,7 @@ interface RepoCandidate {
 // ----------------------------------------------------------
 async function filterNewRepos(
   items: Array<Record<string, any>>,
-  perPage: number
+  perPage: number,
 ): Promise<RepoCandidate[]> {
   const candidates: RepoCandidate[] = [];
 
@@ -85,14 +85,9 @@ async function filterNewRepos(
 }
 
 export async function fetchBrowserExtensions(
-  options: SearchOptions = {}
+  options: SearchOptions = {},
 ): Promise<ExtensionRepo[]> {
-  const {
-    query = "",
-    perPage = 20,
-    minStars = 10,
-    token,
-  } = options;
+  const { query = "", perPage = 20, minStars = 10, token } = options;
 
   const octokit = new Octokit({ auth: token });
   const searchQuery = buildQuery(query, minStars);
@@ -113,21 +108,19 @@ export async function fetchBrowserExtensions(
     // 2. Sisanya -- name, publisher, description, category,
     //    verificationPercentage, permissions -- SEMUA ditentukan AI.
 
-
-
     const provider = new GeminiBrowsingProvider();
     const engine = new GithubAIEngine(provider);
 
-    /// harusnya di ubah ke processGithub result gitu dan 
+    /// harusnya di ubah ke processGithub result gitu dan
     const results = await engine.processGithubSearchResults(candidates);
-
-    
 
     // 3. Satu hal yang kita override manual: downloadUrl.
     //    AI cuma balikin link repo apa adanya (fallback), padahal kita
     //    butuh link ZIP archive-nya. Ini deterministik, gak perlu AI,
     //    jadi kita hitung sendiri dari data Octokit yang udah kita simpen.
-    const branchByLink = new Map(candidates.map((c) => [c.link, c.defaultBranch]));
+    const branchByLink = new Map(
+      candidates.map((c) => [c.link, c.defaultBranch]),
+    );
 
     return results.map((repo) => ({
       ...repo,
@@ -137,6 +130,8 @@ export async function fetchBrowserExtensions(
     }));
   } catch (err) {
     if (err instanceof AppError) throw err;
-    throw new AppError(`Failed to fetch extensions from GitHub`, 500, { cause: err });
+    throw new AppError(`Failed to fetch extensions from GitHub`, 500, {
+      cause: err,
+    });
   }
 }
