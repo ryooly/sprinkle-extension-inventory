@@ -2,36 +2,25 @@ import { Octokit } from "@octokit/rest";
 import {
   createFetchedRepo,
   getFetchedRepoByName,
-} from "../saving-engine/repository/saving-repository";
+} from "../../saving-engine/repository/saving-repository";
 import { AppError } from "@/middlewares/errorHandler";
 import {
   GithubAIEngine,
   GeminiBrowsingProvider,
   ExtensionRepo,
-  Category,
-} from "./github-ai-engine";
-
-/**
- * ============================================================
- *  FETCH BROWSER EXTENSIONS (GitHub -> AI Engine)
- *
- *  Yang DIHAPUS dari versi sebelumnya (karena udah jadi tugas AI engine):
- *  - toExtensionRepo()          -> AI yang nentuin name/publisher/description
- *  - inferCategoriesFromTopics()-> AI yang cocokin category dari konteks
- *  - topicToCategory mapping    -> gak dipakai lagi, AI baca konteks langsung
- *
- *  Yang TETAP manual di sini (karena BUKAN tugas AI, ini logic bisnis kita):
- *  - Filter dedup (skip repo yang udah pernah diproses, cek ke DB sendiri)
- *  - Bikin downloadUrl (link zip archive) -> ini deterministik dari data
- *    Octokit (owner/repo/default_branch), gak perlu ditebak AI sama sekali.
- * ============================================================
- */
+} from "../ai-engine/gpt.engine";
 
 export interface SearchOptions {
   query?: string;
   perPage?: number;
   minStars?: number;
   token?: string;
+}
+
+interface RepoCandidate {
+  link: string;
+  fullName: string;
+  defaultBranch: string;
 }
 
 const MIN_CREATED_YEAR = 2017;
@@ -46,18 +35,6 @@ function buildQuery(extraKeyword = "", minStars: number): string {
   return `${keyword} ${starsFilter} ${dateFilter} is:public`;
 }
 
-// Data minimal yang kita simpen SENDIRI per-repo, buat 2 keperluan
-// non-AI: dedup check dan bikin URL zip archive setelah AI selesai.
-interface RepoCandidate {
-  link: string;
-  fullName: string;
-  defaultBranch: string;
-}
-
-// -----------------------------------------------------------
-// Filter yang BUKAN tugas AI: buang repo tanpa deskripsi sama sekali
-// (gak ada bahan buat dianalisis) dan repo yang udah pernah diproses.
-// ----------------------------------------------------------
 async function filterNewRepos(
   items: Array<Record<string, any>>,
   perPage: number,
@@ -82,7 +59,7 @@ async function filterNewRepos(
   }
 
   return candidates;
-}
+} // mungkin gw bakal ubah ketentuannya deh karena ini kan by AI 
 
 export async function fetchBrowserExtensions(
   options: SearchOptions = {},
@@ -101,23 +78,15 @@ export async function fetchBrowserExtensions(
       per_page: fetchBuffer,
     });
 
-    // 1. Filter manual seperlunya (dedup + skip repo tanpa deskripsi)
     const candidates = await filterNewRepos(data.items, perPage);
     if (candidates.length === 0) return [];
-
-    // 2. Sisanya -- name, publisher, description, category,
-    //    verificationPercentage, permissions -- SEMUA ditentukan AI.
 
     const provider = new GeminiBrowsingProvider();
     const engine = new GithubAIEngine(provider);
 
-    /// harusnya di ubah ke processGithub result gitu dan
     const results = await engine.processGithubSearchResults(candidates);
 
-    // 3. Satu hal yang kita override manual: downloadUrl.
-    //    AI cuma balikin link repo apa adanya (fallback), padahal kita
-    //    butuh link ZIP archive-nya. Ini deterministik, gak perlu AI,
-    //    jadi kita hitung sendiri dari data Octokit yang udah kita simpen.
+    /*
     const branchByLink = new Map(
       candidates.map((c) => [c.link, c.defaultBranch]),
     );
@@ -127,7 +96,8 @@ export async function fetchBrowserExtensions(
       downloadUrl: `${repo.downloadUrl}/archive/refs/heads/${
         branchByLink.get(repo.downloadUrl) ?? "main"
       }.zip`,
-    }));
+    })); */
+    return results
   } catch (err) {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions from GitHub`, 500, {
