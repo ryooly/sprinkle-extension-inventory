@@ -29,10 +29,11 @@ export const publisherTypeEnum = pgEnum("publisher_type", [
   "user",
 ]);
 
-export const browserEnum = pgEnum("browser", [
-  "chrome",
-  "opera",
-  "edge",
+export const browserEnum = pgEnum("browser", ["chrome", "opera", "edge"]);
+
+export const extensionStatusEnum = pgEnum("extension_status", [
+  "premium",
+  "basic",
 ]);
 
 export const extensions = pgTable(
@@ -52,6 +53,9 @@ export const extensions = pgTable(
     source: sourceEnum("source").notNull().default("github"),
     extensionLink: text("extension_link").notNull(),
     browser: browserEnum("browser").notNull().default("chrome"),
+    extensionStatus: extensionStatusEnum("extension_status")
+      .notNull()
+      .default("basic"),
 
     views: integer("views").notNull().default(0),
     downloads: integer("downloads").notNull().default(0),
@@ -75,8 +79,6 @@ export const extensions = pgTable(
     ),
   }),
 );
-
-
 
 export const browserPermissionEnum = pgEnum("browser_permission", [
   "readBrowsingHistory",
@@ -108,8 +110,6 @@ export const extensionPermissions = pgTable(
     }),
   }),
 );
-
-
 
 export const categoryEnum = pgEnum("category", [
   "productivity",
@@ -181,5 +181,9 @@ export type VerificationStatus =
 export type Source = (typeof sourceEnum.enumValues)[number];
 export type Category = (typeof categoryEnum.enumValues)[number];
 export type Browser = (typeof browserEnum.enumValues)[number];
+export type BrowserPermission =
+  (typeof browserPermissionEnum.enumValues)[number];
+export type ExtensionStatus = (typeof extensionStatusEnum.enumValues)[number];
+export type PublisherType = (typeof publisherTypeEnum.enumValues)[number];
 
 /// belum begit ppaham tentang relations dan tabel tabelan terus ini yang paling bawah

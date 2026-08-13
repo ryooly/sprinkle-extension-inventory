@@ -3,9 +3,10 @@ import {
   createFetchedRepo,
   getFetchedRepoByName,
 } from "../saving-engine/repository/saving-repository";
-import { Category } from "../db/schema";
+import { Category, VerificationStatus, BrowserPermission, ExtensionStatus } from "../db/schema";
 import { AppError } from "@/middlewares/errorHandler";
 import { topicToCategory } from "../depends/topics-libary";
+import { insertExtensionsFromGithub } from "../saving-engine/saving-engine/save-service"
 
 export interface ExtensionRepo {
   name: string;
@@ -13,13 +14,41 @@ export interface ExtensionRepo {
   description: string;
   downloadUrl: string;
   category: Category[];
-}
+  extensionStatus?: ExtensionStatus;
+  verified?: VerificationStatus;
+  verificationPercentage?: number;
+  permissions?: BrowserPermission[];
+} // ganti aja pake extension type
 
 export interface SearchOptions {
   query?: string;
   perPage?: number;
   minStars?: number;
   token?: string;
+}
+
+interface InsertResult {
+  success: boolean;
+  data: {
+    inserted: number;
+    failed: number;
+  };
+}
+
+interface ServiceResult<TData = unknown> {
+  success: boolean;
+  data: {
+    insertResult: {
+      inserted: number;
+      failed: number;
+    };
+    data: TData;
+  };
+}
+
+export interface ExtensionImportResult {
+  insertResult: InsertResult;
+  data: ExtensionRepo[];
 }
 
 const MIN_CREATED_YEAR = 2017;
@@ -76,7 +105,7 @@ async function toExtensionRepo(
 
 export async function fetchBrowserExtensions(
   options: SearchOptions = {},
-): Promise<ExtensionRepo[]> {
+): Promise<ServiceResult> {
   const { query = "", perPage = 5, minStars = 10, token } = options;
 
   const octokit = new Octokit({ auth: token });
@@ -102,7 +131,15 @@ export async function fetchBrowserExtensions(
       if (repo) results.push(repo);
     }
 
-    return results;
+    const insertResult = await insertExtensionsFromGithub(results);
+
+    return {
+      success: insertResult.success,
+      data: {
+        insertResult: insertResult.data!,
+        data: results,
+      },
+    };
   } catch (err) {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions from GitHub`, 500, { cause: err });

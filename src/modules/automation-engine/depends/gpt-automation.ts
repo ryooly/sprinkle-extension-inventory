@@ -1,29 +1,4 @@
-export type Category =
-  | "productivity"
-  | "developer-tools"
-  | "privacy-security"
-  | "shopping"
-  | "social-media"
-  | "entertainment"
-  | "other";
-
-export type VerificationStatus =
-  | "verified"
-  | "unverified"
-  | "flagged"
-  | "pending";
-
-export type BrowserPermission =
-  | "storage"
-  | "tabs"
-  | "activeTab"
-  | "cookies"
-  | "history"
-  | "webRequest"
-  | "clipboardRead"
-  | "clipboardWrite"
-  | "geolocation"
-  | "notifications";
+import { Category } from "../db/schema"
 
 export function buildPrompt(link: string, availableCategories: Category[]): string {
   return `

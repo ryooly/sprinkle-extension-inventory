@@ -36,14 +36,10 @@ export async function insertExtensionsFromGithub(
 
   for (const repo of repos) {
     try {
-      const [developer, name] = repo.name.includes("/")
-        ? repo.name.split("/")
-        : ["unknown", repo.name];
-
       await createExtension({
-        name,
+        name: repo.name,
         description: repo.description,
-        developer,
+        developer: repo.publisher,
         extensionLink: repo.downloadUrl,
         source: "github",
         categories: repo.category ?? [],
@@ -52,13 +48,19 @@ export async function insertExtensionsFromGithub(
       inserted++;
     } catch (error) {
       failed++;
-      console.error(`Gagal insert "${repo.name}"`, 500, { cause: error });
+      console.error(`Failed to insert extension "${repo.name}"`, {
+        statusCode: 500,
+        cause: error,
+      });
     }
   }
 
   return {
-    success: true,
-    data: { inserted, failed },
+    success: failed === 0,
+    data: {
+      inserted,
+      failed,
+    },
   };
 }
 
@@ -95,4 +97,3 @@ export async function deleteExtensionById(
     throw new AppError(`Failed to delete extension`, 500, { cause: err });
   }
 }
-

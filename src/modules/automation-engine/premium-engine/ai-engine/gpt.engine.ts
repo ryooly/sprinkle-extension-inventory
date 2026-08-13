@@ -1,15 +1,6 @@
-import { Category, VerificationStatus, BrowserPermission, buildPrompt } from "../../depends/gpt-automation";
-
-export interface ExtensionRepo {
-  name: string;
-  publisher: string;
-  description: string;
-  downloadUrl: string;
-  category: Category[];
-  verified?: VerificationStatus;
-  verificationPercentage?: number;
-  permissions?: BrowserPermission[];
-}
+import { Category, VerificationStatus, BrowserPermission } from "../../db/schema";
+import { buildPrompt } from "../../depends/gpt-automation";
+import { ExtensionRepo } from "../../github-explorer/api-engine";
 
 function parseAIResponse(raw: string, fallbackUrl: string): ExtensionRepo | null {
   try {
@@ -23,7 +14,7 @@ function parseAIResponse(raw: string, fallbackUrl: string): ExtensionRepo | null
     return {
       name: String(parsed.name),
       publisher: String(parsed.publisher ?? "unknown"),
-      description: String(parsed.description),
+      description: String(parsed.description ?? ""),
       downloadUrl: fallbackUrl,
       category: parsed.category as Category[],
       permissions: Array.isArray(parsed.permissions)
@@ -34,6 +25,7 @@ function parseAIResponse(raw: string, fallbackUrl: string): ExtensionRepo | null
           ? Math.min(100, Math.max(0, parsed.verificationPercentage))
           : undefined,
       verified: parsed.verified as VerificationStatus | undefined,
+      extensionStatus: "premium",
     }; // bergantung pada ai bekerja 
   } catch {
     return null;
@@ -42,11 +34,17 @@ function parseAIResponse(raw: string, fallbackUrl: string): ExtensionRepo | null
 
 const AVAILABLE_CATEGORIES: Category[] = [
   "productivity",
-  "developer-tools",
-  "privacy-security",
-  "shopping",
-  "social-media",
+  "developer_tools",
+  "communication",
+  "design",
+  "finance",
+  "security",
+  "education",
   "entertainment",
+  "social",
+  "utilities",
+  "general",
+  "misc",
   "other",
 ];
 

@@ -7,8 +7,9 @@ import { AppError } from "@/middlewares/errorHandler";
 import {
   GithubAIEngine,
   GeminiBrowsingProvider,
-  ExtensionRepo,
 } from "../ai-engine/gpt.engine";
+import { ExtensionRepo } from "../../github-explorer/api-engine";
+import { insertExtensionsFromGithub } from "../../saving-engine/saving-engine/save-service";
 
 export interface SearchOptions {
   query?: string;
@@ -21,6 +22,25 @@ interface RepoCandidate {
   link: string;
   fullName: string;
   defaultBranch: string;
+}
+
+interface InsertResult {
+  success: boolean;
+  data: {
+    inserted: number;
+    failed: number;
+  };
+}
+
+interface ServiceResult<TData = unknown> {
+  success: boolean;
+  data: {
+    insertResult: {
+      inserted: number;
+      failed: number;
+    };
+    data: TData;
+  };
 }
 
 const MIN_CREATED_YEAR = 2017;
@@ -59,11 +79,11 @@ async function filterNewRepos(
   }
 
   return candidates;
-} // mungkin gw bakal ubah ketentuannya deh karena ini kan by AI 
+} // mungkin gw bakal ubah ketentuannya deh karena ini kan by AI
 
 export async function fetchBrowserExtensions(
   options: SearchOptions = {},
-): Promise<ExtensionRepo[]> {
+): Promise<ServiceResult> {
   const { query = "", perPage = 20, minStars = 10, token } = options;
 
   const octokit = new Octokit({ auth: token });
@@ -79,14 +99,33 @@ export async function fetchBrowserExtensions(
     });
 
     const candidates = await filterNewRepos(data.items, perPage);
-    if (candidates.length === 0) return [];
+    if (candidates.length === 0) {
+      return {
+        success: true,
+        data: {
+          insertResult: {
+            inserted: 0,
+            failed: 0,
+          },
+          data: [],
+        },
+      };
+    }
 
     const provider = new GeminiBrowsingProvider();
     const engine = new GithubAIEngine(provider);
 
     const results = await engine.processGithubSearchResults(candidates);
 
-    return results
+    const insertResult = await insertExtensionsFromGithub(results);
+
+    return {
+      success: insertResult.success,
+      data: {
+        insertResult: insertResult.data!,
+        data: results,
+      },
+    };
   } catch (err) {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions from GitHub`, 500, {
@@ -94,4 +133,3 @@ export async function fetchBrowserExtensions(
     });
   }
 }
-

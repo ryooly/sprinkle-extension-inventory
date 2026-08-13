@@ -45,6 +45,21 @@ export async function getManualExtension(): Promise<EngineResult<unknown>> {
   }
 }
 
+export async function premiumEkstension(): Promise<EngineResult<unknown>> {
+  try {
+    const data = await 
+
+    for (const extension of data) {
+      await incrementAmountDisplayed(extension.id);
+    }
+
+    return { success: true, data }
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(`Failed to fetch extensions`, 500, { cause: err });
+  }
+}
+
 export async function incrementView(id: string) {
   try {
     const res = await fetch(`${API_BASE_URL}/extensions/${id}/view`, {
@@ -102,3 +117,5 @@ export async function incrementDownload(id: string) {
 }
 
 /// NOT FINSIHED YET - UNDER DEVELOPMENT DIPERLUKAN SEBAUH CARA AGAR PENGAMBILANNYA MERATA DAN SEMUA KENA.
+
+
