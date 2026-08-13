@@ -18,7 +18,7 @@ export async function getExtensions(): Promise<EngineResult<unknown>> {
     const data = await findExtensions();
 
     for (const extension of data) {
-      await incrementAmountDisplayed(extension.id);
+      await incrementAmountDisplayed(extension.id); // lemah aku rasa akan berat kalo di push satu per satu gitu 
     }
 
     return { success: true, data };
@@ -26,7 +26,9 @@ export async function getExtensions(): Promise<EngineResult<unknown>> {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions`, 500, { cause: err });
   }
-}
+} 
+
+// Oke jadi disini tambahkan fungsi untuk mengambil premium ekstension dari database, dan untuk semau verifikasi dll berada di atas alias crom alias engine yang aktif selama 24 jam gitu, jadi fungsi disini diperuntukan untuk mengambil aja smeua otak dan pusatnya ada di mesin utama 
 
 export async function getManualExtension(): Promise<EngineResult<unknown>> {
   try {

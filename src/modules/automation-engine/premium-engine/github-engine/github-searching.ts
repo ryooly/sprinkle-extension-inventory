@@ -86,17 +86,6 @@ export async function fetchBrowserExtensions(
 
     const results = await engine.processGithubSearchResults(candidates);
 
-    /*
-    const branchByLink = new Map(
-      candidates.map((c) => [c.link, c.defaultBranch]),
-    );
-
-    return results.map((repo) => ({
-      ...repo,
-      downloadUrl: `${repo.downloadUrl}/archive/refs/heads/${
-        branchByLink.get(repo.downloadUrl) ?? "main"
-      }.zip`,
-    })); */
     return results
   } catch (err) {
     if (err instanceof AppError) throw err;
@@ -105,3 +94,4 @@ export async function fetchBrowserExtensions(
     });
   }
 }
+
