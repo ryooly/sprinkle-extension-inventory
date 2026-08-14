@@ -1,85 +1,60 @@
 import { Octokit } from "@octokit/rest";
-import {
-  createFetchedRepo,
-  getFetchedRepoByName,
-} from "../../saving-engine/repository/saving-repository";
+
 import { AppError } from "@/middlewares/errorHandler";
+
 import {
   GithubAIEngine,
   GeminiBrowsingProvider,
 } from "../ai-engine/gpt.engine";
-import { ExtensionRepo } from "../../github-explorer/api-engine";
+
 import { insertExtensionsFromGithub } from "../../saving-engine/saving-engine/save-service";
+
+import type { InsertGithubResult } from "../../saving-engine/saving-engine/save-service";
+
+import { buildGithubSearchQuery } from "../../depends/extension-utils";
+
+import {
+  isRepoAlreadyProcessed,
+  paginateGithubSearch,
+} from "../../depends/github-search-utils";
+
+import type { RepoCandidateContext } from "../../depends/ai-response-mapper";
 
 export interface SearchOptions {
   query?: string;
+
   perPage?: number;
+
   minStars?: number;
+
   token?: string;
-}
-
-interface RepoCandidate {
-  link: string;
-  fullName: string;
-  defaultBranch: string;
-}
-
-interface InsertResult {
-  success: boolean;
-  data: {
-    inserted: number;
-    failed: number;
-  };
 }
 
 interface ServiceResult<TData = unknown> {
   success: boolean;
+
   data: {
-    insertResult: {
-      inserted: number;
-      failed: number;
-    };
+    insertResult: InsertGithubResult;
+
     data: TData;
   };
 }
 
-const MIN_CREATED_YEAR = 2017;
+async function toRepoCandidate(
+  item: Record<string, unknown>,
+): Promise<RepoCandidateContext | null> {
+  const fullName = String(item.full_name);
 
-function buildQuery(extraKeyword = "", minStars: number): string {
-  const starsFilter = `stars:>=${minStars}`;
-  const dateFilter = `created:>=${MIN_CREATED_YEAR}-01-01`;
-  const keyword = extraKeyword
-    ? `browser extension ${extraKeyword}`
-    : "browser extension";
+  if (await isRepoAlreadyProcessed(fullName)) return null;
 
-  return `${keyword} ${starsFilter} ${dateFilter} is:public`;
+  return {
+    link: String(item.html_url),
+
+    fullName,
+
+    defaultBranch: String(item.default_branch ?? "main"),
+  };
 }
-
-async function filterNewRepos(
-  items: Array<Record<string, any>>,
-  perPage: number,
-): Promise<RepoCandidate[]> {
-  const candidates: RepoCandidate[] = [];
-
-  for (const item of items) {
-    if (candidates.length >= perPage) break;
-
-    if (!item.description || item.description.trim().length < 10) continue;
-
-    const alreadyFetched = await getFetchedRepoByName(item.full_name);
-    if (alreadyFetched) continue;
-
-    await createFetchedRepo(item.full_name);
-
-    candidates.push({
-      link: item.html_url,
-      fullName: item.full_name,
-      defaultBranch: item.default_branch ?? "main",
-    });
-  }
-
-  return candidates;
-} // mungkin gw bakal ubah ketentuannya deh karena ini kan by AI
 
 export async function fetchBrowserExtensions(
   options: SearchOptions = {},
@@ -87,32 +62,42 @@ export async function fetchBrowserExtensions(
   const { query = "", perPage = 20, minStars = 10, token } = options;
 
   const octokit = new Octokit({ auth: token });
-  const searchQuery = buildQuery(query, minStars);
-  const fetchBuffer = perPage * 2;
+
+  const searchQuery = buildGithubSearchQuery(query, minStars);
 
   try {
-    const { data } = await octokit.rest.search.repos({
-      q: searchQuery,
-      sort: "stars",
-      order: "desc",
-      per_page: fetchBuffer,
-    });
+    const candidates = await paginateGithubSearch(
+      octokit,
 
-    const candidates = await filterNewRepos(data.items, perPage);
+      searchQuery,
+
+      perPage,
+
+      toRepoCandidate,
+    );
+
     if (candidates.length === 0) {
       return {
         success: true,
+
         data: {
           insertResult: {
             inserted: 0,
+
             failed: 0,
+
+            skipped: 0,
+
+            failures: [],
           },
+
           data: [],
         },
       };
     }
 
     const provider = new GeminiBrowsingProvider();
+
     const engine = new GithubAIEngine(provider);
 
     const results = await engine.processGithubSearchResults(candidates);
@@ -121,13 +106,16 @@ export async function fetchBrowserExtensions(
 
     return {
       success: insertResult.success,
+
       data: {
         insertResult: insertResult.data!,
+
         data: results,
       },
     };
   } catch (err) {
     if (err instanceof AppError) throw err;
+
     throw new AppError(`Failed to fetch extensions from GitHub`, 500, {
       cause: err,
     });

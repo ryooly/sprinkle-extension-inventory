@@ -88,3 +88,4 @@ export const refreshTokens = pgTable("refresh_tokens", {
 
 export type RefreshToken = InferSelectModel<typeof refreshTokens>;
 export type NewRefreshToken = InferInsertModel<typeof refreshTokens>;
+

@@ -24,6 +24,17 @@ export async function findUserExtensions() {
   });
 }
 
+export async function findPremiumExtensions() {
+  return await db.query.extensions.findMany({
+    where: eq(extensions.extensionStatus, "premium"),
+    limit: 35,
+    orderBy: [desc(extensions.createdAt)],
+    with: {
+      categories: true,
+    },
+  });
+}
+
 export async function incrementViews(id: string) {
   const [updated] = await db
     .update(extensions)

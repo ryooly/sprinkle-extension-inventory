@@ -2,6 +2,7 @@ import {
   findExtensions,
   incrementAmountDisplayed,
   findUserExtensions,
+  findPremiumExtensions,
 } from "../repository/repository";
 import { AppError } from "@/middlewares/errorHandler";
 
@@ -26,9 +27,7 @@ export async function getExtensions(): Promise<EngineResult<unknown>> {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions`, 500, { cause: err });
   }
-} 
-
-// Oke jadi disini tambahkan fungsi untuk mengambil premium ekstension dari database, dan untuk semau verifikasi dll berada di atas alias crom alias engine yang aktif selama 24 jam gitu, jadi fungsi disini diperuntukan untuk mengambil aja smeua otak dan pusatnya ada di mesin utama 
+}  
 
 export async function getManualExtension(): Promise<EngineResult<unknown>> {
   try {
@@ -45,18 +44,20 @@ export async function getManualExtension(): Promise<EngineResult<unknown>> {
   }
 }
 
-export async function premiumEkstension(): Promise<EngineResult<unknown>> {
+export async function getPremiumEkstension(): Promise<EngineResult<unknown>> {
   try {
-    const data = await 
+    const data = await findPremiumExtensions();
 
     for (const extension of data) {
       await incrementAmountDisplayed(extension.id);
     }
 
-    return { success: true, data }
+    return { success: true, data };
   } catch (err) {
     if (err instanceof AppError) throw err;
-    throw new AppError(`Failed to fetch extensions`, 500, { cause: err });
+    throw new AppError(`Failed to fetch premium extensions`, 500, {
+      cause: err,
+    });
   }
 }
 

@@ -2,10 +2,13 @@ import {
   createExtension,
   updateExtension,
   deleteExtension,
+  createFetchedRepo,
+  findExtensionByNameAndDeveloper,
 } from "../repository/saving-repository";
 import type { ExtensionRepo } from "../../github-explorer/api-engine";
 import type { Category } from "../../db/schema";
 import { AppError } from "@/middlewares/errorHandler";
+import { validateExtensionRepo } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
   categories?: Category[];
@@ -22,33 +25,76 @@ export interface UpdateExtensionOptions {
   };
 }
 
+export interface InsertGithubResult {
+  inserted: number;
+  failed: number;
+  skipped: number;
+  failures: Array<{ name: string; reason: string }>;
+}
+
 export interface EngineResult<T> {
   success: boolean;
   data?: T;
   error?: string;
 }
 
+async function markRepoAsFetched(sourceRepoName?: string) {
+  if (!sourceRepoName) return;
+  await createFetchedRepo(sourceRepoName);
+}
+
 export async function insertExtensionsFromGithub(
   repos: ExtensionRepo[],
-): Promise<EngineResult<{ inserted: number; failed: number }>> {
+): Promise<EngineResult<InsertGithubResult>> {
   let inserted = 0;
   let failed = 0;
+  let skipped = 0;
+  const failures: InsertGithubResult["failures"] = [];
 
   for (const repo of repos) {
+    const validated = validateExtensionRepo(repo);
+
+    if (!validated.valid) {
+      failed++;
+      failures.push({ name: repo.name ?? "unknown", reason: validated.reason });
+      continue;
+    }
+
+    const normalized = validated.data;
+
     try {
+      const existing = await findExtensionByNameAndDeveloper(
+        normalized.name,
+        normalized.publisher,
+      );
+
+      if (existing) {
+        skipped++;
+        await markRepoAsFetched(normalized.sourceRepoName);
+        continue;
+      }
+
       await createExtension({
-        name: repo.name,
-        description: repo.description,
-        developer: repo.publisher,
-        extensionLink: repo.downloadUrl,
+        name: normalized.name,
+        description: normalized.description,
+        developer: normalized.publisher,
+        extensionLink: normalized.downloadUrl,
         source: "github",
-        categories: repo.category ?? [],
+        categories: normalized.category,
+        extensionStatus: normalized.extensionStatus ?? "basic",
+        verified: normalized.verified ?? "not_verified",
+        verificationPercentage: normalized.verificationPercentage ?? 0,
+        permissions: normalized.permissions,
       });
 
+      await markRepoAsFetched(normalized.sourceRepoName);
       inserted++;
     } catch (error) {
       failed++;
-      console.error(`Failed to insert extension "${repo.name}"`, {
+      const reason =
+        error instanceof Error ? error.message : "unknown insert error";
+      failures.push({ name: normalized.name, reason });
+      console.error(`Failed to insert extension "${normalized.name}"`, {
         statusCode: 500,
         cause: error,
       });
@@ -60,6 +106,8 @@ export async function insertExtensionsFromGithub(
     data: {
       inserted,
       failed,
+      skipped,
+      failures,
     },
   };
 }

@@ -25,8 +25,11 @@ export function buildPrompt(link: string, availableCategories: Category[]): stri
   5. permissions — the browser permissions this extension actually requests
      (read the "permissions"/"host_permissions" field in manifest.json if
      available, or infer from the code/README if no manifest is found).
-     Choose ONLY from: storage, tabs, activeTab, cookies, history, webRequest,
-     clipboardRead, clipboardWrite, geolocation, notifications
+     Choose ONLY from:
+     readBrowsingHistory, readOpenTabs, readWebsiteData, readCookies,
+     manageDownloads, manageBookmarks, clipboardRead, clipboardWrite,
+     showNotifications, accessAllWebsites, accessCurrentWebsite,
+     backgroundExecution
   
   6. verificationPercentage (0-100) — CALCULATE this based on a COMBINATION of
      the following factors, do not just guess a single number:
@@ -59,9 +62,7 @@ export function buildPrompt(link: string, availableCategories: Category[]): stri
   
   7. verified — derive this from verificationPercentage:
      - 80-100 -> "verified"
-     - 50-79  -> "unverified"
-     - below 50 with clear red flags -> "flagged"
-     - too little information to judge -> "pending"
+     - below 80 -> "not_verified"
   
   IMPORTANT: Respond with ONLY valid JSON, no markdown, no backticks, no extra
   text. Format EXACTLY like this:

@@ -1,11 +1,17 @@
 import { db } from "../../db/client";
-import { extensions, extensionCategories, fetchedRepos } from "../../db/schema";
-import { eq, ilike } from "drizzle-orm";
+import {
+  extensions,
+  extensionCategories,
+  extensionPermissions,
+  fetchedRepos,
+} from "../../db/schema";
+import { and, eq, ilike } from "drizzle-orm";
 import type {
   NewExtension,
   NewExtensionCategory,
   Category,
   Browser,
+  BrowserPermission,
 } from "../../db/schema";
 import { AppError } from "@/middlewares/errorHandler";
 import type { Extension } from "../../db/schema";
@@ -13,6 +19,7 @@ import type { Extension } from "../../db/schema";
 
 export interface CreateExtensionPayload extends NewExtension {
   categories: Category[];
+  permissions?: BrowserPermission[];
 }
 
 export interface UpdateExtensionPayload {
@@ -22,7 +29,7 @@ export interface UpdateExtensionPayload {
 }
 
 export async function createExtension(payload: CreateExtensionPayload) {
-  const { categories, ...extensionData } = payload;
+  const { categories, permissions, ...extensionData } = payload;
 
   return await db.transaction(async (tx) => {
     const [extension] = await tx
@@ -37,6 +44,17 @@ export async function createExtension(payload: CreateExtensionPayload) {
       }));
 
       await tx.insert(extensionCategories).values(categoryRows);
+    }
+
+    if (permissions && permissions.length > 0) {
+      const uniquePermissions = [...new Set(permissions)];
+
+      await tx.insert(extensionPermissions).values(
+        uniquePermissions.map((permission) => ({
+          extensionId: extension.id,
+          permission,
+        })),
+      );
     }
 
     return extension;
@@ -87,9 +105,25 @@ export async function createFetchedRepo(repoName: string) {
   const [repo] = await db
     .insert(fetchedRepos)
     .values({ repoName })
+    .onConflictDoNothing({ target: fetchedRepos.repoName })
     .returning();
 
-  return repo;
+  return repo ?? null;
+}
+
+export async function findExtensionByNameAndDeveloper(
+  name: string,
+  developer: string,
+) {
+  const [extension] = await db
+    .select()
+    .from(extensions)
+    .where(
+      and(eq(extensions.name, name), eq(extensions.developer, developer)),
+    )
+    .limit(1);
+
+  return extension ?? null;
 }
 
 export async function getFetchedRepoByName(repoName: string) {
