@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run src/modules/auth/index.ts",
-    "migrate": "bun run src/modules/auth/db/migrate.ts"
+    "migrate": "bun run src/modules/auth/db/migrate.ts",
+    "automation": "bun run src/modules/twentyFourHour/index.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
