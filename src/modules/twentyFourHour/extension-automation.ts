@@ -7,8 +7,6 @@ import {
   type EngineResult,
 } from "@/modules/automation-engine/algorthm-engine/algorithm-engine/algorithm-services";
 
-// ── Result types ────────────────────────────────────────────────────────────
-
 export interface InsertionResult {
   isPremium: boolean;
   inserted: number;
@@ -33,15 +31,11 @@ export interface DailyJobResult {
   error?: string;
 }
 
-// ── Automation class ────────────────────────────────────────────────────────
-
 export class TwentyFourHourAutomation {
   private hourlyCron: { stop: () => void } | null = null;
   private dailyCron: { stop: () => void } | null = null;
 
   constructor(private readonly userId: string) {}
-
-  // ── Step 1: Extension insertion (premium or basic) ──────────────────────
 
   private async insertGitHubExtensions(): Promise<InsertionResult> {
     const isPremium = await hasActiveSubscription(this.userId);
@@ -62,36 +56,28 @@ export class TwentyFourHourAutomation {
     };
   }
 
-  // ── Step 2: Cleanup stale extensions ────────────────────────────────────
-
   private async cleanup(): Promise<CleanupResult> {
     const deleted = await cleanupStaleExtensions();
     return { deleted: deleted.length };
   }
 
-  // ── Step 3: Retrieve 24-hour extension data ─────────────────────────────
-
   async getTwentyFourHourExtensions(): Promise<EngineResult<unknown>> {
     return await getExtensions();
   }
-
-  // ── Hourly job: insertion + cleanup ─────────────────────────────────────
 
   async runHourlyJob(): Promise<HourlyJobResult> {
     const errors: string[] = [];
     let insertion: InsertionResult | null = null;
     let cleanup: CleanupResult | null = null;
 
-    // insertion – isolated so a failure here won't block cleanup
     try {
       insertion = await this.insertGitHubExtensions();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`insertion failed: ${msg}`);
-      console.error("[hourly] Insertion step failed", err);
+      console.error("[hourly] Insertion step failed", err); /// replace to logging 
     }
 
-    // cleanup – runs regardless of insertion outcome
     try {
       cleanup = await this.cleanup();
     } catch (err) {
@@ -103,8 +89,6 @@ export class TwentyFourHourAutomation {
     return { insertion, cleanup, errors };
   }
 
-  // ── Daily job: retrieve extensions for the 24-hour cycle ────────────────
-
   async runDailyJob(): Promise<DailyJobResult> {
     try {
       const result = await this.getTwentyFourHourExtensions();
@@ -114,17 +98,14 @@ export class TwentyFourHourAutomation {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[daily] Extension retrieval failed", err);
-      return { success: false, count: 0, error: msg };
+      return { success: false, count: 0, error: msg }; // replace menggunakna logging
     }
-  }
-
-  // ── Cron scheduler ──────────────────────────────────────────────────────
+  } ///  tambahkan untuk push ke label 
 
   startCronJobs() {
-    // Every hour – insertion + cleanup
     this.hourlyCron = Bun.cron("0 * * * *", async () => {
       const started = Date.now();
-      console.log(`[hourly] Extension automation started at ${new Date().toISOString()}`);
+      console.log(`[hourly] Extension automation started at ${new Date().toISOString()}`); // logging
 
       const result = await this.runHourlyJob();
 
@@ -137,13 +118,12 @@ export class TwentyFourHourAutomation {
         skipped: result.insertion?.skipped ?? 0,
         deleted: result.cleanup?.deleted ?? 0,
         errors: result.errors.length > 0 ? result.errors : undefined,
-      });
+      }); // logging
     });
 
-    // Every day at midnight – retrieve 24-hour extension data
     this.dailyCron = Bun.cron("0 0 * * *", async () => {
       const started = Date.now();
-      console.log(`[daily] Extension export started at ${new Date().toISOString()}`);
+      console.log(`[daily] Extension export started at ${new Date().toISOString()}`); // logging
 
       const result = await this.runDailyJob();
 
@@ -153,15 +133,13 @@ export class TwentyFourHourAutomation {
         success: result.success,
         count: result.count,
         error: result.error,
-      });
+      }); // logging
     });
 
     console.log(
       `[cron] Scheduled hourly (0 * * * *) and daily (0 0 * * *) jobs for user ${this.userId}`,
-    );
+    ); // logging
   }
-
-  // ── Graceful shutdown ───────────────────────────────────────────────────
 
   stopCronJobs() {
     this.hourlyCron?.stop();

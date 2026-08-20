@@ -26,3 +26,6 @@ const shutdown = () => {
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
+
+
+/// ini adalh file yang gak diperlukan karan kita akan secara otomatis mengambil langsung variable 24H automation dan memanggilnya di file tersebut biar dia jalan otomatis gitu tanpa perlu kita 
