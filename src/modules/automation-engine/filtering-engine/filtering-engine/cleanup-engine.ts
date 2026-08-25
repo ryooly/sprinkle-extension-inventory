@@ -7,4 +7,4 @@ export async function cleanupStaleExtensions() {
 }
 
 
-// need to be improved in return area so loging can give better informtation
+// need to be improved in return area so loging can give better informtationcz

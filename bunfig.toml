@@ -1,0 +1,9 @@
+# Bun configuration – used by `bun test` to resolve path aliases
+# defined in tsconfig.json.
+
+[install]
+# no special install overrides
+
+[test]
+# Preload dotenv so env vars are available during tests
+preload = []

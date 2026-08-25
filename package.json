@@ -4,7 +4,10 @@
   "scripts": {
     "dev": "bun run src/modules/auth/index.ts",
     "migrate": "bun run src/modules/auth/db/migrate.ts",
-    "automation": "bun run src/modules/twentyFourHour/index.ts"
+    "automation": "bun run src/modules/twentyFourHour/index.ts",
+    "test": "bun test tests/",
+    "test:auth": "bun test tests/auth.test.ts",
+    "test:automation": "bun test tests/automation.test.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
