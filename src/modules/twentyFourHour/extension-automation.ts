@@ -5,7 +5,7 @@ import { cleanupStaleExtensions } from "@/modules/automation-engine/filtering-en
 import {
   getExtensions,
   type EngineResult,
-} from "@/modules/automation-engine/algorthm-engine/algorithm-engine/algorithm-services";
+} from "@/modules/automation-engine/algorithm-engine/algorithm-engine/algorithm-services";
 
 export interface InsertionResult {
   isPremium: boolean;
@@ -75,7 +75,7 @@ export class TwentyFourHourAutomation {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`insertion failed: ${msg}`);
-      console.error("[hourly] Insertion step failed", err); /// replace to logging 
+      console.error("[hourly] Insertion step failed", err); /// replace to logging
     }
 
     try {
@@ -100,12 +100,14 @@ export class TwentyFourHourAutomation {
       console.error("[daily] Extension retrieval failed", err);
       return { success: false, count: 0, error: msg }; // replace menggunakna logging
     }
-  } ///  tambahkan untuk push ke label 
+  } ///  tambahkan untuk push ke label
 
   startCronJobs() {
     this.hourlyCron = Bun.cron("0 * * * *", async () => {
       const started = Date.now();
-      console.log(`[hourly] Extension automation started at ${new Date().toISOString()}`); // logging
+      console.log(
+        `[hourly] Extension automation started at ${new Date().toISOString()}`,
+      ); // logging
 
       const result = await this.runHourlyJob();
 
@@ -123,7 +125,9 @@ export class TwentyFourHourAutomation {
 
     this.dailyCron = Bun.cron("0 0 * * *", async () => {
       const started = Date.now();
-      console.log(`[daily] Extension export started at ${new Date().toISOString()}`); // logging
+      console.log(
+        `[daily] Extension export started at ${new Date().toISOString()}`,
+      ); // logging
 
       const result = await this.runDailyJob();
 

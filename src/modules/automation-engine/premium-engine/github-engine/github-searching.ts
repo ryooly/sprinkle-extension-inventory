@@ -104,11 +104,15 @@ export async function fetchBrowserExtensions(
 
     const insertResult = await insertExtensionsFromGithub(results);
 
+    if (!insertResult.data) {
+      throw new AppError("Insert operation returned no data", 500);
+    }
+
     return {
       success: insertResult.success,
 
       data: {
-        insertResult: insertResult.data!,
+        insertResult: insertResult.data,
 
         data: results,
       },

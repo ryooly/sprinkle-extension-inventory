@@ -4,7 +4,6 @@ import {
   handleIncrementDownload,
   handleIncrementAmountDisplayed,
 } from "../controller/controller";
-import { AppError } from "@/middlewares/errorHandler";
 
 export const extensionMetricsRoutes = new Elysia({ prefix: "/extensions" })
   .post(

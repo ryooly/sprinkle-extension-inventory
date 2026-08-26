@@ -19,7 +19,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@elysia/jwt": "^1.4.2",
+    "@elysiajs/jwt": "^1.4.2",
+    "@octokit/rest": "^22.0.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",

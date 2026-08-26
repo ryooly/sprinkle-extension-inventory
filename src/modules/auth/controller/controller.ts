@@ -27,10 +27,20 @@ export class UserController {
   }
 
   static async beBuilderHandle(body: BeBuilderInput) {
-    return await UserService.beBuilder(body);
+    try {
+      return await UserService.beBuilder(body);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      throw new AppError("Failed to upgrade to builder", 500, { cause: err });
+    }
   }
 
   static async getByUsernameHandle(params: GetUserByUsernameInput) {
-    return await UserService.getByUsername(params);
+    try {
+      return await UserService.getByUsername(params);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      throw new AppError("Failed to get user by username", 500, { cause: err });
+    }
   }
 }

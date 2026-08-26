@@ -29,6 +29,12 @@ export class UserService {
 
     const refreshToken = token.generateRefreshToken(account.id);
 
+    await UserRepository.createNewToken({
+      accountId: account.id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
     return {
       success: true,
       token: accessToken,
@@ -86,7 +92,7 @@ export class UserService {
 
     return {
       success: true,
-      massage: "account successfully changed to builder account",
+      message: "account successfully changed to builder account",
     };
   }
 

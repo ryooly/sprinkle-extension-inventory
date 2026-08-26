@@ -1,9 +1,8 @@
 // middlewares/auth.middleware.ts
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
-import { cookie } from "@elysiajs/cookie";
 import { AppError } from "./errorHandler";
-import { db } from "../db";
+import { db } from "@/modules/auth/db/client";
 import { refreshTokens } from "@/modules/auth/db/schema";
 import { eq, and, gt } from "drizzle-orm";
 
@@ -14,10 +13,9 @@ export const authMiddleware = new Elysia()
       secret: process.env.JWT_SECRET!,
     }),
   )
-  .use(cookie())
-  .derive(async ({ jwt, cookie, setCookie, body, set }) => {
-    const accessToken = cookie.auth;
-    const accountId = cookie.accountId;
+  .derive(async ({ jwt, cookie, set }) => {
+    const accessToken = String(cookie.auth ?? "");
+    const accountId = String(cookie.accountId ?? "");
 
     if (accessToken) {
       const payload = await jwt.verify(accessToken);
@@ -46,15 +44,19 @@ export const authMiddleware = new Elysia()
     }
 
     const newAccessToken = await jwt.sign({
-      id: storedToken.accountId,
+      userId: storedToken.accountId,
+      exp: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
     });
 
-    setCookie("auth", newAccessToken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 60 * 60 * 24 * 7,
-      sameSite: "strict",
-    });
+    set.cookie = {
+      auth: {
+        value: newAccessToken,
+        httpOnly: true,
+        secure: true,
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "strict",
+      },
+    };
 
-    return { user: { id: storedToken.accountId } };
+    return { user: { userId: storedToken.accountId } };
   });

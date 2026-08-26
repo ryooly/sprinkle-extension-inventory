@@ -34,7 +34,7 @@ export async function handleIncrementDownload(
     return { success: true, data: updated };
   } catch (err) {
     if (err instanceof AppError) throw err;
-    throw new AppError(`Failed to increment views for "${id}"`, 500, {
+    throw new AppError(`Failed to increment downloads for "${id}"`, 500, {
       cause: err,
     });
   }

@@ -1,26 +1,35 @@
 import Elysia, { t } from "elysia";
 import { UserController } from "@/modules/auth/controller/controller";
-import { cookie } from "@elysiajs/cookie";
+import type {
+  RegisterInput,
+  LoginInput,
+  BeBuilderInput,
+  GetUserByUsernameInput,
+} from "@/modules/auth/schemas/auth-schema";
 
 export const userRoutes = new Elysia({ prefix: "/user" })
-  .use(cookie())
   .post(
     "/register",
-    async ({ body, setCookie }) => {
-      const { token, data } = await UserController.registerHandle(body);
+    async ({ body, set }) => {
+      const { token, data } = await UserController.registerHandle(
+        body as RegisterInput,
+      );
 
-      setCookie("auth", token, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 60 * 15,
-        sameSite: "strict",
-      });
-
-      setCookie("accountId", data.id, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
+      set.cookie = {
+        auth: {
+          value: token,
+          httpOnly: true,
+          secure: true,
+          maxAge: 60 * 15,
+          sameSite: "strict",
+        },
+        accountId: {
+          value: data.id,
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+        },
+      };
 
       return { success: true, data };
     },
@@ -35,21 +44,26 @@ export const userRoutes = new Elysia({ prefix: "/user" })
 
   .post(
     "/login",
-    async ({ body, setCookie }) => {
-      const { token, data } = await UserController.loginHandle(body);
+    async ({ body, set }) => {
+      const { token, data } = await UserController.loginHandle(
+        body as LoginInput,
+      );
 
-      setCookie("auth", token, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 60 * 15,
-        sameSite: "strict",
-      });
-
-      setCookie("accountId", data.id, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
+      set.cookie = {
+        auth: {
+          value: token,
+          httpOnly: true,
+          secure: true,
+          maxAge: 60 * 15,
+          sameSite: "strict",
+        },
+        accountId: {
+          value: data.id,
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+        },
+      };
 
       return { success: true, data };
     },
@@ -64,7 +78,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
   .patch(
     "/beBuilder",
     async ({ body }) => {
-      return await UserController.beBuilderHandle(body);
+      return await UserController.beBuilderHandle(body as BeBuilderInput);
     },
     {
       body: t.Object({
@@ -76,7 +90,9 @@ export const userRoutes = new Elysia({ prefix: "/user" })
   .get(
     "/getUserByUsername/:username",
     async ({ params }) => {
-      return await UserController.getByUsernameHandle(params);
+      return await UserController.getByUsernameHandle(
+        params as unknown as GetUserByUsernameInput,
+      );
     },
     {
       params: t.Object({

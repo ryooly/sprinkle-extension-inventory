@@ -5,8 +5,8 @@ import {
   varchar,
   integer,
   timestamp,
-} from 'drizzle-orm/pg-core';
-import { relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
+} from "drizzle-orm/pg-core";
+import { relations, InferSelectModel, InferInsertModel } from "drizzle-orm";
 
 export const roleEnum = pgEnum("role", ["users", "builder"]);
 
@@ -18,10 +18,10 @@ export const verifiedStatusEnum = pgEnum("verified_status", [
 export const accounts = pgTable("accounts", {
   id: uuid("id").defaultRandom().primaryKey(),
   username: varchar("username", { length: 50 }).notNull().unique(),
-  role: roleEnum("role").default("users").notNull(), 
-  isVerified: verifiedStatusEnum("is_verified").default("not_verified"), 
+  role: roleEnum("role").default("users").notNull(),
+  isVerified: verifiedStatusEnum("is_verified").default("not_verified"),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  password: varchar("password", { length: 255 }).notNull(), 
+  password: varchar("password", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -41,7 +41,7 @@ export const inventory = pgTable("inventory", {
   totalExtension: integer("total_extension").default(0).notNull(),
 });
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
+export const accountsRelations = relations(accounts, ({ one, many }) => ({
   saved: one(saved, {
     fields: [accounts.id],
     references: [saved.ownerId],
@@ -50,6 +50,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
     fields: [accounts.id],
     references: [inventory.ownerId],
   }),
+  refreshTokens: many(refreshTokens),
 }));
 
 export const savedRelations = relations(saved, ({ one }) => ({
@@ -75,7 +76,6 @@ export type NewSaved = InferInsertModel<typeof saved>;
 export type Inventory = InferSelectModel<typeof inventory>;
 export type NewInventory = InferInsertModel<typeof inventory>;
 
-
 export const refreshTokens = pgTable("refresh_tokens", {
   id: uuid("id").defaultRandom().primaryKey(),
   accountId: uuid("account_id")
@@ -89,3 +89,9 @@ export const refreshTokens = pgTable("refresh_tokens", {
 export type RefreshToken = InferSelectModel<typeof refreshTokens>;
 export type NewRefreshToken = InferInsertModel<typeof refreshTokens>;
 
+export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
+  account: one(accounts, {
+    fields: [refreshTokens.accountId],
+    references: [accounts.id],
+  }),
+}));

@@ -5,6 +5,7 @@ import {
   findPremiumExtensions,
 } from "../repository/repository";
 import { AppError } from "@/middlewares/errorHandler";
+import { config } from "config";
 
 export interface EngineResult<T> {
   success: boolean;
@@ -12,14 +13,14 @@ export interface EngineResult<T> {
   error?: string;
 }
 
-const API_BASE_URL = "http://localhost:3000"; // sesuaikan dengan base URL backend kamu
+const API_BASE_URL = config.apiBaseUrl;
 
 export async function getExtensions(): Promise<EngineResult<unknown>> {
   try {
     const data = await findExtensions();
 
     for (const extension of data) {
-      await incrementAmountDisplayed(extension.id); // lemah aku rasa akan berat kalo di push satu per satu gitu 
+      await incrementAmountDisplayed(extension.id); // lemah aku rasa akan berat kalo di push satu per satu gitu
     }
 
     return { success: true, data };
@@ -27,7 +28,7 @@ export async function getExtensions(): Promise<EngineResult<unknown>> {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions`, 500, { cause: err });
   }
-}  
+}
 
 export async function getManualExtension(): Promise<EngineResult<unknown>> {
   try {
@@ -118,5 +119,3 @@ export async function incrementDownload(id: string) {
 }
 
 /// NOT FINSIHED YET - UNDER DEVELOPMENT DIPERLUKAN SEBAUH CARA AGAR PENGAMBILANNYA MERATA DAN SEMUA KENA.
-
-

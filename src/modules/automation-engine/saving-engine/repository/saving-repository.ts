@@ -16,7 +16,6 @@ import type {
 import { AppError } from "@/middlewares/errorHandler";
 import type { Extension } from "../../db/schema";
 
-
 export interface CreateExtensionPayload extends NewExtension {
   categories: Category[];
   permissions?: BrowserPermission[];
@@ -38,10 +37,12 @@ export async function createExtension(payload: CreateExtensionPayload) {
       .returning();
 
     if (categories.length > 0) {
-      const categoryRows: NewExtensionCategory[] = categories.map((category) => ({
-        extensionId: extension.id,
-        category,
-      }));
+      const categoryRows: NewExtensionCategory[] = categories.map(
+        (category) => ({
+          extensionId: extension.id,
+          category,
+        }),
+      );
 
       await tx.insert(extensionCategories).values(categoryRows);
     }
@@ -71,17 +72,20 @@ export async function updateExtension(payload: UpdateExtensionPayload) {
       .where(eq(extensions.id, id))
       .returning();
 
-    if (!updated) throw new AppError(`Extension with id "${id}" not found`, 500);
+    if (!updated)
+      throw new AppError(`Extension with id "${id}" not found`, 500);
 
     if (categories && categories.length > 0) {
       await tx
         .delete(extensionCategories)
         .where(eq(extensionCategories.extensionId, id));
 
-      const categoryRows: NewExtensionCategory[] = categories.map((category) => ({
-        extensionId: id,
-        category,
-      }));
+      const categoryRows: NewExtensionCategory[] = categories.map(
+        (category) => ({
+          extensionId: id,
+          category,
+        }),
+      );
 
       await tx.insert(extensionCategories).values(categoryRows);
     }
@@ -118,9 +122,7 @@ export async function findExtensionByNameAndDeveloper(
   const [extension] = await db
     .select()
     .from(extensions)
-    .where(
-      and(eq(extensions.name, name), eq(extensions.developer, developer)),
-    )
+    .where(and(eq(extensions.name, name), eq(extensions.developer, developer)))
     .limit(1);
 
   return extension ?? null;
@@ -158,9 +160,18 @@ export async function findExtensionsByCategory(
   return rows.map((row) => row.extension);
 }
 
-export async function findExtensionsByBrowser(browser: Browser): Promise<Extension[]> {
-  return db
+export async function findExtensionByRepoFullName(fullName: string) {
+  const [extension] = await db
     .select()
     .from(extensions)
-    .where(eq(extensions.browser, browser));
+    .where(eq(extensions.name, fullName))
+    .limit(1);
+
+  return extension ?? null;
+}
+
+export async function findExtensionsByBrowser(
+  browser: Browser,
+): Promise<Extension[]> {
+  return db.select().from(extensions).where(eq(extensions.browser, browser));
 }

@@ -1,7 +1,10 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
-import path from "path";
+import * as dotenv from "dotenv";
+import * as path from "node:path";
+
+dotenv.config();
 
 const url = process.env.DATABASE_URL;
 console.log("DATABASE_URL:", url);
