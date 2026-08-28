@@ -38,6 +38,7 @@ export class TwentyFourHourAutomation {
   constructor(private readonly userId: string) {}
 
   private async insertGitHubExtensions(): Promise<InsertionResult> {
+    // tambahkan jika cookie belum terisi maka isi dengan false
     const isPremium = await hasActiveSubscription(this.userId);
     const token = process.env.GITHUB_TOKEN;
 

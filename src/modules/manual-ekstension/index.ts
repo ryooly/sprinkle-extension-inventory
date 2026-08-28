@@ -1,0 +1,1 @@
+export { extensionRoutes } from "./routes/routes"
