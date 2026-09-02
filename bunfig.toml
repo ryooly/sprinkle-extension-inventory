@@ -6,4 +6,4 @@
 
 [test]
 # Preload dotenv so env vars are available during tests
-preload = []
+# (empty preload was invalid and broke `bun test`)

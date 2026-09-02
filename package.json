@@ -27,6 +27,7 @@
     "drizzle-orm": "^0.45.2",
     "elysia": "^1.4.28",
     "jsonwebtoken": "^9.0.3",
+    "midtrans-client": "^1.4.3",
     "pg": "^8.21.0",
     "zod": "^4.4.3"
   }
