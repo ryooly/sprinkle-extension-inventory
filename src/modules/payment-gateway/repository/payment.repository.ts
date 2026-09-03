@@ -45,10 +45,7 @@ export async function getUserSubscription(userId: string) {
     .select()
     .from(subscriptions)
     .where(
-      and(
-        eq(subscriptions.userId, userId),
-        eq(subscriptions.status, "active")
-      )
+      and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")),
     );
 
   return subscription ?? null;
@@ -96,7 +93,11 @@ export async function updatePaymentStatus(
 ) {
   const [payment] = await db
     .update(payments)
-    .set({ status, ...(paymentMethod && { paymentMethod }), updatedAt: new Date() })
+    .set({
+      status,
+      ...(paymentMethod && { paymentMethod }),
+      updatedAt: new Date(),
+    })
     .where(eq(payments.id, paymentId))
     .returning();
   return payment;
@@ -121,6 +122,5 @@ export async function refundAndCancel(
     return updatedPayment;
   });
 }
-
 
 // Massage (ubah status valudation dengan mebuat vairable berisi statusnya jadi kita gak perlu lagi yanng namanya menuliskan ulang)

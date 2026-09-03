@@ -9,7 +9,7 @@ export const paymentRoutes = new Elysia({ prefix: "/payment" })
     async ({ body, user }) => {
       return await PaymentController.createHandle({
         planId: body.planId,
-        userId: user.id,
+        userId: user.userId,
       });
     },
     {
@@ -24,7 +24,7 @@ export const paymentRoutes = new Elysia({ prefix: "/payment" })
     async ({ body, user }) => {
       return await PaymentController.refundHandle({
         paymentId: body.paymentId,
-        userId: user.id,
+        userId: user.userId,
       });
     },
     {

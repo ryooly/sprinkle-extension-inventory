@@ -18,8 +18,8 @@ import { authMiddleware } from "@/middlewares/auth-middleware";
 import { builderMiddleware } from "@/middlewares/builder-middlewares";
 
 export const extensionRoutes = new Elysia({ prefix: "/extensions" })
-  .use(builderMiddleware)
   .use(authMiddleware)
+  .use(builderMiddleware)
   .post(
     "/creating",
     async ({ body }) => {
@@ -60,7 +60,7 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
   )
 
   .get(
-    "/search",
+    "/search/by-name",
     async ({ query }) => {
       const result = await handleSearchExtensionsByName(query.name);
       return result;
@@ -69,7 +69,7 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
   )
 
   .post(
-    "/search",
+    "/search/by-category",
     async ({ body }) => {
       const result = await handleSearchExtensionsByCategory(body.category);
       return result;
@@ -82,7 +82,7 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
   )
 
   .post(
-    "/search",
+    "/search/by-browser",
     async ({ body }) => {
       const result = await handleSearchExtensionsByBrowser(body.browser);
       return result;
@@ -93,4 +93,3 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
       }),
     },
   );
-

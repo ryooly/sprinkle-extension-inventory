@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { randomUUID } from "crypto";
 import { config } from "config";
 
 export const token = {
@@ -9,8 +10,6 @@ export const token = {
   },
 
   generateRefreshToken(userId: string) {
-    return jwt.sign({ userId }, config.jwtSecret, {
-      expiresIn: "7d",
-    });
+    return randomUUID();
   },
 };

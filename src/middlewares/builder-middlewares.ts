@@ -4,7 +4,7 @@ import { AppError } from "./errorHandler";
 
 type AuthContext = {
   user?: {
-    id: string;
+    userId: string;
   };
 };
 

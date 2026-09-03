@@ -75,7 +75,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
     },
   )
 
-  .patch(
+  .patch( // nanti menggunakan cooked aja sehingga verifikasi hanya jadi pelengkap aja (tidak perlu)
     "/beBuilder",
     async ({ body }) => {
       return await UserController.beBuilderHandle(body as BeBuilderInput);
@@ -87,7 +87,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
     },
   )
 
-  .get(
+  .get( 
     "/getUserByUsername/:username",
     async ({ params }) => {
       return await UserController.getByUsernameHandle(

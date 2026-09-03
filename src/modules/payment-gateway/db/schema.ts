@@ -26,7 +26,7 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 
 export const planNameEnums = pgEnum("plan_name", ["basic", "pro", "premium"]);
 
-export const durationEnums = pgEnum("duration_enums", ["basic", "pro", "premium"]); 
+export const durationEnums = pgEnum("duration_enums", ["30", "90", "365"]);
 
 export const plans = pgTable("plans", {
   id: serial("id").primaryKey(),
