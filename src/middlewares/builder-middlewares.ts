@@ -14,7 +14,7 @@ export const builderMiddleware = new Elysia().derive(async (ctx) => {
     throw new AppError("Unauthorized", 401);
   }
 
-  const account = await UserRepository.findUserById({ id: user.id });
+  const account = await UserRepository.findUserById({ id: user.userId });
 
   if (!account) {
     throw new AppError("User not found", 401);
