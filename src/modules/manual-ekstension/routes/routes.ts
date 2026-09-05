@@ -65,7 +65,11 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
       const result = await handleSearchExtensionsByName(query.name);
       return result;
     },
-    { query: t.Object({ name: t.String() }) },
+    {
+      query: t.Object({
+        name: t.String({ minLength: 1, maxLength: 100 }),
+      }),
+    },
   )
 
   .post(

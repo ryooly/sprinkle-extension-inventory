@@ -11,7 +11,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
   .post(
     "/register",
     async ({ body, set }) => {
-      const { token, data } = await UserController.registerHandle(
+      const { token, refreshToken, data } = await UserController.registerHandle(
         body as RegisterInput,
       );
 
@@ -27,6 +27,13 @@ export const userRoutes = new Elysia({ prefix: "/user" })
           value: data.id,
           httpOnly: true,
           secure: true,
+          sameSite: "strict",
+        },
+        refreshToken: {
+          value: refreshToken,
+          httpOnly: true,
+          secure: true,
+          maxAge: 60 * 60 * 24 * 7,
           sameSite: "strict",
         },
       };
@@ -45,7 +52,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
   .post(
     "/login",
     async ({ body, set }) => {
-      const { token, data } = await UserController.loginHandle(
+      const { token, refreshToken, data } = await UserController.loginHandle(
         body as LoginInput,
       );
 
@@ -63,6 +70,13 @@ export const userRoutes = new Elysia({ prefix: "/user" })
           secure: true,
           sameSite: "strict",
         },
+        refreshToken: {
+          value: refreshToken,
+          httpOnly: true,
+          secure: true,
+          maxAge: 60 * 60 * 24 * 7,
+          sameSite: "strict",
+        },
       };
 
       return { success: true, data };
@@ -75,7 +89,8 @@ export const userRoutes = new Elysia({ prefix: "/user" })
     },
   )
 
-  .patch( // nanti menggunakan cooked aja sehingga verifikasi hanya jadi pelengkap aja (tidak perlu)
+  .patch(
+    // nanti menggunakan cooked aja sehingga verifikasi hanya jadi pelengkap aja (tidak perlu)
     "/beBuilder",
     async ({ body }) => {
       return await UserController.beBuilderHandle(body as BeBuilderInput);
@@ -87,7 +102,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
     },
   )
 
-  .get( 
+  .get(
     "/getUserByUsername/:username",
     async ({ params }) => {
       return await UserController.getByUsernameHandle(

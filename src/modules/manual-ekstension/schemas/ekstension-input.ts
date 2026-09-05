@@ -23,7 +23,6 @@ export const verifiedSchema = z.enum(["verified", "not_verified"]);
 export const createExtensionSchema = z.object({
   name: z.string(),
   description: z.string(),
-  publishedBy: z.string(),
   developer: z.string(),
   extensionLink: z.string().url(),
   source: sourceSchema.optional(),

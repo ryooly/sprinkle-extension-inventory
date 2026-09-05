@@ -38,6 +38,7 @@ export class UserService {
     return {
       success: true,
       token: accessToken,
+      refreshToken,
       data: account,
     };
   }
@@ -71,6 +72,7 @@ export class UserService {
     return {
       success: true,
       token: accessToken,
+      refreshToken,
       data: existingAccount,
     };
   }

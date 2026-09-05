@@ -3,11 +3,13 @@
   "private": true,
   "scripts": {
     "dev": "bun run src/gateway/index.ts",
-    "migrate": "bun run src/modules/auth/db/migrate.ts",
+    "migrate": "bun run src/db/migrate.ts",
     "automation": "bun run src/modules/twentyFourHour/index.ts",
     "test": "bun test tests/",
     "test:auth": "bun test tests/auth.test.ts",
-    "test:automation": "bun test tests/automation.test.ts"
+    "test:automation": "bun test tests/automation.test.ts",
+    "test:search": "bun test tests/search.test.ts",
+    "test:middleware": "bun test tests/auth-middleware.test.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

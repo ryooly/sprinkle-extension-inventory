@@ -1,7 +1,9 @@
 // ── Shared test utilities ────────────────────────────────────────────────────
 // Isolated from the core backend – safe to delete entirely.
 
-const AUTH_BASE_URL = "http://localhost:3001";
+// The gateway (src/gateway/index.ts) serves all module routes, including
+// the /user/* auth routes, on this port.
+const AUTH_BASE_URL = "http://localhost:3000";
 
 interface ApiResponse<T = unknown> {
   status: number;
@@ -43,7 +45,9 @@ export async function apiRequest<T = unknown>(
     const [pair] = raw.split(";");
     const eqIdx = pair.indexOf("=");
     if (eqIdx > 0) {
-      responseCookies[pair.slice(0, eqIdx).trim()] = pair.slice(eqIdx + 1).trim();
+      responseCookies[pair.slice(0, eqIdx).trim()] = pair
+        .slice(eqIdx + 1)
+        .trim();
     }
   }
 

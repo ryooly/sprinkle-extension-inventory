@@ -14,6 +14,7 @@ import type {
   BrowserPermission,
 } from "../../db/schema";
 import { AppError } from "@/middlewares/errorHandler";
+import { escapeLikePattern } from "../../depends/sanitize";
 import type { Extension } from "../../db/schema";
 
 export interface CreateExtensionPayload extends NewExtension {
@@ -138,11 +139,20 @@ export async function getFetchedRepoByName(repoName: string) {
   return repo ?? null;
 }
 
+// Upper bound for name search results, so a broad term cannot return an
+// unbounded result set.
+export const MAX_SEARCH_RESULTS = 50;
+
 export async function findExtensionsByName(name: string): Promise<Extension[]> {
+  // `%`, `_` and `\` are escaped so the term matches literally instead of
+  // acting as a LIKE wildcard (a bare `%` would otherwise match every row).
+  const pattern = `%${escapeLikePattern(name)}%`;
+
   return db
     .select()
     .from(extensions)
-    .where(ilike(extensions.name, `%${name}%`));
+    .where(ilike(extensions.name, pattern))
+    .limit(MAX_SEARCH_RESULTS);
 }
 
 export async function findExtensionsByCategory(

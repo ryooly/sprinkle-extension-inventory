@@ -49,16 +49,25 @@ export async function removeExtension(id: string): Promise<Extension> {
 export async function searchExtensionsByName(
   name: string,
 ): Promise<Extension[]> {
-  const result = await repo.findExtensionsByName(name);
+  const term = name.trim();
+
+  // A blank term would build a `%%` pattern and match every row.
+  if (term.length === 0) {
+    throw new AppError("Search term must not be empty", 400);
+  }
+
+  const result = await repo.findExtensionsByName(term);
 
   if (!result.length) {
-    throw new AppError(`No extensions found with name "${name}"`, 404);
+    throw new AppError(`No extensions found with name "${term}"`, 404);
   }
 
   return result;
 }
 
-export async function searchExtensionsByCategory(category: CategoryInput): Promise<Extension[]> {
+export async function searchExtensionsByCategory(
+  category: CategoryInput,
+): Promise<Extension[]> {
   const result = await repo.findExtensionsByCategory(category);
 
   if (!result.length) {
@@ -66,9 +75,11 @@ export async function searchExtensionsByCategory(category: CategoryInput): Promi
   }
 
   return result;
-};
+}
 
-export async function searchExtensionsByBrowser(browser: BrowserInput): Promise<Extension[]> {
+export async function searchExtensionsByBrowser(
+  browser: BrowserInput,
+): Promise<Extension[]> {
   const result = await repo.findExtensionsByBrowser(browser);
 
   if (!result.length) {
@@ -76,4 +87,4 @@ export async function searchExtensionsByBrowser(browser: BrowserInput): Promise<
   }
 
   return result;
-};
+}

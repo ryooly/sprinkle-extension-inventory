@@ -25,4 +25,7 @@ export const builderMiddleware = new Elysia().derive(async (ctx) => {
   }
 
   return {};
-});
+})
+  // See auth-middleware.ts: `.as("scoped")` is required, otherwise this derive
+  // stays local to the plugin and never guards the routes that `.use()` it.
+  .as("scoped");
