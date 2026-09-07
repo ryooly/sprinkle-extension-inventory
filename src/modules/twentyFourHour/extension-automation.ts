@@ -7,6 +7,30 @@ import {
   type EngineResult,
 } from "@/modules/automation-engine/algorithm-engine/algorithm-engine/algorithm-services";
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+
+const configuredFreeUserId = process.env.FREE_USER_ID?.trim() ?? "";
+ 
+export const FREE_USER_ID = UUID_PATTERN.test(configuredFreeUserId)
+  ? configuredFreeUserId
+  : NIL_UUID;
+
+export function resolveUserId(
+  cookie?: string | { accountId?: unknown } | null,
+): string {
+  const raw = typeof cookie === "string" ? cookie : cookie?.accountId;
+  const value = (typeof raw === "string" ? raw : String(raw ?? "")).trim();
+
+  return UUID_PATTERN.test(value) ? value : FREE_USER_ID;
+}
+
+export function isFreeUser(userId: string): boolean {
+  return userId === FREE_USER_ID;
+}
+
 export interface InsertionResult {
   isPremium: boolean;
   inserted: number;
@@ -35,11 +59,20 @@ export class TwentyFourHourAutomation {
   private hourlyCron: { stop: () => void } | null = null;
   private dailyCron: { stop: () => void } | null = null;
 
-  constructor(private readonly userId: string) {}
+  private readonly userId: string;
+
+  constructor(cookie?: string | { accountId?: unknown } | null) {
+    this.userId = resolveUserId(cookie);
+  }
+
+  get isFreeUser(): boolean {
+    return this.userId === FREE_USER_ID;
+  }
 
   private async insertGitHubExtensions(): Promise<InsertionResult> {
-    // tambahkan jika cookie belum terisi maka isi dengan false
-    const isPremium = await hasActiveSubscription(this.userId);
+    const isPremium = this.isFreeUser
+      ? false
+      : await hasActiveSubscription(this.userId);
     const token = process.env.GITHUB_TOKEN;
 
     const result = isPremium
@@ -142,7 +175,11 @@ export class TwentyFourHourAutomation {
     });
 
     console.log(
-      `[cron] Scheduled hourly (0 * * * *) and daily (0 0 * * *) jobs for user ${this.userId}`,
+      `[cron] Scheduled hourly (0 * * * *) and daily (0 0 * * *) jobs for ${
+        this.isFreeUser
+          ? "the free tier (no logged-in user)"
+          : `user ${this.userId}`
+      }`,
     ); // logging
   }
 

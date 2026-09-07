@@ -4,7 +4,7 @@
 // Prerequisites:
 //   1. Database migrated                (bun run migrate)
 //   2. GITHUB_TOKEN set in .env         (for GitHub API calls)
-//   3. AUTOMATION_USER_ID set in .env   (valid account UUID in the database)
+//   3. AUTOMATION_USER_ID in .env       (optional – falls back to FREE_USER_ID)
 //
 // Run:  bun test tests/automation.test.ts
 
@@ -12,14 +12,16 @@ import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import * as dotenv from "dotenv";
 import {
   TwentyFourHourAutomation,
+  FREE_USER_ID,
+  isFreeUser,
+  resolveUserId,
   type HourlyJobResult,
   type DailyJobResult,
 } from "../src/modules/twentyFourHour/extension-automation";
 
 dotenv.config();
 
-const TEST_USER_ID =
-  process.env.AUTOMATION_USER_ID ?? "00000000-0000-0000-0000-000000000000";
+const TEST_USER_ID = resolveUserId(process.env.AUTOMATION_USER_ID);
 
 let automation: TwentyFourHourAutomation;
 
@@ -30,6 +32,65 @@ describe("TwentyFourHourAutomation – instantiation", () => {
     automation = new TwentyFourHourAutomation(TEST_USER_ID);
     expect(automation).toBeDefined();
     expect(automation).toBeInstanceOf(TwentyFourHourAutomation);
+  });
+});
+
+// ── Free userId fallback (visitors with no login/registration) ──────────────
+
+describe("free userId fallback", () => {
+  const REAL_USER_ID = "3f2504e0-4f89-11d3-9a0c-0305e82c3301";
+
+  test("FREE_USER_ID is a valid uuid the module itself accepts", () => {
+    // Round-trips through the production validator instead of duplicating the
+    // uuid pattern here, so this assertion cannot drift from the real one.
+    expect(resolveUserId(FREE_USER_ID)).toBe(FREE_USER_ID);
+    expect(isFreeUser(FREE_USER_ID)).toBe(true);
+  });
+
+  test("an unset or empty FREE_USER_ID env var degrades to the nil uuid", () => {
+    const configured = process.env.FREE_USER_ID?.trim() ?? "";
+
+    if (configured === "") {
+      expect(FREE_USER_ID).toBe("00000000-0000-0000-0000-000000000000");
+    } else {
+      expect(resolveUserId(FREE_USER_ID)).toBe(FREE_USER_ID);
+    }
+  });
+
+  test("an empty cookie resolves to the free userId", () => {
+    expect(resolveUserId({})).toBe(FREE_USER_ID);
+    expect(resolveUserId({ accountId: "" })).toBe(FREE_USER_ID);
+    expect(resolveUserId(null)).toBe(FREE_USER_ID);
+    expect(resolveUserId(undefined)).toBe(FREE_USER_ID);
+    expect(resolveUserId("")).toBe(FREE_USER_ID);
+  });
+
+  test("a malformed accountId resolves to the free userId", () => {
+    expect(resolveUserId({ accountId: "not-a-uuid" })).toBe(FREE_USER_ID);
+    expect(resolveUserId({ accountId: "'; DROP TABLE accounts;--" })).toBe(
+      FREE_USER_ID,
+    );
+  });
+
+  test("a logged-in accountId cookie is preserved", () => {
+    expect(resolveUserId({ accountId: REAL_USER_ID })).toBe(REAL_USER_ID);
+    expect(resolveUserId(REAL_USER_ID)).toBe(REAL_USER_ID);
+  });
+
+  test("an Elysia-style cookie object is unwrapped via String()", () => {
+    const jar = { accountId: { toString: () => REAL_USER_ID } };
+    expect(resolveUserId(jar)).toBe(REAL_USER_ID);
+  });
+
+  test("isFreeUser only matches the free userId", () => {
+    expect(isFreeUser(FREE_USER_ID)).toBe(true);
+    expect(isFreeUser(REAL_USER_ID)).toBe(false);
+  });
+
+  test("the class falls back to the free tier without a userId", () => {
+    expect(new TwentyFourHourAutomation().isFreeUser).toBe(true);
+    expect(new TwentyFourHourAutomation("").isFreeUser).toBe(true);
+    expect(new TwentyFourHourAutomation(REAL_USER_ID).isFreeUser).toBe(false);
   });
 });
 
@@ -72,13 +133,23 @@ describe("TwentyFourHourAutomation – runHourlyJob", () => {
   });
 
   test("should collect errors instead of throwing", async () => {
-    // Use a clearly invalid user ID to trigger errors
-    const badAutomation = new TwentyFourHourAutomation("invalid-uuid");
-    const result = await badAutomation.runHourlyJob();
+    const result = await automation.runHourlyJob();
 
     // Should not throw – errors are collected
     expect(result).toBeDefined();
-    expect(result.insertion).toBeNull();
+    expect(Array.isArray(result.errors)).toBe(true);
+  });
+
+  test("an invalid user id degrades to the free tier instead of erroring", async () => {
+    const badAutomation = new TwentyFourHourAutomation("invalid-uuid");
+    expect(badAutomation.isFreeUser).toBe(true);
+
+    const result = await badAutomation.runHourlyJob();
+
+    expect(result).toBeDefined();
+    if (result.insertion) {
+      expect(result.insertion.isPremium).toBe(false);
+    }
   });
 });
 
