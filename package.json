@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run src/gateway/index.ts",
+    "cli": "bun run cli/index.ts",
+    "smoke": "bun run cli/index.ts smoke",
     "migrate": "bun run src/db/migrate.ts",
     "automation": "bun run src/modules/twentyFourHour/index.ts",
     "test": "bun test tests/",

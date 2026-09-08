@@ -11,7 +11,7 @@ export { TwentyFourHourAutomation, FREE_USER_ID, isFreeUser, resolveUserId };
 dotenv.config();
 
 if (import.meta.main) {
-  const userId = resolveUserId(process.env.AUTOMATION_USER_ID);
+  const userId = resolveUserId(process.env.AUTOMATION_USER_ID); // ganti menjadi userId melalui database
 
   const automation = new TwentyFourHourAutomation(userId);
   automation.startCronJobs();

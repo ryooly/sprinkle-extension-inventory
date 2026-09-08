@@ -12,7 +12,7 @@ const UUID_PATTERN =
 
 const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 
-const configuredFreeUserId = process.env.FREE_USER_ID?.trim() ?? "";
+const configuredFreeUserId = process.env.FREE_USER_ID?.trim() ?? ""; // ganti database
  
 export const FREE_USER_ID = UUID_PATTERN.test(configuredFreeUserId)
   ? configuredFreeUserId
