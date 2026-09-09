@@ -2,18 +2,18 @@ import * as dotenv from "dotenv";
 import {
   TwentyFourHourAutomation,
   FREE_USER_ID,
-  isFreeUser,
-  resolveUserId,
+  resolveUserKey,
 } from "./extension-automation";
+import { engineKeys as key } from "./automation.depends";
 
 export { TwentyFourHourAutomation, FREE_USER_ID, isFreeUser, resolveUserId };
 
 dotenv.config();
 
 if (import.meta.main) {
-  const userId = resolveUserId(process.env.AUTOMATION_USER_ID); // ganti menjadi userId melalui database
+  const userId = resolveUserKey(key); // ganti menjadi userId melalui database
 
-  const automation = new TwentyFourHourAutomation(userId);
+  const automation = new TwentyFourHourAutomation();
   automation.startCronJobs();
 
   console.log(
