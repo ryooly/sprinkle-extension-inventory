@@ -7,72 +7,47 @@ import {
   type EngineResult,
 } from "@/modules/automation-engine/algorithm-engine/algorithm-engine/algorithm-services";
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { engineKeys as permanentKey } from "./automation.depends";
 
-const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+import {
+  InsertionResult,
+  CleanupResult,
+  HourlyJobResult,
+  DailyJobResult,
+} from "./automation-type";
+import { UUID_PATTERN, NIL_UUID } from "./automation-type";
 
-const configuredFreeUserId = process.env.FREE_USER_ID?.trim() ?? ""; // ganti database
+
+const configuredFreeUserId = permanentKey ?? ""; 
  
 export const FREE_USER_ID = UUID_PATTERN.test(configuredFreeUserId)
   ? configuredFreeUserId
   : NIL_UUID;
 
-export function resolveUserId(
-  cookie?: string | { accountId?: unknown } | null,
-): string {
-  const raw = typeof cookie === "string" ? cookie : cookie?.accountId;
-  const value = (typeof raw === "string" ? raw : String(raw ?? "")).trim();
+export function resolveUserKey(key?: string | null): string {
+  const value = (key ?? "").trim();
 
   return UUID_PATTERN.test(value) ? value : FREE_USER_ID;
 }
 
-export function isFreeUser(userId: string): boolean {
-  return userId === FREE_USER_ID;
-}
+let login = ""
+const guess = FREE_USER_ID
 
-export interface InsertionResult {
-  isPremium: boolean;
-  inserted: number;
-  failed: number;
-  skipped: number;
-  failures: Array<{ name: string; reason: string }>;
-}
-
-export interface CleanupResult {
-  deleted: number;
-}
-
-export interface HourlyJobResult {
-  insertion: InsertionResult | null;
-  cleanup: CleanupResult | null;
-  errors: string[];
-}
-
-export interface DailyJobResult {
-  success: boolean;
-  count: number;
-  error?: string;
-}
 
 export class TwentyFourHourAutomation {
   private hourlyCron: { stop: () => void } | null = null;
   private dailyCron: { stop: () => void } | null = null;
 
-  private readonly userId: string;
-
-  constructor(cookie?: string | { accountId?: unknown } | null) {
-    this.userId = resolveUserId(cookie);
-  }
-
-  get isFreeUser(): boolean {
-    return this.userId === FREE_USER_ID;
-  }
-
-  private async insertGitHubExtensions(): Promise<InsertionResult> {
-    const isPremium = this.isFreeUser
+  private async insertGitHubExtensions(key): Promise<InsertionResult> {
+    const isGuest = key
+    const isPremium = key
       ? false
-      : await hasActiveSubscription(this.userId);
+      : await hasActiveSubscription(key);
+
+    if (isGuest) {
+      login = key
+    }
+
     const token = process.env.GITHUB_TOKEN;
 
     const result = isPremium
@@ -104,8 +79,14 @@ export class TwentyFourHourAutomation {
     let insertion: InsertionResult | null = null;
     let cleanup: CleanupResult | null = null;
 
+    import { engineKeys as updateKey } from "./automation.depends";
+
+    let key = resolveUserKey(updateKey)
+
+    let isFree = key === FREE_USER_ID;
+
     try {
-      insertion = await this.insertGitHubExtensions();
+      insertion = await this.insertGitHubExtensions(isFree);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`insertion failed: ${msg}`);
@@ -176,9 +157,9 @@ export class TwentyFourHourAutomation {
 
     console.log(
       `[cron] Scheduled hourly (0 * * * *) and daily (0 0 * * *) jobs for ${
-        this.isFreeUser
+        login
           ? "the free tier (no logged-in user)"
-          : `user ${this.userId}`
+          : `user ${guess}`
       }`,
     ); // logging
   }
