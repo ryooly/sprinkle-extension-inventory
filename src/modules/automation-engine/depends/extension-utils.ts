@@ -46,6 +46,28 @@ export function isValidGithubZipUrl(url: string): boolean {
   }
 }
 
+/**
+ * Inverse of `buildGithubZipUrl`: recover the browsable repo page URL and the
+ * default branch from a stored GitHub archive (zip) link. Used by the premium
+ * engine, which re-analyses already-stored extensions by their link instead of
+ * searching GitHub again.
+ */
+export function parseGithubZipUrl(
+  url: string,
+): { repoUrl: string; defaultBranch: string } | null {
+  const match =
+    /^(https:\/\/github\.com\/[^/]+\/[^/]+)\/archive\/refs\/heads\/([^/]+)\.zip$/.exec(
+      url.trim(),
+    );
+
+  if (!match) return null;
+
+  return {
+    repoUrl: match[1],
+    defaultBranch: decodeURIComponent(match[2]),
+  };
+}
+
 export function sanitizeCategories(categories: unknown): Category[] {
   if (!Array.isArray(categories)) return ["other"];
 
@@ -59,9 +81,7 @@ export function sanitizeCategories(categories: unknown): Category[] {
 
 export function validateExtensionRepo(
   repo: ExtensionRepo,
-):
-  | { valid: true; data: ExtensionRepo }
-  | { valid: false; reason: string } {
+): { valid: true; data: ExtensionRepo } | { valid: false; reason: string } {
   const name = repo.name?.trim();
   const description = repo.description?.trim();
   const publisher = repo.publisher?.trim();

@@ -2,7 +2,6 @@ import {
   findExtensions,
   incrementAmountDisplayed,
   findUserExtensions,
-  findPremiumExtensions,
 } from "../repository/repository";
 import { AppError } from "@/middlewares/errorHandler";
 import { config } from "config";
@@ -42,23 +41,6 @@ export async function getManualExtension(): Promise<EngineResult<unknown>> {
   } catch (err) {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch extensions`, 500, { cause: err });
-  }
-}
-
-export async function getPremiumEkstension(): Promise<EngineResult<unknown>> {
-  try {
-    const data = await findPremiumExtensions();
-
-    for (const extension of data) {
-      await incrementAmountDisplayed(extension.id);
-    }
-
-    return { success: true, data };
-  } catch (err) {
-    if (err instanceof AppError) throw err;
-    throw new AppError(`Failed to fetch premium extensions`, 500, {
-      cause: err,
-    });
   }
 }
 

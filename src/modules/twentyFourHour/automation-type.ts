@@ -1,7 +1,4 @@
-export type ExtensionTier = "basic" | "premium";
-
 export interface InsertionResult {
-  tier: ExtensionTier;
   inserted: number;
   failed: number;
   skipped: number;
@@ -13,8 +10,7 @@ export interface CleanupResult {
 }
 
 export interface HourlyJobResult {
-  basic: InsertionResult | null;
-  premium: InsertionResult | null;
+  insertion: InsertionResult | null;
   cleanup: CleanupResult | null;
   errors: string[];
 }

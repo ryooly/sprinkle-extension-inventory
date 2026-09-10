@@ -1,10 +1,10 @@
 // ── TwentyFourHour Automation Tests ─────────────────────────────────────────
 // Tests the automation class methods directly (no HTTP layer needed).
 //
-// Option B architecture: the automation is a pure *global generator*. It has
-// no user/tier context; each hourly run refreshes both the `basic` and
-// `premium` pools in the shared extensions table. Tiering happens later, at
-// the delivery/API layer.
+// Option B architecture: the automation is a pure *global generator*. It has no
+// user/tier context; each hourly run refreshes the shared `extensions` pool with
+// basic extensions. Premium is not generated here — it is an on-demand delivery
+// option (AI enrichment) anchored to the dailyShowcase module.
 //
 // Prerequisites:
 //   1. Database migrated                (bun run migrate)
@@ -45,30 +45,20 @@ describe("TwentyFourHourAutomation – runHourlyJob", () => {
     const result: HourlyJobResult = await automation.runHourlyJob();
 
     // Top-level shape
-    expect(result).toHaveProperty("basic");
-    expect(result).toHaveProperty("premium");
+    expect(result).toHaveProperty("insertion");
     expect(result).toHaveProperty("cleanup");
     expect(result).toHaveProperty("errors");
     expect(Array.isArray(result.errors)).toBe(true);
   });
 
-  test("basic and premium insertion results should be tagged with their tier", async () => {
+  test("insertion result should have the expected fields when successful", async () => {
     const result = await automation.runHourlyJob();
 
-    if (result.basic) {
-      expect(result.basic.tier).toBe("basic");
-      expect(typeof result.basic.inserted).toBe("number");
-      expect(typeof result.basic.failed).toBe("number");
-      expect(typeof result.basic.skipped).toBe("number");
-      expect(Array.isArray(result.basic.failures)).toBe(true);
-    }
-
-    if (result.premium) {
-      expect(result.premium.tier).toBe("premium");
-      expect(typeof result.premium.inserted).toBe("number");
-      expect(typeof result.premium.failed).toBe("number");
-      expect(typeof result.premium.skipped).toBe("number");
-      expect(Array.isArray(result.premium.failures)).toBe(true);
+    if (result.insertion) {
+      expect(typeof result.insertion.inserted).toBe("number");
+      expect(typeof result.insertion.failed).toBe("number");
+      expect(typeof result.insertion.skipped).toBe("number");
+      expect(Array.isArray(result.insertion.failures)).toBe(true);
     }
   });
 

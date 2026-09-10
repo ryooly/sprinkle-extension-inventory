@@ -1,5 +1,4 @@
 import { fetchBrowserExtensions as fetchBasicExtensions } from "@/modules/automation-engine/github-explorer/api-engine";
-import { fetchBrowserExtensions as fetchPremiumExtensions } from "@/modules/automation-engine/premium-engine/github-engine/github-searching";
 import { cleanupStaleExtensions } from "@/modules/automation-engine/filtering-engine/filtering-engine/cleanup-engine";
 import {
   getExtensions,
@@ -8,7 +7,6 @@ import {
 import { recordDailyShowcase } from "@/modules/dailyShowcase/services/showcase-service";
 
 import type {
-  ExtensionTier,
   InsertionResult,
   CleanupResult,
   HourlyJobResult,
@@ -18,33 +16,28 @@ import type {
 /**
  * Option B architecture: this is a pure *global generator*.
  *
- * It has no notion of users or tiers at generation time. On every hourly run
- * it refreshes BOTH pools in the shared `extensions` table:
- *   - basic   -> tagged `extensionStatus: "basic"`
- *   - premium -> tagged `extensionStatus: "premium"` (via the AI engine)
+ * It has no notion of users or tiers at generation time. Each hourly run keeps
+ * the shared `extensions` pool fresh with basic extensions (tagged
+ * `extensionStatus: "basic"`) and cleans up stale ones; the daily run records
+ * the showcased set into the `daily_showcase` table.
  *
- * Which pool a given visitor sees (guest/free vs premium) is decided later, at
- * the delivery/API layer, from that requester's own subscription. See
- * `getExtensions()` / `getPremiumEkstension()` in the algorithm-services.
+ * Premium is NOT generated here. It is an on-demand delivery option anchored to
+ * the dailyShowcase module: when a verified premium user requests it, the AI
+ * brain re-analyses the already-stored extensions' links and returns a richer
+ * format. See `getPremiumShowcase()` in the dailyShowcase service.
  */
 export class TwentyFourHourAutomation {
   private hourlyCron: { stop: () => void } | null = null;
   private dailyCron: { stop: () => void } | null = null;
 
-  private async insertExtensions(
-    tier: ExtensionTier,
-  ): Promise<InsertionResult> {
+  private async insertExtensions(): Promise<InsertionResult> {
     const token = process.env.GITHUB_TOKEN;
 
-    const result =
-      tier === "premium"
-        ? await fetchPremiumExtensions({ token })
-        : await fetchBasicExtensions({ token });
+    const result = await fetchBasicExtensions({ token });
 
     const insertResult = result.data.insertResult;
 
     return {
-      tier,
       inserted: insertResult.inserted,
       failed: insertResult.failed,
       skipped: insertResult.skipped,
@@ -63,24 +56,15 @@ export class TwentyFourHourAutomation {
 
   async runHourlyJob(): Promise<HourlyJobResult> {
     const errors: string[] = [];
-    let basic: InsertionResult | null = null;
-    let premium: InsertionResult | null = null;
+    let insertion: InsertionResult | null = null;
     let cleanup: CleanupResult | null = null;
 
     try {
-      basic = await this.insertExtensions("basic");
+      insertion = await this.insertExtensions();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`basic insertion failed: ${msg}`);
-      console.error("[hourly] Basic insertion step failed", err); /// replace to logging
-    }
-
-    try {
-      premium = await this.insertExtensions("premium"); /// karena kebutuhan token jadi gw gakbisa asal tambahkan keduanya sekaligus
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`premium insertion failed: ${msg}`);
-      console.error("[hourly] Premium insertion step failed", err); /// replace to logging
+      errors.push(`insertion failed: ${msg}`);
+      console.error("[hourly] Insertion step failed", err); /// replace to logging
     }
 
     try {
@@ -91,7 +75,7 @@ export class TwentyFourHourAutomation {
       console.error("[hourly] Cleanup step failed", err);
     }
 
-    return { basic, premium, cleanup, errors };
+    return { insertion, cleanup, errors };
   }
 
   async runDailyJob(): Promise<DailyJobResult> {
@@ -130,10 +114,9 @@ export class TwentyFourHourAutomation {
       const duration = ((Date.now() - started) / 1000).toFixed(1);
       console.log("[hourly] Extension automation completed", {
         duration: `${duration}s`,
-        basicInserted: result.basic?.inserted ?? 0,
-        premiumInserted: result.premium?.inserted ?? 0,
-        failed: (result.basic?.failed ?? 0) + (result.premium?.failed ?? 0),
-        skipped: (result.basic?.skipped ?? 0) + (result.premium?.skipped ?? 0),
+        inserted: result.insertion?.inserted ?? 0,
+        failed: result.insertion?.failed ?? 0,
+        skipped: result.insertion?.skipped ?? 0,
         deleted: result.cleanup?.deleted ?? 0,
         errors: result.errors.length > 0 ? result.errors : undefined,
       }); // logging
@@ -157,7 +140,7 @@ export class TwentyFourHourAutomation {
     });
 
     console.log(
-      "[cron] Scheduled hourly (0 * * * *) basic+premium generation and daily (0 0 * * *) export jobs (global generator, no user context)",
+      "[cron] Scheduled hourly (0 * * * *) basic generation + cleanup and daily (0 0 * * *) showcase export (global generator, no user context)",
     ); // logging
   }
 
