@@ -1,10 +1,7 @@
-export const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+export type ExtensionTier = "basic" | "premium";
 
 export interface InsertionResult {
-  isPremium: boolean;
+  tier: ExtensionTier;
   inserted: number;
   failed: number;
   skipped: number;
@@ -16,7 +13,8 @@ export interface CleanupResult {
 }
 
 export interface HourlyJobResult {
-  insertion: InsertionResult | null;
+  basic: InsertionResult | null;
+  premium: InsertionResult | null;
   cleanup: CleanupResult | null;
   errors: string[];
 }

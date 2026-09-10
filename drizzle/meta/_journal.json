@@ -15,6 +15,13 @@
       "when": 1788355533250,
       "tag": "0001_bent_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789045852388,
+      "tag": "0002_ordinary_rictor",
+      "breakpoints": true
     }
   ]
 }

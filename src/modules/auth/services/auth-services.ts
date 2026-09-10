@@ -9,7 +9,6 @@ import {
   GetUserByUsernameInput,
 } from "@/modules/auth/schemas/auth-schema";
 import { AppError } from "@/middlewares/errorHandler";
-import { setEngineKeys } from "@/modules/twentyFourHour/automation.depends";
 
 export class UserService {
   static async register(body: RegisterInput) {
@@ -25,8 +24,6 @@ export class UserService {
       ...body,
       password: hashedPassword,
     });
-
-    setEngineKeys(account.id)
 
     const accessToken = token.generateAccessToken(account.id);
 
@@ -61,8 +58,6 @@ export class UserService {
     if (!isPasswordValid) {
       throw new AppError("Password doesn't match", 400);
     }
-
-    setEngineKeys(existingAccount.id)
 
     const accessToken = token.generateAccessToken(existingAccount.id);
 
