@@ -100,4 +100,3 @@ export async function incrementDownload(id: string) {
   }
 }
 
-/// NOT FINSIHED YET - UNDER DEVELOPMENT DIPERLUKAN SEBAUH CARA AGAR PENGAMBILANNYA MERATA DAN SEMUA KENA.

@@ -46,12 +46,6 @@ export function isValidGithubZipUrl(url: string): boolean {
   }
 }
 
-/**
- * Inverse of `buildGithubZipUrl`: recover the browsable repo page URL and the
- * default branch from a stored GitHub archive (zip) link. Used by the premium
- * engine, which re-analyses already-stored extensions by their link instead of
- * searching GitHub again.
- */
 export function parseGithubZipUrl(
   url: string,
 ): { repoUrl: string; defaultBranch: string } | null {

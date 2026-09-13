@@ -30,7 +30,6 @@ export async function insertShowcaseExtensions(
   return { inserted: rows.length };
 }
 
-/** Most recent showcase day on record (YYYY-MM-DD), or null when empty. */
 export async function getLatestShowcaseDate(): Promise<string | null> {
   const [row] = await db
     .select({
@@ -41,7 +40,6 @@ export async function getLatestShowcaseDate(): Promise<string | null> {
   return row?.showcaseDate ?? null;
 }
 
-/** Full extension rows showcased on a given day, newest first. */
 export async function findShowcaseByDate(showcaseDate: string) {
   return await db
     .select({ extension: extensions })
@@ -50,3 +48,6 @@ export async function findShowcaseByDate(showcaseDate: string) {
     .where(eq(dailyShowcase.showcaseDate, showcaseDate))
     .orderBy(desc(dailyShowcase.createdAt));
 }
+
+
+// continue in the next weeks

@@ -19,15 +19,12 @@ export interface ShowcaseResult {
   extensions: ExtensionRepo[] | Extension[];
 }
 
-/** Today's calendar date as YYYY-MM-DD (UTC). */
+
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/**
- * Persist the extensions retrieved by the daily automation run into the
- * showcase table. Called from `runDailyJob` in the 24-hour automation.
- */
+
 export async function recordDailyShowcase(
   extensionIds: string[],
 ): Promise<{ inserted: number }> {
@@ -39,10 +36,7 @@ export async function recordDailyShowcase(
   }
 }
 
-/**
- * Basic delivery: the showcased extensions exactly as stored, for guests and
- * free users. Defaults to the latest day on record when no date is supplied.
- */
+
 export async function getDailyShowcase(date?: string): Promise<ShowcaseResult> {
   try {
     const showcaseDate = date?.trim() || (await getLatestShowcaseDate());
@@ -63,11 +57,6 @@ export async function getDailyShowcase(date?: string): Promise<ShowcaseResult> {
   }
 }
 
-/**
- * Turn a stored extension back into an AI candidate by recovering the browsable
- * repo link from its archive URL. The premium brain analyses the link, so this
- * is the only bridge needed between the DB row and the AI engine.
- */
 function toAiCandidate(extension: Extension): RepoCandidateContext | null {
   const parsed = parseGithubZipUrl(extension.extensionLink);
   if (!parsed) return null;
@@ -79,13 +68,6 @@ function toAiCandidate(extension: Extension): RepoCandidateContext | null {
   };
 }
 
-/**
- * Premium delivery — anchored to the same showcase data as the basic feed, but
- * the AI "brain" is activated on demand (and only for a verified premium user)
- * to re-analyse each extension's link and return a richer, more informative
- * format. Nothing is searched on GitHub and nothing is written back to the DB;
- * the source set is identical to `getDailyShowcase`, only the output differs.
- */
 export async function getPremiumShowcase(
   userId: string,
   date?: string,

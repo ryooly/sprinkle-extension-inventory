@@ -13,19 +13,6 @@ import type {
   DailyJobResult,
 } from "./automation-type";
 
-/**
- * Option B architecture: this is a pure *global generator*.
- *
- * It has no notion of users or tiers at generation time. Each hourly run keeps
- * the shared `extensions` pool fresh with basic extensions (tagged
- * `extensionStatus: "basic"`) and cleans up stale ones; the daily run records
- * the showcased set into the `daily_showcase` table.
- *
- * Premium is NOT generated here. It is an on-demand delivery option anchored to
- * the dailyShowcase module: when a verified premium user requests it, the AI
- * brain re-analyses the already-stored extensions' links and returns a richer
- * format. See `getPremiumShowcase()` in the dailyShowcase service.
- */
 export class TwentyFourHourAutomation {
   private hourlyCron: { stop: () => void } | null = null;
   private dailyCron: { stop: () => void } | null = null;
