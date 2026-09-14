@@ -3,7 +3,7 @@ import { cleanupStaleExtensions } from "@/modules/automation-engine/filtering-en
 import {
   getExtensions,
   type EngineResult,
-} from "@/modules/automation-engine/algorithm-engine/algorithm-engine/algorithm-services";
+} from "@/modules/automation-engine/algorithm-engine/algorithm-service/algorithm-services";
 import { recordDailyShowcase } from "@/modules/dailyShowcase/services/showcase-service";
 
 import type {
@@ -70,9 +70,6 @@ export class TwentyFourHourAutomation {
       const result = await this.getTwentyFourHourExtensions();
       const count = Array.isArray(result.data) ? result.data.length : 0;
 
-      // Persist the retrieved extensions into the daily showcase table so the
-      // frontend can read them back via the `/showcase` endpoint. This logic
-      // lives in its own module (dailyShowcase), separate from the generator.
       if (Array.isArray(result.data)) {
         const extensionIds = (result.data as Array<{ id?: unknown }>)
           .map((extension) => extension.id)
@@ -87,7 +84,7 @@ export class TwentyFourHourAutomation {
       console.error("[daily] Extension retrieval failed", err);
       return { success: false, count: 0, error: msg }; // replace menggunakna logging
     }
-  } ///  tambahkan untuk push ke label -> jadi nanti tinggal diambil
+  }
 
   startCronJobs() {
     this.hourlyCron = Bun.cron("0 * * * *", async () => {

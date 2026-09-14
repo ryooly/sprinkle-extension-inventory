@@ -3,11 +3,7 @@ import { db } from "../db/client";
 import { dailyShowcase } from "../db/schema";
 import { extensions } from "@/modules/automation-engine/db/schema";
 
-/**
- * Insert a batch of extensions into the showcase for a given day.
- * Idempotent: re-running for the same day ignores extensions already recorded
- * (guarded by the unique (extension_id, showcase_date) index).
- */
+
 export async function insertShowcaseExtensions(
   extensionIds: string[],
   showcaseDate: string,
@@ -50,4 +46,3 @@ export async function findShowcaseByDate(showcaseDate: string) {
 }
 
 
-// continue in the next weeks

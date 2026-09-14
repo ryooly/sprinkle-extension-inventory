@@ -19,7 +19,7 @@ export async function getExtensions(): Promise<EngineResult<unknown>> {
     const data = await findExtensions();
 
     for (const extension of data) {
-      await incrementAmountDisplayed(extension.id); // lemah aku rasa akan berat kalo di push satu per satu gitu
+      await incrementAmountDisplayed(extension.id); // akan dihapus aja dan diganti dengan yang lain 
     }
 
     return { success: true, data };

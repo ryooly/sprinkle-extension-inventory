@@ -55,7 +55,7 @@ export class GeminiBrowsingProvider {
         tools: [{ urlContext: {} }, { googleSearch: {} }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
       }),
-    });
+    }); /// kita akan melakukan perubahan jika sewaktu diperlukan
 
     if (!res.ok) {
       throw new Error(`Gemini error: ${res.status} ${res.statusText}`);
