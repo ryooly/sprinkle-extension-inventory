@@ -19,6 +19,7 @@ import { authCommands } from "./commands/auth";
 import { extensionCommands } from "./commands/extensions";
 import { metricCommands } from "./commands/metrics";
 import { paymentCommands } from "./commands/payment";
+import { showcaseCommands } from "./commands/showcase";
 import { smokeCommands } from "./commands/smoke";
 
 const COMMANDS: CommandDef[] = [
@@ -26,6 +27,7 @@ const COMMANDS: CommandDef[] = [
   ...extensionCommands,
   ...metricCommands,
   ...paymentCommands,
+  ...showcaseCommands,
   ...smokeCommands,
 ];
 
@@ -34,6 +36,7 @@ const GROUP_ORDER: CommandDef["group"][] = [
   "extensions",
   "metrics",
   "payment",
+  "showcase",
   "system",
 ];
 
@@ -42,6 +45,7 @@ const GROUP_TITLES: Record<CommandDef["group"], string> = {
   extensions: "Extensions (/extensions)",
   metrics: "Metrics (/extensions/:id/...)",
   payment: "Payment (/payment)",
+  showcase: "Showcase (/showcase)",
   system: "System",
 };
 

@@ -308,7 +308,67 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
     return { verdict: "fail", detail: `${res.status}: ${msg}` };
   });
 
-  // 15. auth guard: a protected route must reject anonymous callers ---------
+  // 15. daily showcase (public) — the visible end-to-end output of the
+  //     automation engine's daily job. An empty pool is still a healthy 200
+  //     with success=true, so this passes even before the cron has run. ------
+  await record("showcase", "GET /showcase", async () => {
+    const res = await http.get("/showcase");
+    if (!res.ok)
+      return { verdict: "fail", detail: `${res.status}: ${errorMessage(res)}` };
+    const payload = bodyOf(res);
+    if (payload.success !== true)
+      return { verdict: "fail", detail: "response missing success=true" };
+    const data = payload.data as
+      | { date?: string | null; extensions?: unknown }
+      | undefined;
+    const rows = Array.isArray(data?.extensions)
+      ? (data?.extensions as unknown[])
+      : [];
+    const date = data?.date ?? null;
+    return {
+      verdict: "pass",
+      detail: date
+        ? `${rows.length} extension(s) @ ${date}`
+        : "empty pool (200 OK)",
+    };
+  });
+
+  // 16. premium showcase (authenticated) — a fresh smoke account holds no
+  //     subscription, so the correct behaviour is a 403 gate. A 200 is also
+  //     accepted (premium seeded); a 401 means the cookie was not honoured. ---
+  await record("showcase premium", "GET /showcase/premium", async () => {
+    const res = await http.get("/showcase/premium", { useSession: true });
+    if (res.status === 403)
+      return { verdict: "pass", detail: "gated: premium required" };
+    if (res.ok)
+      return { verdict: "pass", detail: "premium data returned (200)" };
+    if (res.status === 401)
+      return {
+        verdict: "fail",
+        detail: "session rejected (401) — login cookie not honoured",
+      };
+    return { verdict: "fail", detail: `${res.status}: ${errorMessage(res)}` };
+  });
+
+  // 17. premium showcase (anonymous) — must be guarded by authMiddleware. ----
+  await record(
+    "showcase premium (anon)",
+    "GET /showcase/premium (anon)",
+    async () => {
+      const res = await http.get("/showcase/premium", {
+        useSession: false,
+        updateSession: false,
+      });
+      if (res.status === 401 || res.status === 403)
+        return { verdict: "pass", detail: `rejected with ${res.status}` };
+      return {
+        verdict: "fail",
+        detail: `NOT guarded — anonymous request reached premium showcase (${res.status})`,
+      };
+    },
+  );
+
+  // 18. auth guard: a protected route must reject anonymous callers ---------
   await record(
     "auth guard",
     "GET /extensions/search/by-name (anon)",
@@ -328,7 +388,7 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
     },
   );
 
-  // 16. logout --------------------------------------------------------------
+  // 19. logout --------------------------------------------------------------
   await record("logout", "clear local session", async () => {
     clearSession();
     const gone = loadSession() === null;

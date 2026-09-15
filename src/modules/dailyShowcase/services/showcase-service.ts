@@ -19,11 +19,9 @@ export interface ShowcaseResult {
   extensions: ExtensionRepo[] | Extension[];
 }
 
-
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
-
 
 export async function recordDailyShowcase(
   extensionIds: string[],
@@ -36,10 +34,9 @@ export async function recordDailyShowcase(
   }
 }
 
-
-export async function getDailyShowcase(): Promise<ShowcaseResult> {
+export async function getDailyShowcase(date?: string): Promise<ShowcaseResult> {
   try {
-    const showcaseDate = await getLatestShowcaseDate();
+    const showcaseDate = date?.trim() || (await getLatestShowcaseDate());
 
     if (!showcaseDate) {
       return { date: null, extensions: [] };
@@ -70,6 +67,7 @@ function toAiCandidate(extension: Extension): RepoCandidateContext | null {
 
 export async function getPremiumShowcase(
   userId: string,
+  date?: string,
 ): Promise<ShowcaseResult> {
   const isPremium = await hasActiveSubscription(userId);
   if (!isPremium) {
@@ -77,7 +75,7 @@ export async function getPremiumShowcase(
   }
 
   try {
-    const showcaseDate = await getLatestShowcaseDate();
+    const showcaseDate = date?.trim() || (await getLatestShowcaseDate());
 
     if (!showcaseDate) {
       return { date: null, extensions: [] };

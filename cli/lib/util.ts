@@ -22,7 +22,7 @@ export type CommandHandler = (ctx: CommandContext) => Promise<void> | void;
 export interface CommandDef {
   name: string;
   aliases?: string[];
-  group: "auth" | "extensions" | "metrics" | "payment" | "system";
+  group: "auth" | "extensions" | "metrics" | "payment" | "showcase" | "system";
   summary: string;
   usage: string;
   handler: CommandHandler;
