@@ -4,9 +4,12 @@
 // throwaway account and reports PASS / FAIL / SKIP per endpoint, so you can
 // confirm everything works before building the frontend.
 //
-// Flow: register → login → getUserByUsername → beBuilder → create extension →
-// search (name/category/browser) → metrics (view/download/displayed) → edit →
-// delete → payment-create → auth-guard checks → logout.
+// Flow: error-contract probe → register → login → getUserByUsername →
+// beBuilder → create extension → search (name/category/browser) → metrics
+// (view/download/displayed) → edit → delete → payment-create → showcase
+// (public + premium gate) → premium-showcase 200 (seeded demo) → webhook
+// signature → auth-guard checks (each asserting the canonical error envelope)
+// → logout.
 //
 // It runs against an isolated temp session file so your real login is untouched.
 
@@ -14,6 +17,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import { http, errorMessage, type HttpResult } from "../lib/http";
+import { checkErrorShape } from "../lib/errors";
 import { clearSession, loadSession } from "../lib/session";
 import { getConfig, currentConfig } from "../lib/config";
 import * as out from "../lib/output";
@@ -41,6 +45,24 @@ function bodyOf(res: HttpResult): Record<string, unknown> {
     unknown
   >;
 }
+
+// Assert the response body matches the one canonical error envelope
+// ({ success: false, message, status }). Returns null when it conforms, or a
+// short reason describing the mismatch so it can go straight into a detail.
+function errorShapeProblem(res: HttpResult): string | null {
+  const check = checkErrorShape(res);
+  return check.ok ? null : check.reason;
+}
+
+// Premium demo account provisioned by `bun run seed` (src/db/seed.ts). Keep
+// these in sync with the DEMO_* constants there — the runner logs in as this
+// account to exercise the 200 premium-showcase path.
+const PREMIUM_DEMO_EMAIL = "premium_demo@sprinkle.local";
+const PREMIUM_DEMO_PASSWORD = "premium123";
+// A date with no pinned showcase rows: getPremiumShowcase returns 200 with an
+// empty set and never reaches the AI-enrichment stage, so the 200 gate check is
+// deterministic and offline.
+const EMPTY_SHOWCASE_DATE = "1970-01-01";
 
 async function runSmoke(ctx: CommandContext): Promise<void> {
   // Isolate the session so the smoke run never clobbers a real login.
@@ -100,6 +122,37 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
   out.heading(`Smoke test → ${base.apiUrl}`);
   out.info(`Temp session: ${tempSession}`);
   out.info(`Test user: ${username} <${email}>`);
+
+  // 0. Error contract -------------------------------------------------------
+  // Database-independent pre-flight: a malformed register body is rejected by
+  // schema validation before any handler runs, so this proves the gateway
+  // speaks the one canonical error envelope even with an empty/unmigrated DB.
+  await record(
+    "error shape",
+    "POST /user/register (invalid body)",
+    async () => {
+      const res = await http.post(
+        "/user/register",
+        { username: "x", email: "not-an-email", password: "1" },
+        { updateSession: false },
+      );
+      if (res.ok)
+        return {
+          verdict: "fail",
+          detail: `expected a 4xx error but got ${res.status}`,
+        };
+      const problem = errorShapeProblem(res);
+      if (problem)
+        return {
+          verdict: "fail",
+          detail: `non-canonical error body: ${problem}`,
+        };
+      return {
+        verdict: "pass",
+        detail: `${res.status} → { success:false, message, status }`,
+      };
+    },
+  );
 
   // 1. Register -------------------------------------------------------------
   await record("register", "POST /user/register", async () => {
@@ -333,13 +386,17 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
     };
   });
 
-  // 16. premium showcase (authenticated) — a fresh smoke account holds no
-  //     subscription, so the correct behaviour is a 403 gate. A 200 is also
-  //     accepted (premium seeded); a 401 means the cookie was not honoured. ---
   await record("showcase premium", "GET /showcase/premium", async () => {
     const res = await http.get("/showcase/premium", { useSession: true });
-    if (res.status === 403)
-      return { verdict: "pass", detail: "gated: premium required" };
+    if (res.status === 403) {
+      const problem = errorShapeProblem(res);
+      return problem
+        ? { verdict: "fail", detail: `non-canonical 403 body: ${problem}` }
+        : {
+            verdict: "pass",
+            detail: "gated: premium required (canonical body)",
+          };
+    }
     if (res.ok)
       return { verdict: "pass", detail: "premium data returned (200)" };
     if (res.status === 401)
@@ -359,8 +416,18 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
         useSession: false,
         updateSession: false,
       });
-      if (res.status === 401 || res.status === 403)
-        return { verdict: "pass", detail: `rejected with ${res.status}` };
+      if (res.status === 401 || res.status === 403) {
+        const problem = errorShapeProblem(res);
+        return problem
+          ? {
+              verdict: "fail",
+              detail: `non-canonical ${res.status} body: ${problem}`,
+            }
+          : {
+              verdict: "pass",
+              detail: `rejected with ${res.status} (canonical body)`,
+            };
+      }
       return {
         verdict: "fail",
         detail: `NOT guarded — anonymous request reached premium showcase (${res.status})`,
@@ -368,7 +435,97 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
     },
   );
 
-  // 18. auth guard: a protected route must reject anonymous callers ---------
+  // 18. premium showcase (200) — proves a seeded ACTIVE subscription flips the
+  //     gate from 403 to 200. Logs in as the demo account created by
+  //     `bun run seed`; skips (not fails) when that account is absent so the
+  //     suite still runs on a fresh DB. An empty historical date is requested so
+  //     the AI-enrichment stage is skipped deterministically (no Gemini key or
+  //     network needed) — we assert the gate + envelope, not the AI output.
+  await record(
+    "premium showcase (200)",
+    "GET /showcase/premium (seeded premium)",
+    async () => {
+      const login = await http.post("/user/login", {
+        email: PREMIUM_DEMO_EMAIL,
+        password: PREMIUM_DEMO_PASSWORD,
+      });
+      if (login.status === 401 || login.status === 404) {
+        return {
+          verdict: "skip",
+          detail: "premium demo account absent — run `bun run seed`",
+        };
+      }
+      if (!login.ok) {
+        return {
+          verdict: "fail",
+          detail: `demo login failed (${login.status}): ${errorMessage(login)}`,
+        };
+      }
+
+      const res = await http.get("/showcase/premium", {
+        query: { date: EMPTY_SHOWCASE_DATE },
+        useSession: true,
+      });
+      if (res.ok) {
+        if (bodyOf(res).success !== true)
+          return { verdict: "fail", detail: "200 but missing success=true" };
+        return { verdict: "pass", detail: "premium gate open (200)" };
+      }
+      if (res.status === 403)
+        return {
+          verdict: "fail",
+          detail: "still gated (403) — seeded subscription is not active",
+        };
+      if (res.status === 401)
+        return {
+          verdict: "fail",
+          detail: "demo session rejected (401) — login cookie not honoured",
+        };
+      return { verdict: "fail", detail: `${res.status}: ${errorMessage(res)}` };
+    },
+  );
+
+  // 19. webhook signature — /payment/gateway is registered before authMiddleware
+  //     and authenticates via Midtrans' signature_key. A forged signature must be
+  //     rejected with 403 (canonical body) BEFORE any DB lookup, so this step is
+  //     DB- and Midtrans-independent. The accept path is unit-tested in
+  //     tests/payment-webhook.test.ts.
+  await record(
+    "webhook signature",
+    "POST /payment/gateway (bad signature)",
+    async () => {
+      const res = await http.post(
+        "/payment/gateway",
+        {
+          order_id: `SMOKE-${Date.now()}`,
+          transaction_id: "smoke-txn",
+          transaction_status: "settlement",
+          payment_type: "bank_transfer",
+          gross_amount: "99000.00",
+          status_code: "200",
+          signature_key: "0".repeat(128), // deliberately forged
+        },
+        { useSession: false, updateSession: false },
+      );
+      if (res.status === 403) {
+        const problem = errorShapeProblem(res);
+        return problem
+          ? { verdict: "fail", detail: `non-canonical 403 body: ${problem}` }
+          : {
+              verdict: "pass",
+              detail: "forged signature rejected (403, canonical body)",
+            };
+      }
+      if (res.ok)
+        return {
+          verdict: "fail",
+          detail: "forged signature ACCEPTED — webhook is not verifying",
+        };
+      return { verdict: "fail", detail: `${res.status}: ${errorMessage(res)}` };
+    },
+  );
+
+  // 20. auth guard: a protected route must reject anonymous callers ---------
   await record(
     "auth guard",
     "GET /extensions/search/by-name (anon)",
@@ -379,7 +536,16 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
         updateSession: false,
       });
       if (res.status === 401 || res.status === 403) {
-        return { verdict: "pass", detail: `rejected with ${res.status}` };
+        const problem = errorShapeProblem(res);
+        return problem
+          ? {
+              verdict: "fail",
+              detail: `non-canonical ${res.status} body: ${problem}`,
+            }
+          : {
+              verdict: "pass",
+              detail: `rejected with ${res.status} (canonical body)`,
+            };
       }
       return {
         verdict: "fail",
@@ -388,7 +554,7 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
     },
   );
 
-  // 19. logout --------------------------------------------------------------
+  // 21. logout --------------------------------------------------------------
   await record("logout", "clear local session", async () => {
     clearSession();
     const gone = loadSession() === null;

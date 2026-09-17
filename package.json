@@ -6,12 +6,14 @@
     "cli": "bun run cli/index.ts",
     "smoke": "bun run cli/index.ts smoke",
     "migrate": "bun run src/db/migrate.ts",
+    "seed": "bun run src/db/seed.ts",
     "automation": "bun run src/modules/twentyFourHour/index.ts",
     "test": "bun test tests/",
     "test:auth": "bun test tests/auth.test.ts",
     "test:automation": "bun test tests/automation.test.ts",
     "test:search": "bun test tests/search.test.ts",
-    "test:middleware": "bun test tests/auth-middleware.test.ts"
+    "test:middleware": "bun test tests/auth-middleware.test.ts",
+    "test:payment": "bun test tests/payment-webhook.test.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -23,6 +25,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.2",
     "@elysiajs/jwt": "^1.4.2",
     "@octokit/rest": "^22.0.1",
     "bcrypt": "^6.0.0",

@@ -2,6 +2,7 @@
 import { Elysia } from "elysia";
 import jwt from "jsonwebtoken";
 import { AppError } from "./errorHandler";
+import { getCookiePolicy } from "./cookie-policy";
 import { db } from "@/modules/auth/db/client";
 import { refreshTokens } from "@/modules/auth/db/schema";
 import { eq, and, gt } from "drizzle-orm";
@@ -80,20 +81,21 @@ export const authMiddleware = new Elysia()
       expiresAt: newRefreshTokenExpiresAt,
     });
 
+    const { secure, sameSite } = getCookiePolicy();
     set.cookie = {
       auth: {
         value: newAccessToken,
         httpOnly: true,
-        secure: true,
+        secure,
         maxAge: 15 * 60,
-        sameSite: "strict",
+        sameSite,
       }, /// mungkin perlu tambahkan accountId
       refreshToken: {
         value: newRefreshTokenValue,
         httpOnly: true,
-        secure: true,
+        secure,
         maxAge: 60 * 60 * 24 * 7,
-        sameSite: "strict",
+        sameSite,
       },
     };
 

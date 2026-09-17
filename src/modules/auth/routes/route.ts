@@ -1,5 +1,6 @@
 import Elysia, { t } from "elysia";
 import { UserController } from "@/modules/auth/controller/controller";
+import { getCookiePolicy } from "@/middlewares/cookie-policy";
 import type {
   RegisterInput,
   LoginInput,
@@ -15,26 +16,27 @@ export const userRoutes = new Elysia({ prefix: "/user" })
         body as RegisterInput,
       );
 
+      const { secure, sameSite } = getCookiePolicy();
       set.cookie = {
         auth: {
           value: token,
           httpOnly: true,
-          secure: true,
+          secure,
           maxAge: 60 * 15,
-          sameSite: "strict",
+          sameSite,
         },
         accountId: {
           value: data.id,
           httpOnly: true,
-          secure: true,
-          sameSite: "strict",
+          secure,
+          sameSite,
         },
         refreshToken: {
           value: refreshToken,
           httpOnly: true,
-          secure: true,
+          secure,
           maxAge: 60 * 60 * 24 * 7,
-          sameSite: "strict",
+          sameSite,
         },
       };
 
@@ -56,26 +58,27 @@ export const userRoutes = new Elysia({ prefix: "/user" })
         body as LoginInput,
       );
 
+      const { secure, sameSite } = getCookiePolicy();
       set.cookie = {
         auth: {
           value: token,
           httpOnly: true,
-          secure: true,
+          secure,
           maxAge: 60 * 15,
-          sameSite: "strict",
+          sameSite,
         },
         accountId: {
           value: data.id,
           httpOnly: true,
-          secure: true,
-          sameSite: "strict",
+          secure,
+          sameSite,
         },
         refreshToken: {
           value: refreshToken,
           httpOnly: true,
-          secure: true,
+          secure,
           maxAge: 60 * 60 * 24 * 7,
-          sameSite: "strict",
+          sameSite,
         },
       };
 

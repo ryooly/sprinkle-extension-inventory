@@ -11,13 +11,5 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-    command: sh -c "bun run src/db/migrate.ts && bun run src/gateway/index.ts"
-
 volumes:
   pgdata:

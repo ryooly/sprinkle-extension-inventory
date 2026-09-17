@@ -1,9 +1,3 @@
-// cli/lib/util.ts
-//
-// Shared helpers for commands: enum whitelists that mirror the backend Zod/
-// TypeBox schemas, a JWT payload decoder (no verification — display only), and
-// random credential generators used by the smoke test.
-
 import { randomUUID } from "node:crypto";
 import type { ParsedArgs } from "./args";
 
