@@ -60,7 +60,7 @@ export const extensions = pgTable(
     views: integer("views").notNull().default(0),
     downloads: integer("downloads").notNull().default(0),
     amountDisplayed: integer("amount_displayed").notNull().default(0),
-
+ 
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitHub Clone — Dashboard</title>
+    <meta
+      name="description"
+      content="A GitHub-style dashboard with Top Repositories and Home sections."
+    />
+    <meta property="og:title" content="GitHub Clone — Dashboard" />
+    <meta
+      property="og:description"
+      content="A GitHub-style dashboard with Top Repositories and Home sections."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Applies the persisted theme before first paint to avoid a dark-mode flash
+         for light-mode users. The `dark` class above is the no-JS default. -->
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.classList.toggle("dark", t === "dark");
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <!-- Shared header — injected by js/sprinkle-data.js helpers (see dashboard.js) -->
+    <div data-header></div>
+
+    <main class="main-layout">
+      <!-- Left sidebar: Top Repositories -->
+      <aside class="repo-sidebar" id="repo-sidebar" style="width: 288px">
+        <div class="sidebar-head">
+          <h2 class="truncate">Top repositories</h2>
+          <button
+            type="button"
+            aria-label="+ Premium"
+            class="premium-btn"
+            id="premium-btn"
+          >
+            <span class="shine"></span>
+            <span data-icon="plus" style="display: inline-flex"></span>
+            <span>Premium</span>
+          </button>
+        </div>
+
+        <div>
+          <label for="repo-search" class="sr-only">Find a repository</label>
+          <div class="repo-search">
+            <span data-icon="search-side" style="display: inline-flex"></span>
+            <input
+              id="repo-search"
+              type="text"
+              placeholder="Find a repository..."
+            />
+          </div>
+        </div>
+
+        <div class="sidebar-list" id="sidebar-list"></div>
+
+        <button type="button" class="show-more" id="show-more">
+          Show more
+        </button>
+      </aside>
+
+      <!-- Resizable divider -->
+      <div
+        role="separator"
+        aria-label="Resize repository column"
+        aria-orientation="vertical"
+        aria-valuemin="224"
+        aria-valuemax="480"
+        aria-valuenow="288"
+        tabindex="0"
+        class="resize-handle"
+        id="resize-handle"
+      >
+        <span class="line"></span>
+        <span class="grip" data-icon="grip"></span>
+      </div>
+
+      <!-- Center: Home -->
+      <section class="home-section">
+        <div class="home-head">
+          <h2>Home</h2>
+        </div>
+
+        <div class="genre-bar" id="genre-bar">
+          <button
+            type="button"
+            aria-label="Filter genres"
+            class="filter-btn"
+            id="filter-btn"
+          >
+            <span data-icon="filter" style="display: inline-flex"></span>
+            <span>Filter</span>
+          </button>
+        </div>
+
+        <!-- Card grid: 2 cols × 3 rows (compact) -->
+        <div class="card-grid" id="card-grid"></div>
+      </section>
+    </main>
+
+    <script src="js/sprinkle-data.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>

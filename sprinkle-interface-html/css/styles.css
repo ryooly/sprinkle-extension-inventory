@@ -1,0 +1,3588 @@
+/* ==========================================================================
+   Sprinkle Interface — plain CSS recreation of sprinkle-frontend
+   Design tokens are 1:1 ports of the oklch values in src/styles.css.
+   The `dark` class on <html> switches themes (dark is the default).
+   ========================================================================== */
+
+:root {
+  --radius: 0.375rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+
+  /* GitHub Light theme — strong tier separation per surface (gray canvas / white cards) */
+  color-scheme: light;
+  --background: oklch(0.94 0.01 250);
+  --foreground: oklch(0.235 0.013 264);
+  --card: oklch(0.99 0.002 250);
+  --popover: oklch(0.992 0.002 250);
+  --primary: oklch(0.5 0.135 146);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.895 0.014 250);
+  --secondary-foreground: oklch(0.235 0.013 264);
+  --muted: oklch(0.895 0.014 250);
+  --muted-foreground: oklch(0.48 0.025 255);
+  --accent: oklch(0.85 0.02 250);
+  --border: oklch(0.78 0.018 250);
+  --input: oklch(0.78 0.018 250);
+  --ring: oklch(0.52 0.15 252);
+  --sidebar: oklch(0.92 0.012 250);
+  --sidebar-border: oklch(0.78 0.018 250);
+  --scrollbar-thumb: oklch(0.78 0.018 250);
+  --scrollbar-thumb-hover: oklch(0.65 0.02 250);
+
+  /* Active genre pill — light values from the original arbitrary Tailwind colors */
+  --pill-active-color: #0969da;
+  --pill-active-border: rgba(9, 105, 218, 0.4);
+  --pill-active-bg: rgba(9, 105, 218, 0.1);
+  --pill-active-shadow: 0 0 12px rgba(9, 105, 218, 0.12);
+  --hover-link: #0969da;
+  --emerald: #059669;
+  --lic-warn: #b45309;
+  --lic-denied: #be123c;
+}
+
+html.dark {
+  /* Authentic GitHub Dark theme */
+  color-scheme: dark;
+  --background: oklch(0.145 0.015 260);
+  --foreground: oklch(0.965 0.008 245);
+  --card: oklch(0.185 0.015 260);
+  --popover: oklch(0.205 0.015 260);
+  --primary: oklch(0.55 0.145 142);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.24 0.014 255);
+  --secondary-foreground: oklch(0.965 0.008 245);
+  --muted: oklch(0.185 0.015 260);
+  --muted-foreground: oklch(0.66 0.018 250);
+  --accent: oklch(0.24 0.014 255);
+  --border: oklch(0.31 0.015 255);
+  --input: oklch(0.31 0.015 255);
+  --ring: oklch(0.6 0.18 250);
+  --sidebar: oklch(0.095 0.012 260);
+  --sidebar-border: oklch(0.31 0.015 255);
+  --scrollbar-thumb: oklch(0.31 0.015 255);
+  --scrollbar-thumb-hover: oklch(0.4 0.015 255);
+
+  --pill-active-color: #58a6ff;
+  --pill-active-border: rgba(56, 139, 253, 0.6);
+  --pill-active-bg: rgba(56, 139, 253, 0.15);
+  --pill-active-shadow: 0 0 12px rgba(56, 139, 253, 0.15);
+  --hover-link: #58a6ff;
+  --emerald: #34d399;
+  --lic-warn: #d9a343;
+  --lic-denied: #f9738f;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+input {
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+input:focus {
+  outline: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ─── Small utilities ───────────────────────────────────────────────────── */
+
+.hidden {
+  display: none !important;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-mono {
+  font-family:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Icon sizing — SVGs are injected by JS and sized by their context */
+.icon-menu,
+.icon-logo {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.icon-grip {
+  width: 1rem;
+  height: 1.25rem;
+}
+.icon-search,
+.icon-theme,
+.icon-copy {
+  width: 1rem;
+  height: 1rem;
+}
+.icon-search-side {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.icon-plus {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.icon-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.icon-md {
+  width: 1rem;
+  height: 1rem;
+}
+.card-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+/* Detail-page icon sizes + browser brand tints (react-icons equivalents) */
+.ext-title svg.icon-16 {
+  width: 1rem;
+  height: 1rem;
+}
+.card-meta .meta-item > svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+.icon-14 {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.icon-18 {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+/* Browser brand marks use their official brand colors */
+.brand-chrome {
+  color: #4285f4;
+}
+.brand-edge {
+  color: #0f6cbd;
+}
+.brand-firefox {
+  color: #ff7139;
+}
+.brand-opera {
+  color: #ff1b2d;
+}
+.brand-safari {
+  color: #1b88ee;
+}
+svg.brand {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Theme color helpers — use color-mix so tokens stay in one place */
+.fg {
+  color: var(--foreground);
+}
+.card-bg {
+  background-color: var(--card);
+}
+.muted-fg {
+  color: var(--muted-foreground);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 3.5rem;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--sidebar);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Ghost icon button (menu / theme toggle) */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  color: var(--muted-foreground);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms;
+}
+.icon-btn:hover {
+  border-color: var(--border);
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+html.dark .icon-btn:hover {
+  background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  color: var(--foreground);
+  transition: opacity 150ms;
+}
+.logo-link:hover {
+  opacity: 0.85;
+}
+
+/* Search — expands to full header width on focus */
+.search-wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  transition: all 300ms ease-out;
+}
+.search-wrap.expanded {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background-color: var(--sidebar);
+  padding: 0.5rem 1rem;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 28rem;
+  height: 2rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 0.625rem;
+  transition: all 200ms ease-out;
+}
+html.dark .search-box {
+  background-color: var(--background);
+}
+.search-box:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.search-box:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+.search-wrap.expanded .search-box {
+  max-width: none;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border-color: var(--ring);
+  box-shadow:
+    0 0 0 1px var(--ring),
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.search-box input {
+  height: 100%;
+  width: 100%;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+.search-box input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.search-kbd {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  padding: 0.125rem 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+html.dark .search-kbd {
+  background-color: var(--card);
+}
+@media (min-width: 640px) {
+  .search-kbd {
+    display: inline-flex;
+  }
+}
+
+.esc-btn {
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+html.dark .esc-btn {
+  background-color: var(--card);
+}
+.esc-btn:hover {
+  background-color: var(--accent);
+  color: var(--foreground);
+}
+
+/* Right side of header */
+.header-right {
+  margin-left: auto;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  width: 2rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+.avatar-btn:hover,
+.avatar-btn.open {
+  border-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  color: var(--foreground);
+}
+
+/* Profile dropdown */
+.dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.375rem);
+  z-index: 60;
+  width: 12rem;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--popover);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  display: none;
+}
+.dropdown-menu.open {
+  display: block;
+}
+
+.dropdown-user {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 0.375rem;
+}
+.dropdown-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: #8a3ffc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+.dropdown-user .name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.dropdown-user .handle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.dropdown-sep {
+  height: 1px;
+  margin: 0.125rem -0.25rem 0.25rem;
+  background-color: var(--border);
+}
+
+.dropdown-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  text-align: left;
+  transition: background-color 150ms;
+}
+.dropdown-item:hover {
+  background-color: var(--accent);
+}
+.dropdown-item svg {
+  color: var(--muted-foreground);
+}
+
+/* ==========================================================================
+   Main layout — sidebar / resize handle / home
+   ========================================================================== */
+
+.main-layout {
+  display: flex;
+  height: calc(100vh - 3.5rem);
+}
+
+.repo-sidebar {
+  display: none;
+  height: 100%;
+  flex-shrink: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--sidebar-border);
+  background-color: var(--sidebar);
+  padding: 1.25rem 1rem;
+}
+@media (min-width: 1024px) {
+  .repo-sidebar {
+    display: flex;
+  }
+}
+
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  height: 1.75rem;
+  margin-bottom: 1rem;
+}
+.sidebar-head h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Premium button — rainbow gradient with shine sweep on hover */
+.premium-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background-image: linear-gradient(
+    135deg,
+    #873cf2 0%,
+    #0077fe 20%,
+    #25bd4e 40%,
+    #fea302 60%,
+    #fc3a66 80%,
+    #01b0f1 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 8px rgba(135, 60, 242, 0.35);
+  transition: all 300ms;
+}
+.premium-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 16px rgba(0, 119, 254, 0.45);
+}
+.premium-btn:active {
+  transform: translateY(0);
+}
+.premium-btn .shine {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transition: transform 700ms ease-out;
+}
+.premium-btn:hover .shine {
+  transform: translateX(100%);
+}
+.premium-btn svg,
+.premium-btn span {
+  position: relative;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+.premium-btn svg {
+  transition: transform 200ms;
+}
+.premium-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* Sidebar repo search */
+.repo-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0.375rem 0.625rem;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+html.dark .repo-search {
+  background-color: color-mix(in oklab, var(--background) 80%, transparent);
+}
+.repo-search:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.repo-search:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+.repo-search input {
+  width: 100%;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+.repo-search input::placeholder {
+  color: var(--muted-foreground);
+}
+.repo-search svg {
+  color: var(--muted-foreground);
+}
+
+.sidebar-list {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  padding-right: 0.125rem;
+}
+
+.show-more {
+  margin-top: 0.75rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: color 150ms;
+}
+.show-more:hover {
+  color: var(--hover-link);
+}
+
+/* Resizable divider between sidebar and home */
+.resize-handle {
+  display: none;
+  position: relative;
+  z-index: 10;
+  width: 0.75rem;
+  margin: 0 -0.375rem;
+  flex-shrink: 0;
+  align-items: stretch;
+  justify-content: center;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+@media (min-width: 1024px) {
+  .resize-handle {
+    display: flex;
+  }
+}
+.resize-handle .line {
+  width: 1px;
+  background-color: transparent;
+  transition: background-color 150ms;
+}
+.resize-handle:hover .line,
+.resize-handle:focus-visible .line,
+.resize-handle.resizing .line {
+  background-color: var(--ring);
+}
+.resize-handle .grip {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  height: 2.25rem;
+  width: 0.75rem;
+  transform: translateY(-50%);
+  border-radius: 0.125rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  opacity: 0;
+  transition:
+    opacity 150ms,
+    color 150ms;
+}
+.resize-handle:hover .grip,
+.resize-handle:focus-visible .grip {
+  opacity: 1;
+  color: var(--foreground);
+}
+
+/* Center: Home */
+.home-section {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.25rem;
+}
+.home-head {
+  display: flex;
+  align-items: center;
+  height: 1.75rem;
+  margin-bottom: 1rem;
+}
+.home-head h2 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Genre pill bar */
+.genre-bar {
+  display: flex;
+  min-height: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.pill {
+  flex-shrink: 0;
+  height: 2rem;
+  cursor: pointer;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: all 150ms;
+}
+html.dark .pill {
+  background-color: color-mix(in oklab, var(--card) 60%, transparent);
+}
+.pill:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  background-color: var(--accent);
+  color: var(--foreground);
+}
+html.dark .pill:hover {
+  background-color: var(--card);
+}
+.pill:active {
+  transform: scale(0.95);
+}
+.pill.active {
+  border-color: var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+  box-shadow: var(--pill-active-shadow);
+}
+
+.filter-btn {
+  margin-left: auto;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--secondary);
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--secondary-foreground);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition: all 150ms;
+}
+.filter-btn:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+  background-color: var(--accent);
+  color: var(--foreground);
+}
+.filter-btn svg {
+  color: var(--muted-foreground);
+  transition: color 150ms;
+}
+.filter-btn:hover svg {
+  color: var(--foreground);
+}
+.filter-btn:active {
+  transform: translateY(1px);
+}
+
+/* Card grid — 2 cols × 3 rows */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   App card (shared by sidebar + home grid)
+   ========================================================================== */
+
+.app-card {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  gap: 0.75rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  padding: 0.75rem 0.875rem;
+  text-align: left;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition: all 150ms;
+  background-color: var(--card);
+}
+html.dark .app-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.app-card:hover {
+  border-color: color-mix(in oklab, var(--foreground) 30%, transparent);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+html.dark .app-card:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.app-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.app-card:active {
+  transform: scale(0.99);
+}
+
+/* Home cards: solid surface that stands clear of the page background */
+.app-card.solid:hover {
+  background-color: color-mix(in oklab, var(--accent) 40%, transparent);
+}
+html.dark .app-card.solid:hover {
+  background-color: var(--popover);
+}
+
+/* Sidebar cards: card surface fading into a silvery tone */
+.app-card.fading {
+  background-image: linear-gradient(
+    to right,
+    var(--card),
+    var(--card),
+    var(--secondary)
+  );
+  transition: all 150ms;
+}
+.app-card.fading:hover {
+  background-image: linear-gradient(
+    to right,
+    var(--card),
+    var(--card),
+    var(--accent)
+  );
+}
+
+.card-avatar {
+  margin-top: 0.125rem;
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.card-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.375;
+}
+.card-title .user {
+  color: var(--muted-foreground);
+  transition: color 150ms;
+}
+.app-card:hover .card-title .user {
+  color: color-mix(in oklab, var(--foreground) 70%, transparent);
+}
+.card-title .slash {
+  color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.card-title .repo {
+  color: color-mix(in oklab, var(--foreground) 90%, transparent);
+  transition: color 150ms;
+}
+.app-card:hover .card-title .repo {
+  color: var(--foreground);
+}
+
+/* Meta items (genre / views / status / claps) */
+.card-meta {
+  color: var(--muted-foreground);
+}
+.card-meta .meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 11px;
+  font-weight: 600;
+}
+.card-meta .meta-item svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+html.dark .card-meta .meta-item {
+  opacity: 0.85;
+}
+.meta-item.status-active {
+  color: var(--emerald);
+  opacity: 1 !important;
+}
+.meta-item.status-archived {
+  color: var(--muted-foreground);
+}
+html.dark .meta-item.status-archived {
+  opacity: 0.6 !important;
+}
+
+/* Home cards: single row pinned to the bottom */
+.card-meta.row {
+  margin-top: auto;
+  display: flex;
+  height: 1.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+  padding-top: 0.375rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+}
+
+/* Sidebar cards: fixed 2×2 grid for uniform heights */
+.card-meta.grid2 {
+  margin-top: 0.375rem;
+  display: grid;
+  height: 36px;
+  flex-shrink: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 0.25rem 0.75rem;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ==========================================================================
+   Extension detail page
+   ========================================================================== */
+
+.detail-header {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--sidebar);
+}
+.detail-header-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem;
+}
+
+.ext-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.ext-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.ext-title svg.pkg {
+  color: var(--muted-foreground);
+}
+.ext-title .owner {
+  color: var(--muted-foreground);
+}
+.ext-title .slash {
+  color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+}
+.ext-title .name {
+  color: var(--foreground);
+}
+
+.copy-btn {
+  display: inline-flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.copy-btn:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+html.dark .copy-btn:hover {
+  background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+
+.pill-btn {
+  display: inline-flex;
+  height: 1.75rem;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+html.dark .pill-btn {
+  background-color: color-mix(in oklab, var(--card) 60%, transparent);
+}
+.pill-btn:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+  color: var(--foreground);
+}
+.pill-btn .count {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.ext-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+.hashtag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: color 150ms;
+}
+.hashtag:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.hashtag:focus-visible {
+  outline: 2px solid var(--pill-active-border);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Search results banner — shown when the grid is filtered by a query/hashtag */
+.search-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+}
+.search-banner[hidden] {
+  display: none;
+}
+.search-banner-text {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+.search-banner-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--pill-active-color);
+}
+.search-banner-clear {
+  flex: none;
+  height: 1.5rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--background);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+.search-banner-clear:hover {
+  border-color: var(--pill-active-border);
+  color: var(--pill-active-color);
+}
+
+.grid-empty {
+  grid-column: 1 / -1;
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  border: 1px dashed var(--border);
+  border-radius: 0.5rem;
+}
+
+.license-chip {
+  position: relative;
+  overflow: hidden; /* press ripple */
+  display: inline-flex;
+  height: 1.625rem;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--pill-active-bg) 90%, var(--card)),
+    var(--card) 62%
+  );
+  padding: 0 0.5625rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 1px 2px rgb(0 0 0 / 0.05);
+}
+html.dark .license-chip {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--pill-active-bg) 80%, transparent),
+    color-mix(in oklab, var(--card) 60%, transparent) 62%
+  );
+}
+.license-chip .chip-key {
+  opacity: 0.75;
+}
+.license-chip .chip-val {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+}
+.license-chip .chip-chevron {
+  margin-left: 0.125rem;
+  opacity: 0.55;
+}
+
+/* Details popover anchor */
+.lic-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.ext-tabs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.ext-tabs {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+}
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0.375rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+.tab-btn:hover {
+  color: var(--foreground);
+}
+.tab-btn.active {
+  border-bottom-color: var(--foreground);
+  color: var(--foreground);
+}
+.tab-kbd {
+  border-radius: 0.25rem;
+  background-color: var(--muted);
+  padding: 0.125rem 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+html.dark .tab-kbd {
+  background-color: var(--card);
+}
+
+.ext-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.square-btn {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+html.dark .square-btn {
+  background-color: color-mix(in oklab, var(--card) 60%, transparent);
+}
+.square-btn:hover {
+  color: var(--foreground);
+}
+
+.action-btn {
+  display: inline-flex;
+  height: 2rem;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground);
+  transition: border-color 150ms;
+}
+html.dark .action-btn {
+  background-color: color-mix(in oklab, var(--card) 60%, transparent);
+}
+.action-btn:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.action-btn svg {
+  color: var(--muted-foreground);
+}
+
+.download-btn {
+  position: relative;
+  display: inline-flex;
+  height: 2rem;
+  align-items: center;
+  gap: 0.375rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background-image: linear-gradient(
+    135deg,
+    #873cf2 0%,
+    #0077fe 20%,
+    #25bd4e 40%,
+    #fea302 60%,
+    #fc3a66 80%,
+    #01b0f1 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 8px rgba(135, 60, 242, 0.35);
+  transition: all 300ms;
+}
+.download-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 16px rgba(0, 119, 254, 0.45);
+}
+.download-btn:active {
+  transform: translateY(0);
+}
+.download-btn .shine {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transition: transform 700ms ease-out;
+}
+.download-btn:hover .shine {
+  transform: translateX(100%);
+}
+.download-btn svg,
+.download-btn span {
+  position: relative;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+/* Detail body grid */
+.detail-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+@media (min-width: 1024px) {
+  .detail-main {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
+.desc-card {
+  min-width: 0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+.desc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.desc-head h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.edit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: color 150ms;
+}
+.edit-link:hover {
+  color: var(--foreground);
+}
+
+.badge-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+}
+.badge {
+  display: inline-flex;
+  height: 1.5rem;
+  align-items: center;
+  border-radius: 0.125rem;
+  padding: 0 0.625rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+}
+.badge.muted {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+.badge.yellow {
+  background-color: #ffd21e;
+  color: #2f1670;
+}
+.badge.inverse {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+.badge.rose {
+  background-color: #e11d48;
+  color: #fff;
+}
+.badge.sky {
+  background-color: #0284c7;
+  color: #fff;
+}
+
+.desc-card p {
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: color-mix(in oklab, var(--foreground) 90%, transparent);
+}
+.desc-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+.desc-card h3.first {
+  margin-top: 1.25rem;
+}
+.desc-card ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: color-mix(in oklab, var(--foreground) 90%, transparent);
+}
+.desc-card ul li + li {
+  margin-top: 0.375rem;
+}
+
+/* ==========================================================================
+   License line (model card) — polished panel with details trigger
+   ========================================================================== */
+
+.license-line {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--emerald) 8%, var(--card)),
+    var(--card) 55%
+  );
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+.license-line .lic-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.license-line .lic-line-icon {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4375rem;
+  background-color: color-mix(in oklab, var(--emerald) 14%, transparent);
+  color: var(--emerald);
+}
+.license-line .lic-strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--emerald);
+  border: 1px solid color-mix(in oklab, var(--emerald) 32%, transparent);
+  border-radius: 9999px;
+  background-color: color-mix(in oklab, var(--emerald) 12%, transparent);
+  padding: 0.0625rem 0.5rem;
+  white-space: nowrap;
+}
+.license-line .lic-details {
+  margin-left: auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 150ms;
+}
+.license-line .lic-details:hover,
+.license-line .lic-details.open {
+  color: var(--pill-active-color);
+}
+.license-line .lic-details .chevron {
+  transition: transform 200ms ease-out;
+}
+.license-line .lic-details.open .chevron {
+  transform: rotate(180deg);
+}
+
+/* Stats sidebar */
+.stats-aside {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.stat-card {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+.stat-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.stat-card h4 svg {
+  color: var(--muted-foreground);
+}
+
+.downloads-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.downloads-row .label {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.label-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.label-icon svg {
+  flex: none;
+  color: var(--muted-foreground);
+}
+.downloads-row .value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Two stat cards side by side, splitting the available width evenly */
+.stat-duo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.stat-duo .stat-card {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.stat-duo .stat-card h4 {
+  margin-bottom: 0.5rem;
+}
+.duo-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sparkline {
+  height: 2.25rem;
+  width: 7rem;
+  flex-shrink: 0;
+  color: #8a3ffc;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.chip {
+  display: inline-flex;
+  height: 1.5rem;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  padding: 0 0.5rem;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.chip.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.new-badge {
+  border-radius: 0.25rem;
+  background-color: rgba(56, 139, 253, 0.15);
+  padding: 0.125rem 0.25rem;
+  font-size: 10px;
+  font-weight: 600;
+  color: #58a6ff;
+}
+
+.inference-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.inference-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  padding: 0.5rem 0.625rem;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.provider-btn {
+  display: inline-flex;
+  height: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 0.5rem;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--foreground);
+  transition: border-color 150ms;
+}
+.provider-btn:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+
+/* ─── Security card — summary + expandable full report ─────────────────── */
+
+.sec-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in oklab, var(--emerald) 45%, transparent);
+  background-color: color-mix(in oklab, var(--emerald) 12%, transparent);
+  padding: 0.125rem 0.5rem;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--emerald);
+}
+
+/* Security score gauge — higher = greener / safer */
+.sec-score {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--sc) 28%, var(--border));
+  border-radius: 0.75rem;
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--sc) 12%, var(--card)),
+    var(--card) 72%
+  );
+}
+.sec-score.tier-high {
+  --sc: var(--emerald);
+}
+.sec-score.tier-mid {
+  --sc: var(--lic-warn);
+}
+.sec-score.tier-low {
+  --sc: var(--lic-denied);
+}
+.sec-gauge {
+  position: relative;
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+.sec-gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.sec-gauge-track {
+  fill: none;
+  stroke: color-mix(in oklab, var(--border) 70%, transparent);
+  stroke-width: 2.5;
+}
+.sec-gauge-fill {
+  fill: none;
+  stroke: var(--sc);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 97.5;
+  stroke-dashoffset: calc(97.5 * (1 - var(--pct, 0) / 100));
+  transition: stroke-dashoffset 600ms ease;
+}
+.sec-gauge-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.sec-score-val {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--sc);
+}
+.sec-score-denom {
+  margin-top: 1px;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.sec-score-meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+.sec-score-cap {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.sec-score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--sc);
+  background-color: color-mix(in oklab, var(--sc) 14%, transparent);
+  border: 1px solid color-mix(in oklab, var(--sc) 32%, transparent);
+}
+.sec-pill-dot {
+  flex: none;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background-color: var(--sc);
+}
+.sec-score-note {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.sec-toggle {
+  width: 100%;
+  height: 1.75rem;
+  justify-content: center;
+  margin-top: 0.125rem;
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+.sec-toggle:hover {
+  color: var(--pill-active-color);
+}
+.sec-chevron {
+  transition: transform 200ms ease-out;
+}
+.sec-toggle.open .sec-chevron {
+  transform: rotate(180deg);
+}
+
+/* Limited by default; opens with a quiet height fade (no overshoot) */
+.sec-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 220ms ease,
+    opacity 220ms ease;
+}
+.sec-details.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.sec-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.sec-list {
+  display: grid;
+  gap: 0.375rem;
+  list-style: none;
+  margin-top: 0.625rem;
+}
+.sec-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.sec-list li svg {
+  flex-shrink: 0;
+  color: var(--emerald);
+}
+
+/* Sub-headings inside the expanded report */
+.sec-h {
+  margin-top: 0.875rem;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+/* Permissions now lead the report — give the block breathing room below the toggle */
+.sec-inner > .sec-h:first-child {
+  margin-top: 0.875rem;
+}
+.sec-inner > .sec-perms:first-of-type {
+  margin-top: 0.5rem;
+}
+
+/* Key metrics — full-report only */
+.sec-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.sec-metric {
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background-color: var(--background);
+  padding: 0.5rem 0.375rem;
+  text-align: center;
+}
+.sec-metric .value {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+/* Trust-score grade colors: A+/A green · B orange · C red */
+.sec-metric .value.grade-a {
+  color: var(--emerald);
+}
+.sec-metric .value.grade-b {
+  color: var(--lic-warn);
+}
+.sec-metric .value.grade-c {
+  color: var(--lic-denied);
+}
+.sec-metric .label {
+  margin-top: 0.125rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+/* Permissions required by the extension — explanation hidden until the
+   info indicator is tapped */
+.sec-perms {
+  display: grid;
+  gap: 0.375rem;
+  list-style: none;
+  margin-top: 0.5rem;
+}
+.perm {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+  overflow: hidden;
+  transition: border-color 150ms;
+}
+.perm.open {
+  border-color: color-mix(in oklab, var(--border) 55%, var(--foreground));
+}
+.perm-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: none;
+  background: none;
+  text-align: left;
+  color: var(--foreground);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+.perm-row:hover {
+  background-color: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.perm-ic {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4rem;
+  background-color: color-mix(
+    in oklab,
+    var(--pill-active-color) 12%,
+    transparent
+  );
+  color: var(--pill-active-color);
+}
+.perm-ic svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.perm-name {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.perm-chevron {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--muted-foreground);
+  transition: transform 200ms ease;
+}
+.perm.open .perm-chevron {
+  transform: rotate(180deg);
+}
+.perm-why {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 0.625rem;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  border-top: 1px solid transparent;
+  transition:
+    max-height 220ms ease,
+    opacity 220ms ease,
+    padding 220ms ease;
+}
+.perm.open .perm-why {
+  max-height: 6rem;
+  opacity: 1;
+  padding: 0.5rem 0.625rem 0.625rem;
+  border-top-color: color-mix(in oklab, var(--border) 55%, transparent);
+}
+.perm-tag {
+  justify-self: end;
+  border-radius: 9999px;
+  padding: 0.0625rem 0.4375rem;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.perm-tag.required {
+  border: 1px solid var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+}
+.perm-tag.optional {
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+/* Data destinations — where the extension transmits data */
+.dest-note {
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.sec-dest {
+  display: grid;
+  gap: 0.375rem;
+  list-style: none;
+  margin-top: 0.5rem;
+}
+.dest {
+  --dc: var(--pill-active-color);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+  padding: 0.5rem 0.625rem;
+}
+.dest.d-api {
+  --dc: var(--emerald);
+}
+.dest.d-analytics {
+  --dc: var(--pill-active-color);
+}
+.dest.d-telemetry {
+  --dc: var(--lic-warn);
+}
+.dest.d-registry {
+  --dc: var(--muted-foreground);
+}
+.dest-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.625rem;
+}
+.dest-ic {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.4rem;
+  background-color: color-mix(in oklab, var(--dc) 12%, transparent);
+  color: var(--dc);
+}
+.dest-ic svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.dest-domain {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dest-type {
+  justify-self: end;
+  border-radius: 9999px;
+  padding: 0.0625rem 0.4375rem;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: var(--dc);
+  background-color: color-mix(in oklab, var(--dc) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--dc) 45%, transparent);
+}
+.dest-desc {
+  margin: 0.375rem 0 0;
+  padding-left: 2.125rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+.dest-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0.35rem 0 0 2.125rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--pill-active-color);
+  cursor: pointer;
+}
+.dest-more:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dest-more-chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform 200ms ease;
+}
+.dest.open .dest-more-chevron {
+  transform: rotate(180deg);
+}
+.dest-details {
+  display: grid;
+  gap: 0.3rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 1px solid transparent;
+  transition:
+    max-height 240ms ease,
+    opacity 240ms ease,
+    margin-top 240ms ease,
+    padding-top 240ms ease;
+}
+.dest.open .dest-details {
+  max-height: 12rem;
+  opacity: 1;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top-color: color-mix(in oklab, var(--border) 55%, transparent);
+}
+.dest-line {
+  display: grid;
+  grid-template-columns: 4.25rem 1fr;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+.dest-k {
+  align-self: center;
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted-foreground);
+}
+.dest-v {
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.dest-link {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  color: var(--pill-active-color);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.dest-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.sec-foot {
+  margin-top: 0.875rem;
+  font-size: 10px;
+  color: var(--muted-foreground);
+  opacity: 0.8;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+}
+.tree-row .left {
+  color: var(--muted-foreground);
+}
+.tree-row .right {
+  font-weight: 500;
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: color-mix(
+    in oklab,
+    var(--muted-foreground) 40%,
+    transparent
+  );
+  text-underline-offset: 2px;
+}
+
+/* Tech stack pyramid — Frontend (top) over Backend (bottom) + language legend */
+.tech-stack {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.tri {
+  flex: none;
+  width: 7rem;
+  height: auto;
+  overflow: visible;
+}
+.tri-frontend {
+  fill: #3178c6;
+  stroke: var(--card);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.tri-backend {
+  fill: #8a3ffc;
+  stroke: var(--card);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.tri-txt {
+  fill: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+.tri-ico {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 1;
+}
+.tech-legend {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.lg-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lg-key {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 4.75rem;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.lg-line {
+  flex: none;
+  width: 0.875rem;
+  height: 0.2rem;
+  border-radius: 2px;
+}
+.lg-line.front {
+  background-color: #3178c6;
+}
+.lg-line.back {
+  background-color: #8a3ffc;
+}
+.lg-divider {
+  height: 1px;
+  background-color: color-mix(in oklab, var(--border) 90%, transparent);
+}
+.lg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.lg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.15rem;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--foreground);
+  background-color: color-mix(in oklab, var(--c) 16%, var(--card));
+  border: 1px solid color-mix(in oklab, var(--c) 45%, transparent);
+}
+.lg-chip::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 2px;
+  background-color: var(--c);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
+
+/* 404 page */
+.notfound-wrap {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
+.notfound-box {
+  max-width: 28rem;
+  text-align: center;
+}
+.notfound-box .code {
+  font-size: 4.5rem;
+  line-height: 1;
+  font-weight: 700;
+}
+.notfound-box h2 {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.notfound-box p {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+/* "New discussion" — neutral surface treatment matching the page's
+   cards/buttons instead of the green primary fill */
+.primary-btn {
+  display: inline-flex;
+  margin-top: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition:
+    border-color 150ms,
+    background-color 150ms;
+}
+.primary-btn:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+  background-color: color-mix(in oklab, var(--muted) 45%, var(--card));
+}
+
+/* ==========================================================================
+   Micro-interactions — like / save / toast / ripple (js/interactions.js)
+   ========================================================================== */
+
+/* Card "like" (claps) meta item — behaves as a toggle button */
+.meta-item.meta-like {
+  cursor: pointer;
+  border-radius: 0.25rem;
+  transition: color 150ms;
+}
+.meta-item.meta-like:hover {
+  color: var(--foreground);
+}
+.meta-item.meta-like:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+.meta-item.meta-like.liked {
+  color: #f43f5e;
+  opacity: 1 !important;
+}
+.meta-item.meta-like.liked svg {
+  fill: currentColor;
+}
+
+/* Pop animation on like/save toggles */
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.meta-item.meta-like.pop svg,
+.card-save.pop svg,
+.pill-btn.pop svg,
+.action-btn.pop svg {
+  animation: pop 320ms ease-out;
+}
+
+/* Card hover "save" bookmark */
+.app-card {
+  position: relative;
+}
+.card-save {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 0.375rem;
+  color: var(--muted-foreground);
+  background-color: transparent;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    opacity 150ms,
+    transform 150ms,
+    color 150ms,
+    background-color 150ms;
+}
+.card-save svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.app-card:hover .card-save,
+.app-card:focus-within .card-save,
+.card-save.saved {
+  opacity: 1;
+  transform: translateY(0);
+}
+.card-save:hover {
+  background-color: color-mix(in oklab, var(--foreground) 8%, transparent);
+  color: var(--foreground);
+}
+.card-save:focus-visible {
+  outline: 2px solid var(--ring);
+  opacity: 1;
+}
+.card-save.saved {
+  color: var(--pill-active-color);
+}
+.card-save.saved svg {
+  fill: currentColor;
+}
+
+/* Detail-page toggle buttons (Like / Follow / Saved) */
+.pill-btn.active,
+.action-btn.active {
+  border-color: var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+}
+.pill-btn.active .count,
+.action-btn.active .count {
+  color: var(--pill-active-color);
+}
+/* Paint the icons themselves when active, not just the button surface */
+.action-btn.active svg {
+  color: var(--pill-active-color);
+  fill: currentColor; /* bookmark fills solid blue; beats fill="none" attr */
+}
+#like-btn.active svg {
+  /* keep the rainbow identity — fill the thumb with the same gradient */
+  fill: url(#thumbs-up-gradient);
+}
+.pill-btn,
+.action-btn {
+  transition:
+    border-color 150ms,
+    background-color 150ms,
+    color 150ms,
+    transform 100ms;
+}
+.pill-btn:active,
+.action-btn:active {
+  transform: scale(0.96);
+}
+.pill-btn:focus-visible,
+.action-btn:focus-visible,
+.tab-btn:focus-visible,
+.download-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+/* Copy-name button success state */
+.copy-btn.copied {
+  color: var(--emerald);
+}
+
+/* Press ripple */
+.premium-btn,
+.download-btn,
+.pill-btn,
+.action-btn,
+.filter-btn,
+.square-btn,
+.tab-btn {
+  position: relative;
+  overflow: hidden;
+}
+.ripple {
+  position: absolute;
+  border-radius: 9999px;
+  background-color: color-mix(in oklab, var(--foreground) 18%, transparent);
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple 450ms ease-out forwards;
+}
+.download-btn .ripple,
+.premium-btn .ripple {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+@keyframes ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Toasts */
+.toast-wrap {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--popover);
+  color: var(--foreground);
+  box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.35);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(0.5rem) scale(0.96);
+  transition:
+    opacity 200ms ease-out,
+    transform 200ms ease-out;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.toast-icon {
+  display: inline-flex;
+  color: var(--pill-active-color);
+}
+.toast-icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.toast.toast-muted .toast-icon {
+  color: var(--muted-foreground);
+}
+html.dark .toast {
+  border-color: var(--sidebar-border);
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .ripple,
+  .meta-item.meta-like.pop svg,
+  .card-save.pop svg,
+  .pill-btn.pop svg,
+  .action-btn.pop svg {
+    animation: none;
+  }
+  .toast,
+  .card-save {
+    transition: none;
+  }
+  body {
+    animation: none;
+  }
+  .site-header,
+  .detail-header,
+  main {
+    transition: none;
+  }
+  .license-chip,
+  .license-pop,
+  .sec-details,
+  .sec-chevron,
+  .perm-why,
+  .perm-row,
+  .perm-chevron,
+  .dest-details,
+  .dest-more-chevron,
+  .disc-replies,
+  .disc-toggle svg {
+    transition: none;
+  }
+  .load-bar::after {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Small inline back button — left of the repo title (js/sprinkle-data.js)
+   ========================================================================== */
+
+.back-btn {
+  flex-shrink: 0;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+/* ==========================================================================
+   Page transitions — restrained opacity-only fades (js/interactions.js)
+   ========================================================================== */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+body {
+  animation: page-enter 180ms ease-out;
+}
+
+.site-header,
+.detail-header,
+main {
+  transition: opacity 140ms ease-in;
+}
+html.exiting .site-header,
+html.exiting .detail-header,
+html.exiting main {
+  opacity: 0;
+}
+
+/* ==========================================================================
+   Load bar — buffering indicator for slow page loads, pinned to the top
+   edge so it aligns with the header logo; uses the logo's own palette
+   ========================================================================== */
+
+.load-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 3px;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--muted) 55%, transparent);
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 300ms ease,
+    visibility 0s;
+}
+.load-bar.done {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 300ms ease,
+    visibility 0s linear 300ms;
+}
+.load-bar.done::after {
+  animation-play-state: paused;
+}
+.load-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 35%;
+  border-radius: 9999px;
+  /* the six sprinkleLogo colors, in the order they sweep across */
+  background: linear-gradient(
+    90deg,
+    #22b558,
+    #00b2f0,
+    #0a7cff,
+    #8a3ffc,
+    #ffa400,
+    #f43f6b
+  );
+  box-shadow: 0 0 10px color-mix(in oklab, #0a7cff 40%, transparent);
+  animation: loadbar-sweep 1.15s ease-in-out infinite;
+}
+@keyframes loadbar-sweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(390%);
+  }
+}
+
+/* ==========================================================================
+   License chip — hover / open response
+   ========================================================================== */
+
+.license-chip {
+  transition:
+    border-color 150ms,
+    color 150ms,
+    transform 150ms,
+    box-shadow 150ms;
+}
+.license-chip:hover,
+.license-chip.open {
+  border-color: var(--pill-active-border);
+  color: var(--pill-active-color);
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 10px -2px rgb(0 0 0 / 0.25),
+    var(--pill-active-shadow);
+}
+.license-chip:hover .chip-val,
+.license-chip.open .chip-val {
+  color: var(--pill-active-color);
+}
+.license-chip:hover .lic-scale {
+  transform: rotate(-6deg);
+}
+.license-chip svg {
+  transition: transform 200ms ease-out;
+}
+.license-chip.open .chip-chevron {
+  transform: rotate(180deg);
+}
+
+/* ─── License details popover ──────────────────────────────────────────── */
+
+.license-pop {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 60;
+  width: min(22rem, calc(100vw - 2.5rem));
+  padding: 0.875rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border);
+  background-color: var(--popover);
+  box-shadow:
+    0 16px 40px -16px rgb(0 0 0 / 0.4),
+    0 0 0 1px color-mix(in oklab, var(--ring) 10%, transparent);
+  color: var(--foreground);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 140ms ease-out,
+    transform 140ms ease-out,
+    visibility 140ms;
+}
+.license-pop.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.lic-pop-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lic-pop-icon {
+  display: inline-flex;
+  height: 1.875rem;
+  width: 1.875rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 22%, transparent),
+    color-mix(in oklab, var(--pill-active-color) 16%, transparent)
+  );
+  color: var(--primary);
+}
+.lic-pop-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.lic-pop-sub {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.lic-pop-close {
+  margin-left: auto;
+  display: inline-flex;
+  height: 1.375rem;
+  width: 1.375rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.lic-pop-close:hover {
+  background-color: var(--accent);
+  color: var(--foreground);
+}
+.lic-pop-summary {
+  margin-top: 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+/* Groups as a table — each column color-coded: allowed green ·
+   warn amber · denied red */
+.lic-table {
+  width: 100%;
+  margin-top: 0.75rem;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+.lic-table th,
+.lic-table td {
+  padding: 0.3125rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+.lic-table th {
+  border-bottom: 1px solid var(--border);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lic-table th svg {
+  vertical-align: -2px;
+  margin-right: 0.1875rem;
+}
+.lic-table tbody td {
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  color: var(--foreground);
+}
+.lic-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.lic-table td.empty {
+  color: var(--muted-foreground);
+  opacity: 0.4;
+}
+.lic-table .col-allowed {
+  background-color: color-mix(in oklab, var(--emerald) 7%, transparent);
+}
+.lic-table th.col-allowed {
+  color: var(--emerald);
+  background-color: color-mix(in oklab, var(--emerald) 12%, transparent);
+}
+.lic-table .col-warn {
+  background-color: color-mix(in oklab, var(--lic-warn) 8%, transparent);
+}
+.lic-table th.col-warn {
+  color: var(--lic-warn);
+  background-color: color-mix(in oklab, var(--lic-warn) 13%, transparent);
+}
+.lic-table .col-denied {
+  background-color: color-mix(in oklab, var(--lic-denied) 8%, transparent);
+}
+.lic-table th.col-denied {
+  color: var(--lic-denied);
+  background-color: color-mix(in oklab, var(--lic-denied) 13%, transparent);
+}
+.lic-pop-foot {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8125rem;
+}
+.lic-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  padding: 0.3125rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    border-color 150ms,
+    background-color 150ms,
+    color 150ms;
+}
+.lic-btn:hover {
+  border-color: var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+}
+
+/* ==========================================================================
+   "More actions" dropdown (⋮ → View Pull Request / How to Use / Report)
+   ========================================================================== */
+
+.square-btn.open {
+  border-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  color: var(--foreground);
+  background-color: var(--accent);
+}
+.ext-more-menu {
+  width: 13.5rem;
+}
+.ext-more-menu .dropdown-item svg {
+  color: var(--muted-foreground);
+  transition: color 150ms;
+}
+.ext-more-menu .dropdown-item:hover svg {
+  color: var(--foreground);
+}
+.ext-more-menu .dropdown-item.danger:hover {
+  background-color: color-mix(in oklab, #f43f5e 12%, transparent);
+  color: #f43f5e;
+}
+.ext-more-menu .dropdown-item.danger:hover svg {
+  color: #f43f5e;
+}
+
+/* ==========================================================================
+   Files & Versions page
+   ========================================================================== */
+
+.files-layout {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+.panel-card {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+html.dark .panel-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.panel-head .path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+.file-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.file-table th {
+  text-align: left;
+  padding: 0.5rem 1rem;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+.file-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  color: var(--muted-foreground);
+}
+.file-table tr:last-child td {
+  border-bottom: none;
+}
+.file-table tbody tr {
+  transition: background-color 150ms;
+}
+.file-table tbody tr:hover {
+  background-color: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.file-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--foreground);
+}
+.file-name svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+.file-size,
+.file-updated {
+  white-space: nowrap;
+}
+
+/* ── Files browser — breadcrumb, clickable rows, code viewer ─────────── */
+
+.fb-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  min-width: 0;
+  font-weight: 400;
+}
+.fb-crumb {
+  border: none;
+  background: none;
+  padding: 0.125rem 0.25rem;
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--pill-active-color);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+.fb-crumb:hover {
+  background-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fb-crumb.fb-branch {
+  color: var(--foreground);
+}
+.fb-crumb:last-child {
+  color: var(--muted-foreground);
+  cursor: default;
+}
+.fb-crumb:last-child:hover {
+  background: none;
+  text-decoration: none;
+}
+.fb-sep {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  padding: 0 0.125rem;
+}
+
+/* Clickable name cells behave like links */
+.fb-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--pill-active-color);
+  cursor: pointer;
+  text-align: left;
+}
+.fb-entry:hover,
+.fb-entry:hover .fb-entry-name {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fb-entry .fb-entry-name {
+  color: inherit;
+}
+.fb-entry.fb-dir .fb-entry-name {
+  font-weight: 600;
+}
+.fb-up-row td {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+.fb-up-row .fb-entry {
+  color: var(--muted-foreground);
+}
+
+/* File viewer */
+.fb-viewer {
+  border-top: 1px solid var(--border);
+}
+.fb-viewer[hidden] {
+  display: none;
+}
+.fb-file-head {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background-color: color-mix(in oklab, var(--muted) 40%, var(--card));
+}
+.fb-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    background-color 150ms,
+    border-color 150ms;
+}
+.fb-back:hover {
+  background-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  border-color: color-mix(in oklab, var(--border) 60%, var(--foreground));
+}
+.fb-back svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--muted-foreground);
+}
+.fb-file-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.625rem;
+  flex-wrap: wrap;
+}
+.fb-file-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: var(--muted-foreground);
+  word-break: break-all;
+}
+.fb-file-size {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Code view with line numbers */
+.fb-codeview {
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding: 0.5rem 0;
+  background-color: var(--card);
+}
+.fb-line {
+  display: flex;
+}
+.fb-line:hover {
+  background-color: color-mix(in oklab, var(--accent) 40%, transparent);
+}
+.fb-ln {
+  flex: none;
+  width: 2.75rem;
+  padding-right: 0.75rem;
+  text-align: right;
+  color: var(--muted-foreground);
+  user-select: none;
+  opacity: 0.7;
+}
+.fb-lc {
+  flex: none;
+  padding-right: 1rem;
+  color: var(--foreground);
+  white-space: pre;
+}
+
+/* Binary / non-previewable files */
+.fb-binary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.25rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+.fb-binary-ic svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+
+.version-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  transition: background-color 150ms;
+}
+.version-item:last-child {
+  border-bottom: none;
+}
+.version-item:hover {
+  background-color: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.version-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.version-tag {
+  border-radius: 9999px;
+  border: 1px solid var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+  padding: 0.0625rem 0.5rem;
+  font-size: 10px;
+  font-weight: 600;
+}
+.version-meta {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+/* ==========================================================================
+   Community page
+   ========================================================================== */
+
+.discussion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  transition: background-color 150ms;
+}
+.discussion-item:last-child {
+  border-bottom: none;
+}
+.discussion-item:hover {
+  background-color: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+.discussion-avatar {
+  display: flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  margin-top: 0.125rem;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+}
+.discussion-body {
+  min-width: 0;
+  flex: 1;
+}
+.discussion-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.discussion-meta {
+  margin-top: 0.125rem;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.discussion-meta .mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.discussion-replies {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.discussion-replies svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* ─── Discussion threads — chevron reveals the replies below ───────────── */
+
+/* the item is no longer the last child of its thread; keep the divider
+   only between threads */
+.disc-thread:last-child .discussion-item {
+  border-bottom: none;
+}
+.disc-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+.disc-toggle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform 200ms ease-out;
+}
+.disc-toggle:hover,
+.disc-thread.open .disc-toggle {
+  border-color: var(--pill-active-border);
+  color: var(--pill-active-color);
+}
+.disc-thread.open .disc-toggle svg {
+  transform: rotate(180deg);
+}
+.disc-replies {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  background-color: color-mix(in oklab, var(--muted) 18%, var(--card));
+  transition:
+    grid-template-rows 220ms ease,
+    opacity 220ms ease;
+}
+.disc-thread.open .disc-replies {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.disc-replies-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 1rem;
+}
+.disc-thread.open .disc-replies-inner {
+  padding: 0.5rem 1rem 0.75rem;
+}
+.disc-reply {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+}
+.disc-reply:first-child {
+  border-top: none;
+  padding-top: 0.125rem;
+}
+.disc-reply .discussion-avatar {
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-top: 0;
+  font-size: 9px;
+}
+.disc-reply .discussion-meta {
+  margin-top: 0;
+}
+.disc-reply-text {
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--foreground);
+}
+
+/* "Read more" — second-level comments stay hidden until requested */
+.disc-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.375rem;
+  margin-top: 0.375rem;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+.disc-more svg {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  transition: transform 200ms ease-out;
+}
+.disc-more:hover,
+.disc-more.open {
+  border-color: var(--pill-active-border);
+  color: var(--pill-active-color);
+}
+.disc-more.open svg {
+  transform: rotate(180deg);
+}
+
+/* Level 2 — indented and smaller, visually connected to its parent by a
+   thread line with an elbow tick (max depth: post → reply → sub-reply) */
+.disc-nested {
+  display: none;
+  margin-top: 0.5rem;
+  margin-left: 0.3125rem;
+  padding-left: 0.875rem;
+}
+.disc-nested.open {
+  display: block;
+}
+.disc-reply.sub {
+  position: relative;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+  border-top: none;
+}
+/* each reply draws its own stretch of the thread line; the last one stops
+   at its elbow so the line never dangles past the final message */
+.disc-reply.sub::after {
+  content: "";
+  position: absolute;
+  left: -0.875rem;
+  top: 0;
+  bottom: 0;
+  border-left: 2px solid
+    color-mix(in oklab, var(--muted-foreground) 25%, transparent);
+}
+.disc-reply.sub:last-child::after {
+  bottom: auto;
+  height: 0.9375rem;
+}
+.disc-reply.sub::before {
+  content: "";
+  position: absolute;
+  left: -0.875rem;
+  top: 0.9375rem;
+  width: 0.5rem;
+  border-top: 2px solid
+    color-mix(in oklab, var(--muted-foreground) 25%, transparent);
+}
+.disc-reply.sub .discussion-avatar {
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 8px;
+}
+.disc-reply.sub .discussion-meta {
+  font-size: 11px;
+}
+.disc-reply.sub .disc-reply-text {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.primary-btn.full-width {
+  margin-top: 0;
+  width: 100%;
+}
+/* actions row above the discussions list */
+.files-layout > div {
+  display: flex;
+  justify-content: flex-end;
+}
+.files-layout .primary-btn {
+  margin-top: 0;
+}

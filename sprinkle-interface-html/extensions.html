@@ -1,0 +1,1426 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Extension — Sprinkle</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Applies the persisted theme before first paint to avoid a dark-mode flash
+         for light-mode users. The `dark` class above is the no-JS default. -->
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.classList.toggle("dark", t === "dark");
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <!-- Shared header — injected by js/sprinkle-data.js -->
+    <div data-header></div>
+
+    <!-- ── Top section — extension key information ─────────────────────── -->
+    <header class="detail-header">
+      <div class="detail-header-inner">
+        <!-- Title row -->
+        <div class="ext-title-row">
+          <h1 class="ext-title">
+            <svg
+              class="pkg icon-16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"
+              />
+              <path d="m7 16.5-4.74-2.85" />
+              <path d="m7 16.5 5-3" />
+              <path d="M7 16.5v5.17" />
+              <path
+                d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"
+              />
+              <path d="m17 16.5-5-3" />
+              <path d="m17 16.5 4.74-2.85" />
+              <path d="M17 16.5v5.17" />
+              <path
+                d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"
+              />
+              <path d="M12 8 7.26 5.15" />
+              <path d="m12 8 4.74-2.85" />
+              <path d="M12 13.5V8" />
+            </svg>
+            <span class="owner" id="ext-owner">Edge0</span>
+            <span class="slash">/</span>
+            <span class="name" id="ext-name">Audio8-ASR-Infinite</span>
+            <button
+              type="button"
+              aria-label="Copy name"
+              class="copy-btn"
+              id="copy-name"
+            >
+              <svg
+                class="icon-copy"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                <path
+                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+                />
+              </svg>
+            </button>
+          </h1>
+
+          <button
+            type="button"
+            class="pill-btn"
+            id="like-btn"
+            aria-pressed="false"
+          >
+            <!-- Like icon — lucide thumbs-up painted with the rainbow gradient -->
+            <svg
+              class="icon-14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="url(#thumbs-up-gradient)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient
+                  id="thumbs-up-gradient"
+                  x1="0"
+                  y1="0"
+                  x2="24"
+                  y2="24"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0" stop-color="#873CF2" />
+                  <stop offset="0.2" stop-color="#0077FE" />
+                  <stop offset="0.4" stop-color="#25BD4E" />
+                  <stop offset="0.6" stop-color="#FEA302" />
+                  <stop offset="0.8" stop-color="#FC3A66" />
+                  <stop offset="1" stop-color="#01B0F1" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"
+              />
+              <path d="M7 10v12" />
+            </svg>
+            <span class="btn-label">Like</span>
+            <span class="count" data-count="1320">1,32k</span>
+          </button>
+          <button
+            type="button"
+            class="pill-btn"
+            id="follow-btn"
+            aria-pressed="false"
+          >
+            <svg
+              class="icon-14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <line x1="19" x2="19" y1="8" y2="14" />
+              <line x1="22" x2="16" y1="11" y2="11" />
+            </svg>
+            <span class="btn-label">Follow</span>
+            <span class="count" data-count="1250">1,25k</span>
+          </button>
+        </div>
+
+        <!-- Hashtags + license -->
+        <div class="ext-tags-row">
+          <button
+            type="button"
+            class="hashtag"
+            data-tag="speech-recognition"
+            aria-label="Search extensions tagged speech-recognition"
+          >
+            [#speech-recognition]
+          </button>
+          <button
+            type="button"
+            class="hashtag"
+            data-tag="streaming"
+            aria-label="Search extensions tagged streaming"
+          >
+            [#streaming]
+          </button>
+          <button
+            type="button"
+            class="hashtag"
+            data-tag="audio"
+            aria-label="Search extensions tagged audio"
+          >
+            [#audio]
+          </button>
+          <button
+            type="button"
+            class="hashtag"
+            data-tag="realtime"
+            aria-label="Search extensions tagged realtime"
+          >
+            [#realtime]
+          </button>
+          <button
+            type="button"
+            class="hashtag"
+            data-tag="ai"
+            aria-label="Search extensions tagged ai"
+          >
+            [#ai]
+          </button>
+          <button type="button" class="license-chip" data-license="apache-2.0">
+            <svg
+              class="lic-scale"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="12"
+              height="12"
+              aria-hidden="true"
+            >
+              <path d="M12 3v18" />
+              <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" />
+              <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" />
+              <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" />
+              <path d="M7 21h10" />
+            </svg>
+            <span class="chip-key">License:</span>
+            <span class="chip-val">apache-2.0</span>
+            <svg
+              class="chip-chevron"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="11"
+              height="11"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Tabs + actions -->
+        <div class="ext-tabs-row">
+          <nav class="ext-tabs">
+            <a class="tab-btn active" href="extensions.html" aria-current="page"
+              >Model card</a
+            >
+            <a class="tab-btn" href="files.html">
+              Files and versions
+              <span class="tab-kbd">⌘ xet</span>
+            </a>
+            <a class="tab-btn" href="community.html">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="16"
+                height="16"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
+                />
+              </svg>
+              Community <span class="font-mono text-xs">2</span>
+            </a>
+          </nav>
+
+          <div class="ext-actions">
+            <button type="button" aria-label="More actions" class="square-btn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="16"
+                height="16"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="action-btn"
+              id="save-btn"
+              aria-pressed="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path
+                  d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"
+                />
+              </svg>
+              <span class="btn-label">Saved</span>
+            </button>
+            <button type="button" class="action-btn">
+              <svg
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                />
+              </svg>
+              Repository
+            </button>
+            <button type="button" class="download-btn">
+              <span class="shine"></span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path d="M12 15V3" />
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+              <span>Download</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Body: description + statistics ──────────────────────────────── -->
+    <main class="detail-main">
+      <!-- Description and license -->
+      <section class="desc-card">
+        <div class="desc-head">
+          <h2 id="ext-heading">Audio8-ASR-Infinite</h2>
+          <button type="button" class="edit-link">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            >
+              <path
+                d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+              />
+              <path d="m15 5 4 4" />
+            </svg>
+            Edit model card
+          </button>
+        </div>
+
+        <!-- Badge strip — placeholder badges until real links exist -->
+        <div class="badge-strip">
+          <span class="badge muted">HUGGING FACE</span>
+          <span class="badge yellow" id="badge-name">AUDIO8-ASR-INFINITE</span>
+          <span class="badge inverse">GITHUB</span>
+          <span class="badge muted">ARXIV</span>
+          <span class="badge rose">COMING SOON</span>
+          <span class="badge sky">LICENSE APACHE 2.0</span>
+        </div>
+
+        <p>
+          <strong id="ext-strong">Audio8-ASR-Infinite</strong> is a native
+          streaming speech recognition model built to be as responsive as
+          possible. It offers a selectable audio clock (80/120/160 ms) and a
+          transcription delay (240–560 ms). With our adapted vLLM build it
+          transcribes unlimited-length audio <strong>24/7</strong> without
+          drifting.
+        </p>
+
+        <h3>Highlights</h3>
+        <ul>
+          <li>
+            <strong>Super responsive</strong> — the native streaming
+            architecture decodes 12.5 times per second.
+          </li>
+          <li>
+            <strong>Unlimited-length transcription</strong> — a rolling KV Cache
+            keeps both memory and latency constant, even in 24/7 operation.
+          </li>
+          <li>
+            <strong>Selectable streaming clock</strong> — one text token per
+            clock step (12.5 / 8.3 / 6.25 decisions per second), balancing
+            perception granularity and resource cost.
+          </li>
+          <li>
+            <strong>Configurable transcription delay</strong> — set how much
+            delay to trade for accuracy.
+          </li>
+          <li>
+            <strong>Semantic VAD</strong> — distinguishes thinking pauses,
+            stuttering and real end of turn.
+          </li>
+        </ul>
+
+        <h3>License</h3>
+        <p class="license-line">
+          <span class="lic-line-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <path d="M12 3v18" />
+              <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" />
+              <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" />
+              <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" />
+              <path d="M7 21h10" />
+            </svg>
+          </span>
+          <span class="lic-text">
+            <span class="lic-strong">Apache-2.0</span>
+          </span>
+          <a
+            class="lic-details"
+            href="https://www.apache.org/licenses/LICENSE-2.0"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View license
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            >
+              <path d="M15 3h6v6" />
+              <path d="M10 14 21 3" />
+              <path
+                d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+              />
+            </svg>
+          </a>
+        </p>
+      </section>
+
+      <!-- Download details and statistics -->
+      <aside class="stats-aside">
+        <!-- Downloads + sparkline -->
+        <div class="stat-card">
+          <div class="downloads-row">
+            <div>
+              <div class="label label-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  width="14"
+                  height="14"
+                  aria-hidden="true"
+                >
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                  <line x1="16" x2="16" y1="2" y2="6" />
+                  <line x1="8" x2="8" y1="2" y2="6" />
+                  <line x1="3" x2="21" y1="10" y2="10" />
+                </svg>
+                Downloads last month
+              </div>
+              <div class="value">20,0k</div>
+            </div>
+            <svg
+              class="sparkline"
+              viewBox="0 0 120 36"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M2 32h80M92 32l6-22 6 18 8-8" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Views + total downloads — side by side, sharing the row -->
+        <div class="stat-duo">
+          <div class="stat-card">
+            <h4>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="16"
+                height="16"
+                aria-hidden="true"
+              >
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Total views
+            </h4>
+            <div class="duo-value">128,4k</div>
+          </div>
+          <div class="stat-card">
+            <h4>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="16"
+                height="16"
+                aria-hidden="true"
+              >
+                <path d="M12 15V3" />
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+              Total downloads
+            </h4>
+            <div class="duo-value">342,1k</div>
+          </div>
+        </div>
+
+        <!-- Browser compatibility -->
+        <div class="stat-card">
+          <h4 style="margin-bottom: 0.75rem">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="M10 4v4" />
+              <path d="M2 8h20" />
+              <path d="M6 4v4" />
+            </svg>
+            Browser
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4" />
+              <path d="M12 8h.01" />
+            </svg>
+          </h4>
+          <div class="chip-row">
+            <span class="chip">
+              <svg
+                class="brand brand-chrome"
+                viewBox="0 0 496 512"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M131.5 217.5L55.1 100.1c47.6-59.2 119-91.8 192-92.1 42.3-.3 85.5 10.5 124.8 33.2 43.4 25.2 76.4 61.4 97.4 103L264 133.4c-58.1-3.4-113.4 29.3-132.5 84.1zm32.9 38.5c0 46.2 37.4 83.6 83.6 83.6s83.6-37.4 83.6-83.6-37.4-83.6-83.6-83.6-83.6 37.3-83.6 83.6zm314.9-89.2L339.6 174c37.9 44.3 38.5 108.2 6.6 157.2L234.1 503.6c46.5 2.5 94.4-7.7 137.8-32.9 107.4-62 150.9-192 107.4-303.9zM133.7 303.6L40.4 120.1C14.9 159.1 0 205.9 0 256c0 124 90.8 226.7 209.5 244.9l63.7-124.8c-57.6 10.8-113.2-20.8-139.5-72.5z"
+                />
+              </svg>
+              Chrome
+            </span>
+            <span class="chip">
+              <svg
+                class="brand brand-edge"
+                viewBox="0 0 512 512"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M481.92,134.48C440.87,54.18,352.26,8,255.91,8,137.05,8,37.51,91.68,13.47,203.66c26-46.49,86.22-79.14,149.46-79.14,79.27,0,121.09,48.93,122.25,50.18,22,23.8,33,50.39,33,83.1,0,10.4-5.31,25.82-15.11,38.57-1.57,2-6.39,4.84-6.39,11,0,5.06,3.29,9.92,9.14,14,27.86,19.37,80.37,16.81,80.51,16.81A115.39,115.39,0,0,0,444.94,322a118.92,118.92,0,0,0,58.95-102.44C504.39,176.13,488.39,147.26,481.92,134.48ZM212.77,475.67a154.88,154.88,0,0,1-46.64-45c-32.94-47.42-34.24-95.6-20.1-136A155.5,155.5,0,0,1,203,215.75c59-45.2,94.84-5.65,99.06-1a80,80,0,0,0-4.89-10.14c-9.24-15.93-24-36.41-56.56-53.51-33.72-17.69-70.59-18.59-77.64-18.59-38.71,0-77.9,13-107.53,35.69C35.68,183.3,12.77,208.72,8.6,243c-1.08,12.31-2.75,62.8,23,118.27a248,248,0,0,0,248.3,141.61C241.78,496.26,214.05,476.24,212.77,475.67Zm250.72-98.33a7.76,7.76,0,0,0-7.92-.23,181.66,181.66,0,0,1-20.41,9.12,197.54,197.54,0,0,1-69.55,12.52c-91.67,0-171.52-63.06-171.52-144A61.12,61.12,0,0,1,200.61,228,168.72,168.72,0,0,0,161.85,278c-14.92,29.37-33,88.13,13.33,151.66,6.51,8.91,23,30,56,47.67,23.57,12.65,49,19.61,71.7,19.61,35.14,0,115.43-33.44,163-108.87A7.75,7.75,0,0,0,463.49,377.34Z"
+                />
+              </svg>
+              Edge
+            </span>
+            <span class="chip">
+              <svg
+                class="brand brand-firefox"
+                viewBox="0 0 512 512"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M503.52,241.48c-.12-1.56-.24-3.12-.24-4.68v-.12l-.36-4.68v-.12a245.86,245.86,0,0,0-7.32-41.15c0-.12,0-.12-.12-.24l-1.08-4c-.12-.24-.12-.48-.24-.6-.36-1.2-.72-2.52-1.08-3.72-.12-.24-.12-.6-.24-.84-.36-1.2-.72-2.4-1.08-3.48-.12-.36-.24-.6-.36-1-.36-1.2-.72-2.28-1.2-3.48l-.36-1.08c-.36-1.08-.84-2.28-1.2-3.36a8.27,8.27,0,0,0-.36-1c-.48-1.08-.84-2.28-1.32-3.36-.12-.24-.24-.6-.36-.84-.48-1.2-1-2.28-1.44-3.48,0-.12-.12-.24-.12-.36-1.56-3.84-3.24-7.68-5-11.4l-.36-.72c-.48-1-.84-1.8-1.32-2.64-.24-.48-.48-1.08-.72-1.56-.36-.84-.84-1.56-1.2-2.4-.36-.6-.6-1.2-1-1.8s-.84-1.44-1.2-2.28c-.36-.6-.72-1.32-1.08-1.92s-.84-1.44-1.2-2.16a18.07,18.07,0,0,0-1.2-2c-.36-.72-.84-1.32-1.2-2s-.84-1.32-1.2-2-.84-1.32-1.2-1.92-.84-1.44-1.32-2.16a15.63,15.63,0,0,0-1.2-1.8L463.2,119a15.63,15.63,0,0,0-1.2-1.8c-.48-.72-1.08-1.56-1.56-2.28-.36-.48-.72-1.08-1.08-1.56l-1.8-2.52c-.36-.48-.6-.84-1-1.32-1-1.32-1.8-2.52-2.76-3.72a248.76,248.76,0,0,0-23.51-26.64A186.82,186.82,0,0,0,412,62.46c-4-3.48-8.16-6.72-12.48-9.84a162.49,162.49,0,0,0-24.6-15.12c-2.4-1.32-4.8-2.52-7.2-3.72a254,254,0,0,0-55.43-19.56c-1.92-.36-3.84-.84-5.64-1.2h-.12c-1-.12-1.8-.36-2.76-.48a236.35,236.35,0,0,0-38-4H255.14a234.62,234.62,0,0,0-45.48,5c-33.59,7.08-63.23,21.24-82.91,39-1.08,1-1.92,1.68-2.4,2.16l-.48.48H124l-.12.12.12-.12a.12.12,0,0,0,.12-.12l-.12.12a.42.42,0,0,1,.24-.12c14.64-8.76,34.92-16,49.44-19.56l5.88-1.44c.36-.12.84-.12,1.2-.24,1.68-.36,3.36-.72,5.16-1.08.24,0,.6-.12.84-.12C250.94,20.94,319.34,40.14,367,85.61a171.49,171.49,0,0,1,26.88,32.76c30.36,49.2,27.48,111.11,3.84,147.59-34.44,53-111.35,71.27-159,24.84a84.19,84.19,0,0,1-25.56-59,74.05,74.05,0,0,1,6.24-31c1.68-3.84,13.08-25.67,18.24-24.59-13.08-2.76-37.55,2.64-54.71,28.19-15.36,22.92-14.52,58.2-5,83.28a132.85,132.85,0,0,1-12.12-39.24c-12.24-82.55,43.31-153,94.31-170.51-27.48-24-96.47-22.31-147.71,15.36-29.88,22-51.23,53.16-62.51,90.36,1.68-20.88,9.6-52.08,25.8-83.88-17.16,8.88-39,37-49.8,62.88-15.6,37.43-21,82.19-16.08,124.79.36,3.24.72,6.36,1.08,9.6,19.92,117.11,122,206.38,244.78,206.38C392.77,503.42,504,392.19,504,255,503.88,250.48,503.76,245.92,503.52,241.48Z"
+                />
+              </svg>
+              Firefox
+            </span>
+            <span class="chip">
+              <svg
+                class="brand brand-opera"
+                viewBox="0 0 496 512"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M313.9 32.7c-170.2 0-252.6 223.8-147.5 355.1 36.5 45.4 88.6 75.6 147.5 75.6 36.3 0 70.3-11.1 99.4-30.4-43.8 39.2-101.9 63-165.3 63-3.9 0-8 0-11.9-.3C104.6 489.6 0 381.1 0 248 0 111 111 0 248 0h.8c63.1.3 120.7 24.1 164.4 63.1-29-19.4-63.1-30.4-99.3-30.4zm101.8 397.7c-40.9 24.7-90.7 23.6-132-5.8 56.2-20.5 97.7-91.6 97.7-176.6 0-84.7-41.2-155.8-97.4-176.6 41.8-29.2 91.2-30.3 132.9-5 105.9 98.7 105.5 265.7-1.2 364z"
+                />
+              </svg>
+              Opera Mini
+            </span>
+            <span class="chip">
+              <svg
+                class="brand brand-safari"
+                viewBox="0 0 512 512"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M274.69,274.69l-37.38-37.38L166,346ZM256,8C119,8,8,119,8,256S119,504,256,504,504,393,504,256,393,8,256,8ZM411.85,182.79l14.78-6.13A8,8,0,0,1,437.08,181h0a8,8,0,0,1-4.33,10.46L418,197.57a8,8,0,0,1-10.45-4.33h0A8,8,0,0,1,411.85,182.79ZM314.43,94l6.12-14.78A8,8,0,0,1,331,74.92h0a8,8,0,0,1,4.33,10.45l-6.13,14.78a8,8,0,0,1-10.45,4.33h0A8,8,0,0,1,314.43,94ZM256,60h0a8,8,0,0,1,8,8V84a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V68A8,8,0,0,1,256,60ZM181,74.92a8,8,0,0,1,10.46,4.33L197.57,94a8,8,0,1,1-14.78,6.12l-6.13-14.78A8,8,0,0,1,181,74.92Zm-63.58,42.49h0a8,8,0,0,1,11.31,0L140,128.72A8,8,0,0,1,140,140h0a8,8,0,0,1-11.31,0l-11.31-11.31A8,8,0,0,1,117.41,117.41ZM60,256h0a8,8,0,0,1,8-8H84a8,8,0,0,1,8,8h0a8,8,0,0,1-8,8H68A8,8,0,0,1,60,256Zm40.15,73.21-14.78,6.13A8,8,0,0,1,74.92,331h0a8,8,0,0,1,4.33-10.46L94,314.43a8,8,0,0,1,10.45,4.33h0A8,8,0,0,1,100.15,329.21Zm4.33-136h0A8,8,0,0,1,94,197.57l-14.78-6.12A8,8,0,0,1,74.92,181h0a8,8,0,0,1,10.45-4.33l14.78,6.13A8,8,0,0,1,104.48,193.24ZM197.57,418l-6.12,14.78a8,8,0,0,1-14.79-6.12l6.13-14.78A8,8,0,1,1,197.57,418ZM264,444a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V428a8,8,0,0,1,8-8h0a8,8,0,0,1,8,8Zm67-6.92h0a8,8,0,0,1-10.46-4.33L314.43,418a8,8,0,0,1,4.33-10.45h0a8,8,0,0,1,10.45,4.33l6.13,14.78A8,8,0,0,1,331,437.08Zm63.58-42.49h0a8,8,0,0,1-11.31,0L372,383.28A8,8,0,0,1,372,372h0a8,8,0,0,1,11.31,0l11.31,11.31A8,8,0,0,1,394.59,394.59ZM286.25,286.25,110.34,401.66,225.75,225.75,401.66,110.34ZM437.08,331h0a8,8,0,0,1-10.45,4.33l-14.78-6.13a8,8,0,0,1-4.33-10.45h0A8,8,0,0,1,418,314.43l14.78,6.12A8,8,0,0,1,437.08,331ZM444,264H428a8,8,0,0,1-8-8h0a8,8,0,0,1,8-8h16a8,8,0,0,1,8,8h0A8,8,0,0,1,444,264Z"
+                />
+              </svg>
+              Safari
+            </span>
+          </div>
+        </div>
+
+        <!-- Security — limited summary until the full report is expanded -->
+        <div class="stat-card">
+          <h4 style="margin-bottom: 0.25rem">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <path
+                d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
+              />
+            </svg>
+            Security
+          </h4>
+          <div
+            class="sec-score tier-high"
+            id="sec-score"
+            data-score="96"
+            style="--pct: 96"
+            role="img"
+            aria-label="Security score: 96 out of 100, low risk"
+          >
+            <div class="sec-gauge">
+              <svg class="sec-gauge-svg" viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="sec-gauge-track" cx="18" cy="18" r="15.5" />
+                <circle class="sec-gauge-fill" cx="18" cy="18" r="15.5" />
+              </svg>
+              <div class="sec-gauge-num">
+                <span class="sec-score-val">96</span>
+                <span class="sec-score-denom">/100</span>
+              </div>
+            </div>
+            <div class="sec-score-meta">
+              <div class="sec-score-cap">Security score</div>
+              <span class="sec-score-pill">
+                <span class="sec-pill-dot" aria-hidden="true"></span>
+                <span class="sec-score-tier">Low risk</span>
+              </span>
+              <div class="sec-score-note">Updated Sep 28, 2026</div>
+            </div>
+          </div>
+          <div class="inference-sub">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="14"
+              height="14"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            Latest scan clean — 34 files checked, 0 threats
+          </div>
+          <button
+            type="button"
+            class="provider-btn sec-toggle"
+            id="sec-toggle"
+            aria-expanded="false"
+            aria-controls="sec-details"
+          >
+            <span class="sec-toggle-label">View full report</span>
+            <svg
+              class="sec-chevron"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="12"
+              height="12"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+          <div class="sec-details" id="sec-details">
+            <div class="sec-inner">
+              <h5 class="sec-h">Permissions required by this extension</h5>
+              <ul class="sec-perms">
+                <li class="perm">
+                  <button
+                    type="button"
+                    class="perm-row"
+                    aria-expanded="false"
+                    aria-controls="perm-mic"
+                  >
+                    <span class="perm-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"
+                        />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" x2="12" y1="19" y2="22" />
+                      </svg>
+                    </span>
+                    <span class="perm-name">Microphone</span>
+                    <span class="perm-tag required">Required</span>
+                    <svg
+                      class="perm-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="perm-why" id="perm-mic">
+                    Capture audio for real-time transcription
+                  </div>
+                </li>
+                <li class="perm">
+                  <button
+                    type="button"
+                    class="perm-row"
+                    aria-expanded="false"
+                    aria-controls="perm-net"
+                  >
+                    <span class="perm-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path
+                          d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+                        />
+                        <path d="M2 12h20" />
+                      </svg>
+                    </span>
+                    <span class="perm-name">Network</span>
+                    <span class="perm-tag required">Required</span>
+                    <svg
+                      class="perm-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="perm-why" id="perm-net">
+                    Stream audio to the inference endpoint
+                  </div>
+                </li>
+                <li class="perm">
+                  <button
+                    type="button"
+                    class="perm-row"
+                    aria-expanded="false"
+                    aria-controls="perm-files"
+                  >
+                    <span class="perm-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+                        />
+                      </svg>
+                    </span>
+                    <span class="perm-name">Files</span>
+                    <span class="perm-tag required">Required</span>
+                    <svg
+                      class="perm-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="perm-why" id="perm-files">
+                    Open local audio files for batch transcription
+                  </div>
+                </li>
+                <li class="perm">
+                  <button
+                    type="button"
+                    class="perm-row"
+                    aria-expanded="false"
+                    aria-controls="perm-storage"
+                  >
+                    <span class="perm-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <ellipse cx="12" cy="5" rx="9" ry="3" />
+                        <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+                        <path d="M3 12A9 3 0 0 0 21 12" />
+                      </svg>
+                    </span>
+                    <span class="perm-name">Storage</span>
+                    <span class="perm-tag optional">Optional</span>
+                    <svg
+                      class="perm-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="perm-why" id="perm-storage">
+                    Cache model settings and clock preferences
+                  </div>
+                </li>
+              </ul>
+              <h5 class="sec-h">Data destinations</h5>
+              <div class="dest-note">
+                Endpoints this extension transmits data to
+              </div>
+              <ul class="sec-dest">
+                <li class="dest d-api">
+                  <div class="dest-head">
+                    <span class="dest-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                      </svg>
+                    </span>
+                    <span class="dest-domain">api.audio8.ai</span>
+                    <span class="dest-type">Inference API</span>
+                  </div>
+                  <p class="dest-desc">
+                    Sends streaming audio to transcribe your speech.
+                  </p>
+                  <button
+                    type="button"
+                    class="dest-more"
+                    aria-expanded="false"
+                    aria-controls="dest-api-more"
+                  >
+                    <span class="dest-more-label">Read more</span>
+                    <svg
+                      class="dest-more-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="dest-details" id="dest-api-more">
+                    <div class="dest-line">
+                      <span class="dest-k">Endpoint</span>
+                      <a
+                        class="dest-link"
+                        href="https://api.audio8.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >api.audio8.ai/v1/stream</a
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Data</span>
+                      <span class="dest-v"
+                        >Streaming audio chunks (16-bit PCM)</span
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Region</span>
+                      <span class="dest-v">us-east-1 · eu-west-1</span>
+                    </div>
+                  </div>
+                </li>
+                <li class="dest d-analytics">
+                  <div class="dest-head">
+                    <span class="dest-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <line x1="12" x2="12" y1="20" y2="10" />
+                        <line x1="18" x2="18" y1="20" y2="4" />
+                        <line x1="6" x2="6" y1="20" y2="16" />
+                      </svg>
+                    </span>
+                    <span class="dest-domain">google-analytics.com</span>
+                    <span class="dest-type">Analytics</span>
+                  </div>
+                  <p class="dest-desc">
+                    Sends anonymous usage stats to help improve the app.
+                  </p>
+                  <button
+                    type="button"
+                    class="dest-more"
+                    aria-expanded="false"
+                    aria-controls="dest-analytics-more"
+                  >
+                    <span class="dest-more-label">Read more</span>
+                    <svg
+                      class="dest-more-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="dest-details" id="dest-analytics-more">
+                    <div class="dest-line">
+                      <span class="dest-k">Endpoint</span>
+                      <a
+                        class="dest-link"
+                        href="https://support.google.com/analytics"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >google-analytics.com/g/collect</a
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Data</span>
+                      <span class="dest-v"
+                        >Anonymized usage events, app version</span
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Region</span>
+                      <span class="dest-v">Global (US edge)</span>
+                    </div>
+                  </div>
+                </li>
+                <li class="dest d-telemetry">
+                  <div class="dest-head">
+                    <span class="dest-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                        />
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
+                      </svg>
+                    </span>
+                    <span class="dest-domain">sentry.io</span>
+                    <span class="dest-type">Error telemetry</span>
+                  </div>
+                  <p class="dest-desc">
+                    Sends crash reports — never your audio.
+                  </p>
+                  <button
+                    type="button"
+                    class="dest-more"
+                    aria-expanded="false"
+                    aria-controls="dest-telemetry-more"
+                  >
+                    <span class="dest-more-label">Read more</span>
+                    <svg
+                      class="dest-more-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="dest-details" id="dest-telemetry-more">
+                    <div class="dest-line">
+                      <span class="dest-k">Endpoint</span>
+                      <a
+                        class="dest-link"
+                        href="https://sentry.io/security/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >o283947.ingest.sentry.io</a
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Data</span>
+                      <span class="dest-v">Crash traces + stack frames</span>
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Region</span>
+                      <span class="dest-v">EU (fra1)</span>
+                    </div>
+                  </div>
+                </li>
+                <li class="dest d-registry">
+                  <div class="dest-head">
+                    <span class="dest-ic" aria-hidden="true">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"
+                        />
+                        <path d="M12 12v9" />
+                        <path d="m8 17 4 4 4-4" />
+                      </svg>
+                    </span>
+                    <span class="dest-domain">huggingface.co</span>
+                    <span class="dest-type">Model registry</span>
+                  </div>
+                  <p class="dest-desc">Downloads model files to your device.</p>
+                  <button
+                    type="button"
+                    class="dest-more"
+                    aria-expanded="false"
+                    aria-controls="dest-registry-more"
+                  >
+                    <span class="dest-more-label">Read more</span>
+                    <svg
+                      class="dest-more-chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="dest-details" id="dest-registry-more">
+                    <div class="dest-line">
+                      <span class="dest-k">Endpoint</span>
+                      <a
+                        class="dest-link"
+                        href="https://huggingface.co/Edge0/Audio8-ASR"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >huggingface.co/api/models</a
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Data</span>
+                      <span class="dest-v"
+                        >Authenticated model-download requests</span
+                      >
+                    </div>
+                    <div class="dest-line">
+                      <span class="dest-k">Region</span>
+                      <span class="dest-v">Global (Cloudflare CDN)</span>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+              <h5 class="sec-h">Key metrics</h5>
+              <div class="sec-metrics">
+                <div class="sec-metric">
+                  <div class="value">1,2k</div>
+                  <div class="label">Repository stars</div>
+                </div>
+                <div class="sec-metric">
+                  <div class="value">Sep 28, 2026</div>
+                  <div class="label">Last commit</div>
+                </div>
+                <div class="sec-metric">
+                  <div class="value grade-a">A+</div>
+                  <div class="label">Repo trust score</div>
+                </div>
+              </div>
+              <ul class="sec-list">
+                <li>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
+                    />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  Malware scan — no threats detected
+                </li>
+                <li>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
+                    />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  Pickle review — no unsafe imports in .safetensors
+                </li>
+                <li>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
+                    />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  Guardian AI analysis — 0 vulnerability findings
+                </li>
+                <li>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
+                    />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  Commit signing — all release tags verified
+                </li>
+              </ul>
+              <div class="sec-foot">
+                Re-scanned automatically on every commit · powered by
+                ReversingLabs + Guardian
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tech stack (programming-language pyramid) -->
+        <div class="stat-card">
+          <h4 style="margin-bottom: 0.75rem">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <path
+                d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+              />
+              <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+              <path d="m22 21.65-9.17 4.16a2 2 0 0 1-1.66 0L2 21.65" />
+            </svg>
+            Tech Stack
+          </h4>
+          <div class="tech-stack">
+            <svg
+              class="tri"
+              viewBox="0 0 120 100"
+              role="img"
+              aria-label="Tech stack pyramid: Frontend on top, Backend below"
+            >
+              <defs>
+                <filter
+                  id="triShadow"
+                  x="-25%"
+                  y="-25%"
+                  width="150%"
+                  height="160%"
+                >
+                  <feDropShadow
+                    dx="0"
+                    dy="2"
+                    stdDeviation="2.2"
+                    flood-color="#0b1220"
+                    flood-opacity="0.32"
+                  />
+                </filter>
+              </defs>
+              <g class="tri-shape" filter="url(#triShadow)">
+                <polygon class="tri-frontend" points="60,6 88.5,54 31.5,54" />
+                <polygon
+                  class="tri-backend"
+                  points="31.5,54 88.5,54 112,94 8,94"
+                />
+              </g>
+              <!-- Frontend marker: monitor -->
+              <g
+                class="tri-ico"
+                transform="translate(52.8 30.8) scale(0.6)"
+                aria-hidden="true"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </g>
+              <!-- Backend marker: server -->
+              <g
+                class="tri-ico"
+                transform="translate(52.8 68.8) scale(0.6)"
+                aria-hidden="true"
+              >
+                <rect x="2" y="2" width="20" height="8" rx="2" />
+                <rect x="2" y="14" width="20" height="8" rx="2" />
+                <line x1="6" y1="6" x2="6.01" y2="6" />
+                <line x1="6" y1="18" x2="6.01" y2="18" />
+              </g>
+            </svg>
+            <div class="tech-legend">
+              <div class="lg-row">
+                <span class="lg-key"
+                  ><span class="lg-line front" aria-hidden="true"></span
+                  >Frontend</span
+                >
+                <span class="lg-chips">
+                  <span class="lg-chip" style="--c: #3178c6">TS</span>
+                  <span class="lg-chip" style="--c: #e34f26">HTML</span>
+                  <span class="lg-chip" style="--c: #1572b4">CSS</span>
+                </span>
+              </div>
+              <div class="lg-divider" role="presentation"></div>
+              <div class="lg-row">
+                <span class="lg-key"
+                  ><span class="lg-line back" aria-hidden="true"></span
+                  >Backend</span
+                >
+                <span class="lg-chips">
+                  <span class="lg-chip" style="--c: #f7df1e">JS</span>
+                  <span class="lg-chip" style="--c: #3178c6">TS</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spaces using -->
+        <div class="stat-card">
+          <h4 style="margin-bottom: 0.5rem">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="16"
+              height="16"
+              aria-hidden="true"
+            >
+              <path
+                d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"
+              />
+              <path d="M20 2v4" />
+              <path d="M22 4h-4" />
+              <circle cx="4" cy="20" r="2" />
+            </svg>
+            <span
+              >Spaces using
+              <span id="space-owner">Edge0/Audio8-ASR-Infinite</span></span
+            >
+            <span class="font-mono text-xs muted-fg">2</span>
+          </h4>
+          <div class="chip-row">
+            <span class="chip mono">embed1/hfviewer</span>
+            <span class="chip mono">hugging-apps/audio8-asr-infinite-demo</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script src="js/sprinkle-data.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/extension.js"></script>
+  </body>
+</html>

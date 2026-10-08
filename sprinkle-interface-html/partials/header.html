@@ -1,0 +1,75 @@
+<!-- Shared site header — injected into <div data-header> on every page. -->
+<header class="site-header">
+  <!-- Left: menu + logo -->
+  <div class="header-left">
+    <button
+      type="button"
+      aria-label="Open menu"
+      class="icon-btn"
+      data-icon="menu"
+    ></button>
+    <a
+      href="index.html"
+      aria-label="Sprinkle home"
+      class="logo-link"
+      data-icon="logo"
+    ></a>
+  </div>
+
+  <!-- Search bar — expands to full header width on focus -->
+  <div class="search-wrap" id="search-wrap">
+    <div class="search-box">
+      <span data-icon="search" style="display: inline-flex"></span>
+      <input
+        type="text"
+        id="global-search"
+        placeholder="Type / to search"
+        aria-label="Search"
+      />
+      <kbd class="search-kbd">/</kbd>
+      <button type="button" id="search-esc" class="esc-btn hidden">Esc</button>
+    </div>
+  </div>
+
+  <!-- Right: theme toggle + profile avatar -->
+  <div class="header-right">
+    <button
+      type="button"
+      id="theme-toggle"
+      class="icon-btn"
+      aria-label="Switch to light theme"
+    ></button>
+
+    <div class="dropdown">
+      <button
+        type="button"
+        id="profile-btn"
+        aria-label="Open user menu"
+        class="avatar-btn"
+        data-icon="profile"
+      ></button>
+      <div id="profile-menu" class="dropdown-menu">
+        <div class="dropdown-user">
+          <span class="dropdown-avatar" aria-hidden="true">SL</span>
+          <span style="min-width: 0">
+            <span class="name">Sprinkle Labs</span>
+            <span class="handle">@sprinkle-labs</span>
+          </span>
+        </div>
+        <div class="dropdown-sep"></div>
+        <button type="button" class="dropdown-item">
+          <span data-icon="package"></span><span>Inventory</span>
+        </button>
+        <button type="button" class="dropdown-item">
+          <span data-icon="bookmark"></span><span>Save</span>
+        </button>
+        <button type="button" class="dropdown-item">
+          <span data-icon="history"></span><span>History</span>
+        </button>
+        <button type="button" class="dropdown-item">
+          <span data-icon="settings"></span><span>Settings</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
