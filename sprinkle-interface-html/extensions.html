@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Extension — Sprinkle</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <!-- Applies the persisted theme before first paint to avoid a dark-mode flash
-         for light-mode users. The `dark` class above is the no-JS default. -->
+
     <script>
       try {
         var t = localStorage.getItem("theme");
@@ -17,13 +16,13 @@
     </script>
   </head>
   <body>
-    <!-- Shared header — injected by js/sprinkle-data.js -->
+
     <div data-header></div>
 
-    <!-- ── Top section — extension key information ─────────────────────── -->
+
     <header class="detail-header">
       <div class="detail-header-inner">
-        <!-- Title row -->
+
         <div class="ext-title-row">
           <h1 class="ext-title">
             <svg
@@ -57,7 +56,7 @@
               <path d="m12 8 4.74-2.85" />
               <path d="M12 13.5V8" />
             </svg>
-            <span class="owner" id="ext-owner">Edge0</span>
+            <a class="owner" id="ext-owner" href="profile.html">Edge0</a>
             <span class="slash">/</span>
             <span class="name" id="ext-name">Audio8-ASR-Infinite</span>
             <button
@@ -92,7 +91,7 @@
             id="like-btn"
             aria-pressed="false"
           >
-            <!-- Like icon — lucide thumbs-up painted with the rainbow gradient -->
+
             <svg
               class="icon-14"
               viewBox="0 0 24 24"
@@ -158,7 +157,7 @@
           </button>
         </div>
 
-        <!-- Hashtags + license -->
+
         <div class="ext-tags-row">
           <button
             type="button"
@@ -238,7 +237,7 @@
           </button>
         </div>
 
-        <!-- Tabs + actions -->
+
         <div class="ext-tabs-row">
           <nav class="ext-tabs">
             <a class="tab-btn active" href="extensions.html" aria-current="page"
@@ -347,9 +346,9 @@
       </div>
     </header>
 
-    <!-- ── Body: description + statistics ──────────────────────────────── -->
+
     <main class="detail-main">
-      <!-- Description and license -->
+
       <section class="desc-card">
         <div class="desc-head">
           <h2 id="ext-heading">Audio8-ASR-Infinite</h2>
@@ -374,7 +373,7 @@
           </button>
         </div>
 
-        <!-- Badge strip — placeholder badges until real links exist -->
+
         <div class="badge-strip">
           <span class="badge muted">HUGGING FACE</span>
           <span class="badge yellow" id="badge-name">AUDIO8-ASR-INFINITE</span>
@@ -470,9 +469,158 @@
         </p>
       </section>
 
-      <!-- Download details and statistics -->
+
       <aside class="stats-aside">
-        <!-- Downloads + sparkline -->
+
+        <div class="stat-card author-card">
+          <div class="author-head">
+            <span class="author-avatar" id="author-avatar" aria-hidden="true">SL</span>
+            <span class="author-id">
+              <span class="author-name-row">
+                <a
+                  class="author-name"
+                  id="author-name"
+                  href="profile.html?user=sprinkle-labs"
+                  >sprinkle-labs</a
+                >
+                <svg
+                  class="author-verified"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  width="15"
+                  height="15"
+                  role="img"
+                  aria-label="Verified author"
+                >
+                  <path
+                    d="M12 1.5 14.6 4l3.5-.5.9 3.4 3 1.9-1.6 3.2 1.6 3.2-3 1.9-.9 3.4-3.5-.5L12 22.5 9.4 20l-3.5.5-.9-3.4-3-1.9L3.6 12 2 8.8l3-1.9.9-3.4L9.4 4 12 1.5Zm-1.2 13.3 4.2-4.2-1.1-1.1-3.1 3.1-1.6-1.5-1.1 1.1 2.7 2.6Z"
+                  />
+                </svg>
+              </span>
+              <span class="author-handle" id="author-handle">@sprinkle-labs</span>
+            </span>
+          </div>
+
+          <dl class="author-stats">
+            <div class="author-stat">
+              <dt>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  width="16"
+                  height="16"
+                  role="img"
+                  aria-label="Followers"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </dt>
+              <dd id="author-followers" data-base="1250">1,250</dd>
+            </div>
+            <div class="author-stat">
+              <dt>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  width="16"
+                  height="16"
+                  role="img"
+                  aria-label="Projects"
+                >
+                  <path
+                    d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+                  />
+                </svg>
+              </dt>
+              <dd id="author-repos">24</dd>
+            </div>
+            <div class="author-stat">
+              <dt>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  width="16"
+                  height="16"
+                  role="img"
+                  aria-label="Likes"
+                >
+                  <path
+                    d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"
+                  />
+                  <path d="M7 10v12" />
+                </svg>
+              </dt>
+              <dd id="author-stars">3.4k</dd>
+            </div>
+          </dl>
+
+          <div class="author-actions">
+            <button
+              type="button"
+              class="pill-btn author-follow"
+              id="author-follow-btn"
+              aria-pressed="false"
+            >
+              <span class="shine" aria-hidden="true"></span>
+              <svg
+                class="icon-14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="19" x2="19" y1="8" y2="14" />
+                <line x1="22" x2="16" y1="11" y2="11" />
+              </svg>
+              <span class="btn-label">Follow</span>
+            </button>
+            <a
+              class="pill-btn author-github"
+              id="author-github-link"
+              href="https://github.com/sprinkle-labs"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg
+                class="icon-14"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                />
+              </svg>
+              <span>GitHub</span>
+            </a>
+          </div>
+        </div>
+
+
         <div class="stat-card">
           <div class="downloads-row">
             <div>
@@ -511,7 +659,7 @@
           </div>
         </div>
 
-        <!-- Views + total downloads — side by side, sharing the row -->
+
         <div class="stat-duo">
           <div class="stat-card">
             <h4>
@@ -556,7 +704,7 @@
           </div>
         </div>
 
-        <!-- Browser compatibility -->
+
         <div class="stat-card">
           <h4 style="margin-bottom: 0.75rem">
             <svg
@@ -661,7 +809,7 @@
           </div>
         </div>
 
-        <!-- Security — limited summary until the full report is expanded -->
+
         <div class="stat-card">
           <h4 style="margin-bottom: 0.25rem">
             <svg
@@ -1282,7 +1430,7 @@
           </div>
         </div>
 
-        <!-- Tech stack (programming-language pyramid) -->
+
         <div class="stat-card">
           <h4 style="margin-bottom: 0.75rem">
             <svg
@@ -1335,7 +1483,7 @@
                   points="31.5,54 88.5,54 112,94 8,94"
                 />
               </g>
-              <!-- Frontend marker: monitor -->
+
               <g
                 class="tri-ico"
                 transform="translate(52.8 30.8) scale(0.6)"
@@ -1345,7 +1493,7 @@
                 <line x1="8" y1="21" x2="16" y2="21" />
                 <line x1="12" y1="17" x2="12" y2="21" />
               </g>
-              <!-- Backend marker: server -->
+
               <g
                 class="tri-ico"
                 transform="translate(52.8 68.8) scale(0.6)"
@@ -1381,39 +1529,6 @@
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Spaces using -->
-        <div class="stat-card">
-          <h4 style="margin-bottom: 0.5rem">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              width="16"
-              height="16"
-              aria-hidden="true"
-            >
-              <path
-                d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"
-              />
-              <path d="M20 2v4" />
-              <path d="M22 4h-4" />
-              <circle cx="4" cy="20" r="2" />
-            </svg>
-            <span
-              >Spaces using
-              <span id="space-owner">Edge0/Audio8-ASR-Infinite</span></span
-            >
-            <span class="font-mono text-xs muted-fg">2</span>
-          </h4>
-          <div class="chip-row">
-            <span class="chip mono">embed1/hfviewer</span>
-            <span class="chip mono">hugging-apps/audio8-asr-infinite-demo</span>
           </div>
         </div>
       </aside>

@@ -1,6 +1,6 @@
-<!-- Shared site header — injected into <div data-header> on every page. -->
+
 <header class="site-header">
-  <!-- Left: menu + logo -->
+
   <div class="header-left">
     <button
       type="button"
@@ -16,7 +16,7 @@
     ></a>
   </div>
 
-  <!-- Search bar — expands to full header width on focus -->
+
   <div class="search-wrap" id="search-wrap">
     <div class="search-box">
       <span data-icon="search" style="display: inline-flex"></span>
@@ -31,7 +31,7 @@
     </div>
   </div>
 
-  <!-- Right: theme toggle + profile avatar -->
+
   <div class="header-right">
     <button
       type="button"
@@ -45,27 +45,47 @@
         type="button"
         id="profile-btn"
         aria-label="Open user menu"
+        aria-haspopup="true"
+        aria-expanded="false"
         class="avatar-btn"
         data-icon="profile"
       ></button>
       <div id="profile-menu" class="dropdown-menu">
-        <div class="dropdown-user">
+        <a
+          href="profile.html?user=sprinkle-labs&me=1"
+          class="dropdown-user"
+          aria-label="View your profile"
+        >
           <span class="dropdown-avatar" aria-hidden="true">SL</span>
-          <span style="min-width: 0">
+          <span class="dropdown-user-meta">
             <span class="name">Sprinkle Labs</span>
             <span class="handle">@sprinkle-labs</span>
           </span>
-        </div>
+          <svg
+            class="dropdown-user-go"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="15"
+            height="15"
+            aria-hidden="true"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </a>
         <div class="dropdown-sep"></div>
-        <button type="button" class="dropdown-item">
+        <a href="inventory.html" class="dropdown-item">
           <span data-icon="package"></span><span>Inventory</span>
-        </button>
-        <button type="button" class="dropdown-item">
-          <span data-icon="bookmark"></span><span>Save</span>
-        </button>
-        <button type="button" class="dropdown-item">
+        </a>
+        <a href="saved.html" class="dropdown-item">
+          <span data-icon="bookmark"></span><span>Saved</span>
+        </a>
+        <a href="history.html" class="dropdown-item">
           <span data-icon="history"></span><span>History</span>
-        </button>
+        </a>
         <button type="button" class="dropdown-item">
           <span data-icon="settings"></span><span>Settings</span>
         </button>

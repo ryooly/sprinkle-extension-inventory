@@ -1,13 +1,9 @@
-/* ==========================================================================
- * sprinkle-data.js — shared data + SVG icon helpers for the vanilla rebuild.
- * Plain script (no modules) so the pages work straight from file://.
- * Exposes a global `SPRINKLE` namespace.
- * ========================================================================== */
+
 
 window.SPRINKLE = (function () {
   "use strict";
 
-  /* ─── Card data (1:1 port of CARDS in src/routes/index.tsx) ───────────── */
+
 
   var CARDS = {
     Recommendation: [
@@ -404,8 +400,7 @@ window.SPRINKLE = (function () {
     ],
   };
 
-  /* Fixed "Top repositories" sidebar list — intentionally distinct from the
-     category-driven CARDS grid, so it never changes when switching genres. */
+
   var TOP_REPOS = CARDS.Recommendation.slice(0);
 
   var GENRES = [
@@ -418,12 +413,7 @@ window.SPRINKLE = (function () {
     "Writing",
   ];
 
-  /* ─── Hashtags ─────────────────────────────────────────────────────────
-     The extension model card shows clickable hashtags (e.g. #audio). Clicking
-     one jumps to the home page and runs a search for that category, so we need
-     a tag vocabulary to match cards against. Every card already carries its
-     genre as an implicit tag; EXTRA_TAGS layers the finer-grained categories on
-     top, keyed by "user/repo". */
+
 
   var EXTRA_TAGS = {
     "podwave-hq/podwave-2.1": ["audio", "streaming", "realtime"],
@@ -434,8 +424,7 @@ window.SPRINKLE = (function () {
     "dailybrief-ai/dailybrief-digest": ["streaming"],
   };
 
-  /* Unique list of every card across all genres (deduped by user/repo so a
-     repo that appears in two categories only shows once in search results). */
+
   function flattenCards() {
     var seen = {};
     var out = [];
@@ -457,7 +446,7 @@ window.SPRINKLE = (function () {
     return tags;
   }
 
-  /* Case-insensitive substring match across user / repo / genre / tags. */
+
   function cardMatchesQuery(card, query) {
     if (!query) return true;
     var haystack = [card.user, card.repo, card.genre]
@@ -467,10 +456,7 @@ window.SPRINKLE = (function () {
     return haystack.indexOf(query.toLowerCase()) !== -1;
   }
 
-  /* ─── Repository file tree — powers the Files browser (GitHub-style) ────
-     A nested directory tree. Each entry is either a dir (children) or a file
-     (size / updated / optional `text` content or `binary` flag). Navigation
-     resolves a path array against this structure. */
+
 
   var REPO_TREE = {
     name: ".",
@@ -641,7 +627,7 @@ window.SPRINKLE = (function () {
     return n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
   }
 
-  /* ─── SVG icons — exact paths from the React originals ─────────────────── */
+
 
   function svg(inner, viewBox, cls, fill, stroke) {
     return (
@@ -753,7 +739,7 @@ window.SPRINKLE = (function () {
         "currentColor",
       );
     },
-    /* Dropdown menu items — lucide stroke icons (24×24, sw 2) */
+
     lucide: function (name, cls) {
       var nodes = {
         package:
@@ -794,7 +780,7 @@ window.SPRINKLE = (function () {
         "</svg>"
       );
     },
-    /* Card meta icons */
+
     genre: function (genre, cls) {
       var paths = {
         Productivity:
@@ -831,7 +817,7 @@ window.SPRINKLE = (function () {
     },
   };
 
-  /* ─── Card renderer ───────────────────────────────────────────────────── */
+
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -869,12 +855,9 @@ window.SPRINKLE = (function () {
       icons.status(card.status, "") +
       (card.status === "active" ? "Active" : "Archived") +
       "</span>" +
-      '<span class="meta-item meta-like" data-action="like" role="button" tabindex="0" ' +
-      'aria-label="Like" aria-pressed="false">' +
+      '<span class="meta-item">' +
       icons.thumbsUp("") +
-      '<span class="clap-count">' +
       formatClaps(card.claps) +
-      "</span>" +
       "</span>";
 
     var metaWrap = hideAvatar
@@ -904,7 +887,9 @@ window.SPRINKLE = (function () {
       escapeHtml(card.user + "/" + card.repo) +
       '" data-claps="' +
       card.claps +
-      '">' +
+      '" title="' +
+      formatClaps(card.claps) +
+      ' claps — like on the extension page">' +
       avatar +
       '<span class="card-body">' +
       '<span class="card-title">' +
@@ -923,7 +908,7 @@ window.SPRINKLE = (function () {
     );
   }
 
-  /* ─── Theme + shared header behaviour (both pages) ────────────────────── */
+
 
   function initTheme() {
     var stored = localStorage.getItem("theme");
@@ -955,7 +940,7 @@ window.SPRINKLE = (function () {
   }
 
   function initHeader() {
-    /* Search expansion — mirrors the React focus/click-outside behaviour */
+
     var wrap = document.getElementById("search-wrap");
     var input = document.getElementById("global-search");
     var escBtn = document.getElementById("search-esc");
@@ -989,7 +974,7 @@ window.SPRINKLE = (function () {
       input.blur();
     }
 
-    /* Profile dropdown */
+
     var avatarBtn = document.getElementById("profile-btn");
     var menu = document.getElementById("profile-menu");
     if (avatarBtn && menu) {
@@ -997,16 +982,16 @@ window.SPRINKLE = (function () {
         event.stopPropagation();
         var open = menu.classList.toggle("open");
         avatarBtn.classList.toggle("open", open);
+        avatarBtn.setAttribute("aria-expanded", String(open));
       });
       document.addEventListener("click", function () {
         menu.classList.remove("open");
         avatarBtn.classList.remove("open");
+        avatarBtn.setAttribute("aria-expanded", "false");
       });
     }
 
-    /* Small back button — inline at the left of the repo title (no dedicated
-       bar). Always goes straight back to the main page (index.html);
-       hidden on the home page. */
+
     var isHome = false;
     try {
       isHome =
@@ -1014,8 +999,13 @@ window.SPRINKLE = (function () {
         /(^|\/)index\.html$/i.test(location.pathname);
     } catch (e) {}
 
-    var title = document.querySelector(".ext-title");
-    if (title && !isHome && !document.getElementById("back-btn")) {
+    var profileSide = document.querySelector(".profile-side");
+    var title = profileSide
+      ? null
+      : document.querySelector(".ext-title") ||
+        document.querySelector(".section-title");
+    var mount = profileSide || title;
+    if (mount && !isHome && !document.getElementById("back-btn")) {
       var backBtn = document.createElement("button");
       backBtn.type = "button";
       backBtn.id = "back-btn";
@@ -1023,16 +1013,20 @@ window.SPRINKLE = (function () {
       backBtn.setAttribute("aria-label", "Back to main page");
       backBtn.innerHTML = icons.lucide("arrow-left", "icon-sm");
       backBtn.addEventListener("click", function () {
-        if (startLoadBar) startLoadBar(); /* buffer through the trip home */
+        if (startLoadBar) startLoadBar();
         location.href = "index.html";
       });
-      title.insertBefore(backBtn, title.firstChild);
+      if (profileSide) {
+
+        backBtn.classList.add("back-btn--side");
+        profileSide.insertBefore(backBtn, profileSide.firstChild);
+      } else {
+        title.insertBefore(backBtn, title.firstChild);
+      }
     }
   }
 
-  /* ─── Shared header — fetched from partials/header.html when possible,
-     rendered from the inline mirror when running under file:// ────────────
-     (partials/header.html is the source of truth; keep this copy in sync) */
+
 
   var HEADER_HTML = [
     '<header class="site-header">',
@@ -1051,19 +1045,13 @@ window.SPRINKLE = (function () {
     '  <div class="header-right">',
     '    <button type="button" id="theme-toggle" class="icon-btn" aria-label="Switch to light theme"></button>',
     '    <div class="dropdown">',
-    '      <button type="button" id="profile-btn" aria-label="Open user menu" class="avatar-btn" data-icon="profile"></button>',
+    '      <button type="button" id="profile-btn" aria-label="Open user menu" aria-haspopup="true" aria-expanded="false" class="avatar-btn" data-icon="profile"></button>',
     '      <div id="profile-menu" class="dropdown-menu">',
-    '        <div class="dropdown-user">',
-    '          <span class="dropdown-avatar" aria-hidden="true">SL</span>',
-    '          <span style="min-width: 0">',
-    '            <span class="name">Sprinkle Labs</span>',
-    '            <span class="handle">@sprinkle-labs</span>',
-    "          </span>",
-    "        </div>",
+    '        <a href="profile.html?user=sprinkle-labs&me=1" class="dropdown-user" aria-label="View your profile"><span class="dropdown-avatar" aria-hidden="true">SL</span><span class="dropdown-user-meta"><span class="name">Sprinkle Labs</span><span class="handle">@sprinkle-labs</span></span><svg class="dropdown-user-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></a>',
     '        <div class="dropdown-sep"></div>',
-    '        <button type="button" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></button>',
-    '        <button type="button" class="dropdown-item"><span data-icon="bookmark"></span><span>Save</span></button>',
-    '        <button type="button" class="dropdown-item"><span data-icon="history"></span><span>History</span></button>',
+    '        <a href="inventory.html" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></a>',
+    '        <a href="saved.html" class="dropdown-item"><span data-icon="bookmark"></span><span>Saved</span></a>',
+    '        <a href="history.html" class="dropdown-item"><span data-icon="history"></span><span>History</span></a>',
     '        <button type="button" class="dropdown-item"><span data-icon="settings"></span><span>Settings</span></button>',
     "      </div>",
     "    </div>",
@@ -1126,7 +1114,7 @@ window.SPRINKLE = (function () {
     var mount = document.querySelector("[data-header]");
     if (!mount) return done();
 
-    /* Under http(s) keep partials/header.html as the single source of truth. */
+
     if (location.protocol !== "file:") {
       fetch("partials/header.html")
         .then(function (res) {
@@ -1150,7 +1138,7 @@ window.SPRINKLE = (function () {
     done();
   }
 
-  /* ─── License knowledge base — powers the license chip popover ────────── */
+
 
   var LICENSES = {
     "apache-2.0": {
@@ -1185,14 +1173,11 @@ window.SPRINKLE = (function () {
     },
   };
 
-  /* ─── Load bar — brand-colored buffering indicator, pinned to the very
-     top of the viewport so it lines up with the logo in the header.
-     Re-triggerable: S.startLoadBar() restarts the sweep when the user
-     navigates to another page, covering the whole hand-off. ─────────────── */
+
 
   function initLoadBar() {
     var bar = document.createElement("div");
-    bar.className = "load-bar done"; /* hidden until start() */
+    bar.className = "load-bar done";
     bar.setAttribute("role", "progressbar");
     bar.setAttribute("aria-label", "Page loading");
     document.body.insertBefore(bar, document.body.firstChild);
@@ -1203,7 +1188,7 @@ window.SPRINKLE = (function () {
     function finish() {
       if (bar.classList.contains("done")) return;
       clearTimeout(finishTimer);
-      /* keep it visible briefly on fast loads so it never just flickers */
+
       var visible = Math.max(0, 350 - (Date.now() - startedAt));
       finishTimer = setTimeout(function () {
         bar.classList.add("done");
@@ -1214,7 +1199,7 @@ window.SPRINKLE = (function () {
       clearTimeout(finishTimer);
       bar.classList.remove("done");
       startedAt = Date.now();
-      /* safety net — never leave the bar stuck on a hung load */
+
       finishTimer = setTimeout(finish, 8000);
     }
 

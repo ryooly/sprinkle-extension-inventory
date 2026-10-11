@@ -1,7 +1,4 @@
-/* ==========================================================================
- * dashboard.js — Home page behaviour (genre pills, card grid, sidebar,
- * resizable repository column). Mirrors src/routes/index.tsx.
- * ========================================================================== */
+
 
 (function () {
   "use strict";
@@ -18,6 +15,8 @@
     S.injectHeader(function () {
       S.initTheme();
       S.initHeader();
+
+      if (S.hydrateIcons) S.hydrateIcons(document.body);
       initGenres();
       initGrid();
       initSearch();
@@ -26,29 +25,42 @@
     });
   });
 
-  /* ─── Genre pills ─────────────────────────────────────────────────────── */
+
 
   function initGenres() {
     var bar = document.getElementById("genre-bar");
     var filterBtn = document.getElementById("filter-btn");
 
-    S.GENRES.slice()
-      .reverse()
-      .forEach(function (genre) {
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "pill";
-        btn.dataset.genre = genre;
-        btn.setAttribute("aria-pressed", String(genre === activeGenre));
-        btn.textContent = genre;
-        btn.addEventListener("click", function () {
-          activeGenre = genre;
-          clearSearch();
-          refreshPills();
-          renderGrid();
-        });
-        bar.insertBefore(btn, filterBtn);
+
+    if (S.hydrateIcons && filterBtn) S.hydrateIcons(filterBtn);
+
+
+    var genres = S.GENRES.slice().reverse();
+    var recIdx = genres.indexOf("Recommendation");
+    if (recIdx > -1) {
+      genres.splice(recIdx, 1);
+      genres.unshift("Recommendation");
+    }
+
+    genres.forEach(function (genre) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pill";
+      btn.dataset.genre = genre;
+      btn.setAttribute("aria-pressed", String(genre === activeGenre));
+      if (genre === "Recommendation") {
+
+        btn.classList.add("pill-recommend");
+      }
+      btn.textContent = genre;
+      btn.addEventListener("click", function () {
+        activeGenre = genre;
+        clearSearch();
+        refreshPills();
+        renderGrid();
       });
+      bar.insertBefore(btn, filterBtn);
+    });
 
     refreshPills();
   }
@@ -61,7 +73,7 @@
     });
   }
 
-  /* ─── Card grid ───────────────────────────────────────────────────────── */
+
 
   function initGrid() {
     renderGrid();
@@ -94,7 +106,7 @@
     updateBanner(query, cards.length);
   }
 
-  /* ─── Search — the header box + hashtag deep-links filter the grid ─────── */
+
 
   function initSearch() {
     var input = document.getElementById("global-search");
@@ -105,7 +117,7 @@
       renderGrid();
     });
 
-    /* Arriving from a model-card hashtag: ?search=<tag> pre-fills the box. */
+
     var params = new URLSearchParams(location.search);
     var tag = params.get("search");
     if (tag) {
@@ -169,7 +181,7 @@
     });
   }
 
-  /* ─── Sidebar: top repositories + find filter + show more ─────────────── */
+
 
   function initSidebar() {
     renderSidebar("");
@@ -212,7 +224,7 @@
     }
   }
 
-  /* ─── Resizable repository column ─────────────────────────────────────── */
+
 
   function initResize() {
     var handle = document.getElementById("resize-handle");

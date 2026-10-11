@@ -16,8 +16,6 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
     <link rel="stylesheet" href="css/styles.css" />
-    <!-- Applies the persisted theme before first paint to avoid a dark-mode flash
-         for light-mode users. The `dark` class above is the no-JS default. -->
     <script>
       try {
         var t = localStorage.getItem("theme");
@@ -28,11 +26,9 @@
     </script>
   </head>
   <body>
-    <!-- Shared header — injected by js/sprinkle-data.js helpers (see dashboard.js) -->
     <div data-header></div>
 
     <main class="main-layout">
-      <!-- Left sidebar: Top Repositories -->
       <aside class="repo-sidebar" id="repo-sidebar" style="width: 288px">
         <div class="sidebar-head">
           <h2 class="truncate">Top repositories</h2>
@@ -67,7 +63,6 @@
         </button>
       </aside>
 
-      <!-- Resizable divider -->
       <div
         role="separator"
         aria-label="Resize repository column"
@@ -83,7 +78,6 @@
         <span class="grip" data-icon="grip"></span>
       </div>
 
-      <!-- Center: Home -->
       <section class="home-section">
         <div class="home-head">
           <h2>Home</h2>
@@ -101,7 +95,6 @@
           </button>
         </div>
 
-        <!-- Card grid: 2 cols × 3 rows (compact) -->
         <div class="card-grid" id="card-grid"></div>
       </section>
     </main>

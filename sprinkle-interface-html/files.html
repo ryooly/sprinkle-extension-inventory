@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Files and versions — Sprinkle</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <!-- Applies the persisted theme before first paint to avoid a dark-mode flash
-         for light-mode users. The `dark` class above is the no-JS default. -->
+
     <script>
       try {
         var t = localStorage.getItem("theme");
@@ -17,10 +16,10 @@
     </script>
   </head>
   <body>
-    <!-- Shared header — injected by js/sprinkle-data.js -->
+
     <div data-header></div>
 
-    <!-- ── Top section — same hero as the Model card, Files tab active ─── -->
+
     <header class="detail-header">
       <div class="detail-header-inner">
         <div class="ext-title-row">
@@ -86,7 +85,7 @@
           </h1>
         </div>
 
-        <!-- License — click opens the details popover -->
+
         <div class="ext-tags-row">
           <button type="button" class="license-chip" data-license="apache-2.0">
             <svg
@@ -126,7 +125,7 @@
           </button>
         </div>
 
-        <!-- Tabs + actions -->
+
         <div class="ext-tabs-row">
           <nav class="ext-tabs">
             <a class="tab-btn" href="extensions.html">Model card</a>
@@ -219,9 +218,9 @@
       </div>
     </header>
 
-    <!-- ── Body: file tree + versions ───────────────────────────────────── -->
+
     <main class="files-layout">
-      <!-- Files -->
+
       <section class="panel-card">
         <div class="panel-head">
           <span>Files</span>
@@ -408,7 +407,7 @@
         <div class="fb-viewer" id="fb-viewer" hidden></div>
       </section>
 
-      <!-- Versions -->
+
       <section class="panel-card">
         <div class="panel-head">
           <span>Versions</span>

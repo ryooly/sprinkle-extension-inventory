@@ -1,12 +1,9 @@
-/* ==========================================================================
- * extension.js — Detail page behaviour. Mirrors src/routes/extensions.$slug.tsx:
- * the uploader name arrives via ?user= and the repo slug via ?slug=.
- * ========================================================================== */
+
 
 (function () {
   "use strict";
 
-  /* Placeholder data (basic structure only — wire to real API later) */
+
   var EXT = {
     owner: "Edge0",
     name: "Audio8-ASR-Infinite",
@@ -36,9 +33,53 @@
     text("ext-strong", name);
     text("badge-name", name.toUpperCase());
     text("tree-owner", owner + "/" + name);
-    text("space-owner", owner + "/" + name);
 
-    /* Copy full extension name to the clipboard */
+
+    var ghUrl = "https://github.com/" + encodeURIComponent(owner);
+    var profileUrl = "profile.html?user=" + encodeURIComponent(owner);
+
+
+    var ownerEl = document.getElementById("ext-owner");
+    if (ownerEl) ownerEl.href = profileUrl;
+
+    var aName = document.getElementById("author-name");
+    var aHandle = document.getElementById("author-handle");
+    var aAvatar = document.getElementById("author-avatar");
+    var aGhLink = document.getElementById("author-github-link");
+    if (aName) {
+      aName.textContent = owner;
+      aName.href = profileUrl;
+    }
+    if (aHandle) aHandle.textContent = "@" + owner;
+    if (aAvatar) {
+      aAvatar.textContent = owner
+        .replace(/[^a-zA-Z0-9]+/g, " ")
+        .trim()
+        .split(" ")
+        .slice(0, 2)
+        .map(function (w) {
+          return w.charAt(0).toUpperCase();
+        })
+        .join("") || owner.slice(0, 2).toUpperCase();
+    }
+    if (aGhLink) aGhLink.href = ghUrl;
+
+
+    var authorCard = document.querySelector(".author-card");
+    if (authorCard) {
+      authorCard.addEventListener("click", function (event) {
+        if (
+          event.target.closest(
+            "#author-follow-btn, .author-follow, #author-github-link, .author-github, #author-name",
+          )
+        )
+          return;
+        if (S.startLoadBar) S.startLoadBar();
+        location.href = profileUrl;
+      });
+    }
+
+
     var copyBtn = document.getElementById("copy-name");
     if (copyBtn) {
       copyBtn.addEventListener("click", function () {
@@ -46,7 +87,7 @@
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(value).catch(function () {});
         }
-        /* feedback: swap to a check mark for 1.5s + toast */
+
         var original = copyBtn.innerHTML;
         copyBtn.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
@@ -62,7 +103,7 @@
       });
     }
 
-    /* ─── Toggle buttons (Like / Follow / Saved) ────────────────────────── */
+
 
     function formatCount(n) {
       return n >= 1000
@@ -74,38 +115,55 @@
     }
 
     function bindToggle(btn, options) {
-      if (!btn) return;
+      if (!btn) return null;
       var countEl = btn.querySelector(".count");
       var base = countEl ? Number(countEl.getAttribute("data-count")) : 0;
       var on = !!options.initialOn;
 
-      function apply(animate) {
+      function render(animate) {
         btn.classList.toggle("active", on);
         btn.setAttribute("aria-pressed", String(on));
         var label = btn.querySelector(".btn-label");
         if (label) label.textContent = on ? options.labelOn : options.labelOff;
         if (countEl) countEl.textContent = formatCount(base + (on ? 1 : 0));
-        if (!animate) return; /* initial sync — no animation, no toast */
+        if (!animate) return;
         btn.classList.remove("pop");
-        /* restart the keyframe animation */
+
         void btn.offsetWidth;
         btn.classList.add("pop");
-        if (S.showToast) {
-          var what = owner + "/" + name;
-          S.showToast(
-            on
-              ? options.toastOn.replace("{x}", what)
-              : options.toastOff.replace("{x}", what),
-            options.kind,
-          );
-        }
       }
 
-      btn.addEventListener("click", function () {
-        on = !on;
-        apply(true);
-      });
-      apply(false);
+      render(false);
+
+
+      if (!options.managed) {
+        btn.addEventListener("click", function () {
+          on = !on;
+          render(true);
+          if (S.showToast) {
+            var what = owner + "/" + name;
+            S.showToast(
+              on
+                ? options.toastOn.replace("{x}", what)
+                : options.toastOff.replace("{x}", what),
+              options.kind,
+            );
+          }
+        });
+      }
+
+      return {
+        isOn: function () {
+          return on;
+        },
+        set: function (val, animate) {
+          if (on !== val) {
+            on = val;
+            render(!!animate);
+          }
+          return on;
+        },
+      };
     }
 
     bindToggle(document.getElementById("like-btn"), {
@@ -117,13 +175,12 @@
       kind: "like",
     });
 
-    bindToggle(document.getElementById("follow-btn"), {
+
+    var heroFollow = bindToggle(document.getElementById("follow-btn"), {
       initialOn: false,
       labelOn: "Following",
       labelOff: "Follow",
-      toastOn: "Now following {x}",
-      toastOff: "Unfollowed {x}",
-      kind: "save",
+      managed: true,
     });
 
     bindToggle(document.getElementById("save-btn"), {
@@ -135,8 +192,42 @@
       kind: "save",
     });
 
-    /* ─── Tabs are real links to dedicated pages — keep the query string
-       (slug/user) so every tab renders the same extension ──────────────── */
+    var authorFollow = bindToggle(document.getElementById("author-follow-btn"), {
+      initialOn: false,
+      labelOn: "Following",
+      labelOff: "Follow",
+      managed: true,
+    });
+
+
+    var aFollowers = document.getElementById("author-followers");
+    var fBase = aFollowers
+      ? parseInt(aFollowers.getAttribute("data-base"), 10) || 0
+      : 0;
+    var following = false;
+
+    function syncFollow(on) {
+      following = on;
+      if (heroFollow) heroFollow.set(on, true);
+      if (authorFollow) authorFollow.set(on, true);
+      if (aFollowers)
+        aFollowers.textContent = (fBase + (on ? 1 : 0)).toLocaleString("en-US");
+      if (S.showToast)
+        S.showToast(
+          on ? "Now following " + owner : "Unfollowed " + owner,
+          "save",
+        );
+    }
+
+    ["follow-btn", "author-follow-btn"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("click", function () {
+        syncFollow(!following);
+      });
+    });
+
+
 
     document
       .querySelectorAll(".ext-tabs a.tab-btn[href]")
@@ -149,7 +240,7 @@
         } catch (e) {}
       });
 
-    /* ─── Download button: demo toast ───────────────────────────────────── */
+
 
     var downloadBtn = document.querySelector(".download-btn");
     if (downloadBtn) {
@@ -158,8 +249,7 @@
       });
     }
 
-    /* ─── Security card — expand the full report, collapse back to the
-       limited summary ──────────────────────────────────────────────────── */
+
 
     var secToggle = document.getElementById("sec-toggle");
     var secDetails = document.getElementById("sec-details");
@@ -175,7 +265,7 @@
       });
     }
 
-    /* ─── Security score — color + gauge derive from a 0–100 safety value ── */
+
 
     (function initSecScore() {
       var box = document.getElementById("sec-score");
@@ -208,7 +298,7 @@
       if (tierEl) tierEl.textContent = word;
     })();
 
-    /* ─── Permission rows — pressing a row reveals its justification ────── */
+
 
     document.querySelectorAll(".sec-perms .perm-row").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -219,7 +309,7 @@
       });
     });
 
-    /* ─── Data destinations — "Read more" reveals the full details ─────── */
+
 
     document.querySelectorAll(".sec-dest .dest-more").forEach(function (btn) {
       var label = btn.querySelector(".dest-more-label");
@@ -232,7 +322,7 @@
       });
     });
 
-    /* ─── Community discussions — the chevron reveals the replies ───────── */
+
 
     document.querySelectorAll(".disc-toggle").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -244,7 +334,7 @@
       });
     });
 
-    /* ─── "Read more" — reveals the second-level comments under a reply ── */
+
 
     document.querySelectorAll(".disc-more").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -258,7 +348,7 @@
       });
     });
 
-    /* ─── Hashtags — click jumps to the home page and searches that category ─ */
+
 
     document.querySelectorAll(".ext-tags-row .hashtag").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -271,7 +361,7 @@
       });
     });
 
-    /* ─── Files browser — GitHub-style folder navigation + file viewing ─── */
+
 
     (function initFileBrowser() {
       var body = document.getElementById("fb-body");

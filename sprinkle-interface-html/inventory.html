@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inventory — Sprinkle</title>
+    <meta
+      name="description"
+      content="Extensions in your Sprinkle inventory. Search only within your inventory."
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.classList.toggle("dark", t === "dark");
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body data-section="inventory">
+
+    <div data-header></div>
+
+    <main class="files-layout">
+      <section class="panel-card section-panel">
+        <div class="panel-head">
+          <span class="section-title">
+            <span data-icon="package"></span>
+            <span>Inventory</span>
+          </span>
+          <span class="path" id="section-count"></span>
+        </div>
+
+        <div class="section-toolbar">
+          <div class="repo-search">
+            <span data-icon="search-side" style="display: inline-flex"></span>
+            <input
+              id="section-search"
+              type="text"
+              placeholder="Search your inventory..."
+              aria-label="Search inventory"
+            />
+          </div>
+        </div>
+
+        <div class="section-body">
+          <div id="section-results"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/sprinkle-data.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/sections.js"></script>
+  </body>
+</html>

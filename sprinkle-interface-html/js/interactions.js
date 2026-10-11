@@ -1,16 +1,11 @@
-/* ==========================================================================
- * interactions.js — Micro-interaction layer shared by both pages:
- * toast notifications, persisted like/save state (localStorage), card
- * click/keyboard delegation, and press ripples on action buttons.
- * Extends window.SPRINKLE; must load after sprinkle-data.js.
- * ========================================================================== */
+
 
 (function () {
   "use strict";
 
   var S = window.SPRINKLE;
 
-  /* ─── Persisted state (likes + saves) ─────────────────────────────────── */
+
 
   function readState(key) {
     try {
@@ -24,11 +19,10 @@
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
-      /* private mode / quota — keep the UI working in-memory */
+
     }
   }
 
-  var likes = readState("sprinkle:likes");
   var saves = readState("sprinkle:saves");
 
   function toggleIn(map, key) {
@@ -43,17 +37,13 @@
     return next;
   }
 
-  S.isLiked = function (id) {
-    return !!likes[id];
-  };
   S.isSaved = function (id) {
     return !!saves[id];
   };
 
-  /* ─── Toast ────────────────────────────────────────────────────────────── */
+
 
   var ICONS = {
-    like: S.icons.thumbsUp,
     save: function (cls) {
       return S.icons.lucide("bookmark", cls);
     },
@@ -103,7 +93,7 @@
       "</span>";
     wrap.appendChild(toast);
 
-    /* entrance animation, then auto-dismiss */
+
     requestAnimationFrame(function () {
       toast.classList.add("show");
     });
@@ -118,25 +108,13 @@
     }, 2200);
   };
 
-  /* ─── Card interactions (like / save) ─────────────────────────────────── */
+
 
   function cardName(el) {
     var user = el.querySelector(".card-title .user");
     var repo = el.querySelector(".card-title .repo");
     if (user && repo) return user.textContent + "/" + repo.textContent;
     return el.getAttribute("data-card-id") || "Item";
-  }
-
-  function syncLike(el) {
-    var btn = el.querySelector('[data-action="like"]');
-    var count = btn && btn.querySelector(".clap-count");
-    if (!btn || !count) return;
-    var liked = S.isLiked(el.getAttribute("data-card-id"));
-    btn.classList.toggle("liked", liked);
-    btn.setAttribute("aria-pressed", String(liked));
-    count.textContent = S.formatClaps(
-      Number(el.getAttribute("data-claps")) + (liked ? 1 : 0),
-    );
   }
 
   function syncSave(el) {
@@ -155,25 +133,7 @@
     if (!id) return;
     var action = target.getAttribute("data-action");
 
-    if (action === "like") {
-      var liked = toggleIn(likes, id);
-      writeState("sprinkle:likes", likes);
-      target.classList.add("pop");
-      target.addEventListener(
-        "animationend",
-        function () {
-          target.classList.remove("pop");
-        },
-        { once: true },
-      );
-      syncLike(card);
-      S.showToast(
-        liked
-          ? "Liked " + cardName(card)
-          : "Removed like from " + cardName(card),
-        liked ? "like" : "unsave",
-      );
-    } else if (action === "save") {
+    if (action === "save") {
       var saved = toggleIn(saves, id);
       writeState("sprinkle:saves", saves);
       target.classList.add("pop");
@@ -197,7 +157,7 @@
     function (event) {
       var actionEl = event.target.closest(".app-card [data-action]");
       if (!actionEl) return;
-      /* keep the card's <a> from navigating to the detail page */
+
       event.preventDefault();
       event.stopPropagation();
       handleCardAction(actionEl);
@@ -205,7 +165,7 @@
     true,
   );
 
-  /* Enter/Space activate role=button spans inside cards */
+
   document.addEventListener("keydown", function (event) {
     if (event.key !== "Enter" && event.key !== " ") return;
     var actionEl = event.target.closest(".app-card [data-action]");
@@ -215,17 +175,16 @@
     handleCardAction(actionEl);
   });
 
-  /* Apply persisted liked/saved classes right after a grid render */
+
   S.applyCardStates = function (root) {
     (root || document)
       .querySelectorAll(".app-card[data-card-id]")
       .forEach(function (card) {
-        syncLike(card);
         syncSave(card);
       });
   };
 
-  /* ─── Press ripple ────────────────────────────────────────────────────── */
+
 
   var RIPPLE_SELECTOR =
     ".premium-btn, .download-btn, .pill-btn, .action-btn, .filter-btn, .tab-btn, .square-btn, .copy-btn, .license-chip";
@@ -250,25 +209,23 @@
     );
   });
 
-  /* ─── Header buttons: click-outside to close profile menu ─────────────── */
-  /* (profile menu already handled in sprinkle-data initHeader) */
 
-  /* Premium button feedback */
+
+
+
   document.addEventListener("click", function (event) {
     var premium = event.target.closest("#premium-btn");
     if (premium) S.showToast("Sprinkle Premium — coming soon", "info");
   });
 
-  /* ─── Page transition: restrained opacity-only fade, nothing flashier ─── */
+
 
   var reducedMotion =
     window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function exitThenGo(url) {
-    /* restart the brand sweep so buffering carries through the hand-off —
-       the outgoing page keeps sweeping until unload, the incoming page
-       picks up its own bar */
+
     if (S.startLoadBar) S.startLoadBar();
     if (reducedMotion) {
       location.href = url;
@@ -280,8 +237,7 @@
     }, 140);
   }
 
-  /* Internal link clicks fade out briefly, then navigate. The already-active
-     tab (same URL) does nothing at all — no pointless reload. */
+
   document.addEventListener("click", function (event) {
     if (
       event.defaultPrevented ||
@@ -296,25 +252,24 @@
     if (!link) return;
     var raw = link.getAttribute("href");
     if (!raw || raw.charAt(0) === "#" || /^javascript:/i.test(raw)) return;
-    if (link.host && link.host !== location.host) return; /* external */
+    if (link.host && link.host !== location.host) return;
     if (
       link.pathname === location.pathname &&
       link.search === location.search
     ) {
-      event.preventDefault(); /* active tab clicked */
+      event.preventDefault();
       return;
     }
     event.preventDefault();
     exitThenGo(link.href);
   });
 
-  /* bfcache restores a snapshot taken while `.exiting` was applied —
-     clear it whenever a page is shown again. */
+
   window.addEventListener("pageshow", function () {
     document.documentElement.classList.remove("exiting");
   });
 
-  /* ─── "More actions" dropdown on the ⋮ (square-btn) buttons ───────────── */
+
 
   var MORE_ITEMS = [
     {
@@ -337,7 +292,7 @@
 
   function initMoreMenus() {
     document.querySelectorAll(".square-btn").forEach(function (btn) {
-      if (btn.closest(".dropdown")) return; /* already wired */
+      if (btn.closest(".dropdown")) return;
 
       var wrap = document.createElement("div");
       wrap.className = "dropdown ext-more-dropdown";
@@ -381,7 +336,7 @@
       });
     });
 
-    /* one shared outside-click closer for every menu */
+
     document.addEventListener("click", function () {
       document
         .querySelectorAll(".ext-more-dropdown .dropdown-menu.open")
@@ -396,14 +351,14 @@
     });
   }
 
-  /* ─── Generic demo-toast hooks (buttons marked in HTML) ───────────────── */
+
 
   document.addEventListener("click", function (event) {
     var el = event.target.closest("[data-demo-toast]");
     if (el) S.showToast(el.getAttribute("data-demo-toast"), "info");
   });
 
-  /* ─── License chip / line — click opens a details popover ─────────────── */
+
 
   var GROUP_ICONS = {
     allowed: "circle-check",
@@ -417,8 +372,7 @@
     pop.setAttribute("role", "dialog");
     pop.setAttribute("aria-label", lic.name + " details");
 
-    /* groups rendered as a 3-column table — one column per kind, rows
-       aligned across groups, empty cells dashed */
+
     var maxRows = 0;
     lic.groups.forEach(function (g) {
       if (g.items.length > maxRows) maxRows = g.items.length;
@@ -486,7 +440,7 @@
   }
 
   function attachLicensePop(anchor, lic) {
-    /* wrap the anchor so the popover can be positioned beneath it */
+
     var wrap = document.createElement("span");
     wrap.className = "lic-wrap";
     anchor.parentNode.insertBefore(wrap, anchor);
@@ -510,7 +464,7 @@
     });
 
     pop.addEventListener("click", function (event) {
-      event.stopPropagation(); /* clicks inside keep it open */
+      event.stopPropagation();
       if (event.target.closest(".lic-pop-close")) setOpen(false);
     });
 
@@ -524,7 +478,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(lic.spdx).then(done, done);
       } else {
-        done(); /* file:// without clipboard API — still confirm to the user */
+        done();
       }
     });
 
@@ -540,7 +494,7 @@
       closers.push(attachLicensePop(chip, lic));
     });
 
-    /* model-card license line gets a small "License details" trigger */
+
     document.querySelectorAll(".license-line").forEach(function (line) {
       var lic = (S.LICENSES || {})["apache-2.0"];
       if (!lic) return;
@@ -555,7 +509,7 @@
       closers.push(attachLicensePop(trigger, lic));
     });
 
-    /* shared dismiss: click anywhere else, or Escape */
+
     function closeAll() {
       closers.forEach(function (pop) {
         if (!pop.classList.contains("open")) return;
