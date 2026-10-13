@@ -1,9 +1,3 @@
-// cli/lib/output.ts
-//
-// Small, dependency-free console helpers: colors, headings, success/error
-// lines, key/value panels, tables and JSON dumping. All color usage respects
-// the `color` flag resolved in config.ts.
-
 import { currentConfig } from "./config";
 
 const CODES = {

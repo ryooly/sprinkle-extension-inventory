@@ -1,10 +1,10 @@
-import { db } from "../../db/client";
+import { db } from "@/db/client";
 import {
   extensions,
   extensionCategories,
   extensionPermissions,
   fetchedRepos,
-} from "../../db/schema";
+} from "@/models";
 import { and, eq, ilike } from "drizzle-orm";
 import type {
   NewExtension,
@@ -12,10 +12,10 @@ import type {
   Category,
   Browser,
   BrowserPermission,
-} from "../../db/schema";
-import { AppError } from "@/middlewares/errorHandler";
+} from "@/models";
+import { AppError } from "@/errorhandler";
 import { escapeLikePattern } from "../../depends/sanitize";
-import type { Extension } from "../../db/schema";
+import type { Extension } from "@/models";
 
 export interface CreateExtensionPayload extends NewExtension {
   categories: Category[];

@@ -1,18 +1,3 @@
-// cli/commands/smoke.ts
-//
-// End-to-end verification runner. It walks the whole backend surface with a
-// throwaway account and reports PASS / FAIL / SKIP per endpoint, so you can
-// confirm everything works before building the frontend.
-//
-// Flow: error-contract probe → register → login → getUserByUsername →
-// beBuilder → create extension → search (name/category/browser) → metrics
-// (view/download/displayed) → edit → delete → payment-create → showcase
-// (public + premium gate) → premium-showcase 200 (seeded demo) → webhook
-// signature → auth-guard checks (each asserting the canonical error envelope)
-// → logout.
-//
-// It runs against an isolated temp session file so your real login is untouched.
-
 import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs";
@@ -46,26 +31,18 @@ function bodyOf(res: HttpResult): Record<string, unknown> {
   >;
 }
 
-// Assert the response body matches the one canonical error envelope
-// ({ success: false, message, status }). Returns null when it conforms, or a
-// short reason describing the mismatch so it can go straight into a detail.
 function errorShapeProblem(res: HttpResult): string | null {
   const check = checkErrorShape(res);
   return check.ok ? null : check.reason;
 }
 
-// Premium demo account provisioned by `bun run seed` (src/db/seed.ts). Keep
-// these in sync with the DEMO_* constants there — the runner logs in as this
-// account to exercise the 200 premium-showcase path.
 const PREMIUM_DEMO_EMAIL = "premium_demo@sprinkle.local";
 const PREMIUM_DEMO_PASSWORD = "premium123";
-// A date with no pinned showcase rows: getPremiumShowcase returns 200 with an
-// empty set and never reaches the AI-enrichment stage, so the 200 gate check is
-// deterministic and offline.
+
 const EMPTY_SHOWCASE_DATE = "1970-01-01";
 
 async function runSmoke(ctx: CommandContext): Promise<void> {
-  // Isolate the session so the smoke run never clobbers a real login.
+
   const base = currentConfig();
   const tempSession = path.join(
     os.tmpdir(),

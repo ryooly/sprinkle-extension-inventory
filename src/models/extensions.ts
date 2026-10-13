@@ -60,7 +60,7 @@ export const extensions = pgTable(
     views: integer("views").notNull().default(0),
     downloads: integer("downloads").notNull().default(0),
     amountDisplayed: integer("amount_displayed").notNull().default(0),
- 
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -185,5 +185,3 @@ export type BrowserPermission =
   (typeof browserPermissionEnum.enumValues)[number];
 export type ExtensionStatus = (typeof extensionStatusEnum.enumValues)[number];
 export type PublisherType = (typeof publisherTypeEnum.enumValues)[number];
-
-/// belum begit ppaham tentang relations dan tabel tabelan terus ini yang paling bawah

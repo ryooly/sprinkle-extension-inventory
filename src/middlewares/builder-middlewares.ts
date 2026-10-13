@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { UserRepository } from "../modules/auth/repository/auth-repository";
-import { AppError } from "./errorHandler";
+import { AppError } from "@/errorhandler";
 
 type AuthContext = {
   user?: {
@@ -26,6 +26,5 @@ export const builderMiddleware = new Elysia().derive(async (ctx) => {
 
   return {};
 })
-  // See auth-middleware.ts: `.as("scoped")` is required, otherwise this derive
-  // stays local to the plugin and never guards the routes that `.use()` it.
+
   .as("scoped");

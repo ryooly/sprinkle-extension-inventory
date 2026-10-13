@@ -1,15 +1,7 @@
-// cli/lib/args.ts
-//
-// Minimal, dependency-free argument parser.
-//   • Positional args are collected in order into `_`.
-//   • `--flag value`, `--flag=value` and boolean `--flag` are supported.
-//   • `-v` style short flags map to a long name via `aliases`.
-//   • Unknown `--flags` are still captured so commands can validate them.
-
 export interface ParsedArgs {
-  /** Positional arguments (everything not attached to a flag). */
+
   _: string[];
-  /** Flag values keyed by their long name. Booleans when valueless. */
+
   flags: Record<string, string | boolean>;
 }
 
@@ -22,7 +14,6 @@ const SHORT_ALIASES: Record<string, string> = {
   p: "password",
 };
 
-/** Flags that never consume a following value. */
 const BOOLEAN_FLAGS = new Set([
   "help",
   "verbose",
@@ -39,7 +30,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const token = argv[i];
 
     if (token === "--") {
-      // Everything after `--` is positional.
+
       result._.push(...argv.slice(i + 1));
       break;
     }
@@ -63,7 +54,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     }
 
     if (token.startsWith("-") && token.length > 1) {
-      const short = token.slice(1); // e.g. "-v" -> "v"
+      const short = token.slice(1);
       const name = SHORT_ALIASES[short] ?? short;
       if (BOOLEAN_FLAGS.has(name)) {
         result.flags[name] = true;
@@ -81,7 +72,6 @@ export function parseArgs(argv: string[]): ParsedArgs {
   return result;
 }
 
-/** Read a flag as a string, returning undefined when absent/boolean-only. */
 export function str(
   flags: ParsedArgs["flags"],
   name: string,
@@ -91,12 +81,10 @@ export function str(
   return v;
 }
 
-/** Read a flag as a boolean presence check. */
 export function bool(flags: ParsedArgs["flags"], name: string): boolean {
   return Boolean(flags[name]);
 }
 
-/** Read a flag as an integer, returning undefined when absent/NaN. */
 export function int(
   flags: ParsedArgs["flags"],
   name: string,
@@ -107,7 +95,6 @@ export function int(
   return Number.isFinite(n) ? Math.trunc(n) : undefined;
 }
 
-/** Split a comma-separated flag into a trimmed, de-duplicated list. */
 export function list(
   flags: ParsedArgs["flags"],
   name: string,

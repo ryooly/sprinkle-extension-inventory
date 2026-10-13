@@ -1,37 +1,26 @@
-// cli/lib/http.ts
-//
-// Thin fetch wrapper used by every command. Responsibilities:
-//   • Build the absolute URL from the configured API base + query params.
-//   • Attach the stored session cookies for authenticated calls.
-//   • Capture `Set-Cookie` on the way back so rotated tokens are persisted.
-//   • Normalise the response into { status, ok, data, raw, headers }.
-//
-// It never throws on non-2xx: commands decide how to interpret the status so
-// the CLI can faithfully report backend behaviour (including expected errors).
-
 import { currentConfig } from "./config";
 import * as out from "./output";
 import { applySetCookieHeaders, cookieHeader, loadSession } from "./session";
 
 export interface RequestOptions {
   method?: string;
-  /** Path relative to the API base, e.g. "/user/login". */
+
   path: string;
   query?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
-  /** Attach stored session cookies (default false). */
+
   useSession?: boolean;
-  /** Persist Set-Cookie values back into the session (default true). */
+
   updateSession?: boolean;
   headers?: Record<string, string>;
-  /** Per-request timeout override in ms. */
+
   timeoutMs?: number;
 }
 
 export interface HttpResult {
   status: number;
   ok: boolean;
-  /** Parsed JSON body, or the raw text when the body is not JSON. */
+
   data: unknown;
   raw: string;
   headers: Headers;
@@ -59,7 +48,7 @@ function readSetCookies(res: Response): string[] {
     const all = h.getSetCookie();
     if (all && all.length) return all;
   }
-  // Fallback for runtimes without getSetCookie: the combined header.
+
   const single = res.headers.get("set-cookie");
   return single ? [single] : [];
 }

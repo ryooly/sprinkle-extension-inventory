@@ -4,7 +4,7 @@ import {
   refundPaymentService,
   verifyGatewayNotification,
 } from "../midtrans/midtrans.service";
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 import { randomUUID } from "crypto";
 import * as PaymentRepository from "../repository/payment.repository";
 

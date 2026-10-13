@@ -1,13 +1,3 @@
-// cli/lib/session.ts
-//
-// Persists the auth session captured from the backend's `Set-Cookie` headers.
-// The gateway issues three httpOnly cookies (auth / accountId / refreshToken);
-// a browser would manage them automatically, so the CLI stores them here and
-// replays them on every authenticated request.
-//
-// Tokens rotate on refresh (see auth-middleware.ts), so callers must write the
-// session back after each response via `applySetCookieHeaders`.
-
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { currentConfig } from "./config";
@@ -69,13 +59,11 @@ export function clearSession(): boolean {
   }
 }
 
-/** True when we have the minimum cookies needed to call a protected route. */
 export function hasSession(): boolean {
   const s = loadSession();
   return Boolean(s && (s.auth || s.refreshToken) && s.accountId);
 }
 
-/** Build the `Cookie` header value from a stored session. */
 export function cookieHeader(s: SessionData | null): string | undefined {
   if (!s) return undefined;
   const parts: string[] = [];

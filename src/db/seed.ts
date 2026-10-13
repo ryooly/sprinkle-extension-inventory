@@ -1,26 +1,10 @@
-// src/db/seed.ts
-//
-// Idempotent development seed. Creates the reference `plans` rows and a premium
-// demo account holding an ACTIVE subscription, so premium-only endpoints
-// (e.g. GET /showcase/premium) can be exercised end-to-end without going through
-// Midtrans. Safe to run repeatedly — every step checks before it inserts.
-//
-// Run:  bun run seed      (after `bun run migrate`)
-//
-// Demo login — mirrored in cli/commands/smoke.ts, keep the two in sync:
-//   email:    premium_demo@sprinkle.local
-//   password: premium123
-
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { and, eq, type InferInsertModel } from "drizzle-orm";
 import { config } from "../../config";
-import { accounts } from "@/modules/auth/db/schema";
+import { accounts, plans, subscriptions } from "@/models";
 import { password as passwordUtil } from "@/modules/auth/utils/bcrypt";
-import { plans, subscriptions } from "@/modules/payment-gateway/db/schema";
 
-// Fixed, well-known demo login. The CLI smoke runner logs in with these exact
-// values to reach the 200 premium-showcase path.
 const DEMO_USERNAME = "premium_demo";
 const DEMO_EMAIL = "premium_demo@sprinkle.local";
 const DEMO_PASSWORD = "premium123";
@@ -28,11 +12,6 @@ const DEMO_PASSWORD = "premium123";
 type NewPlan = InferInsertModel<typeof plans>;
 type PlanName = "basic" | "pro" | "premium";
 
-// SCHEMA DRIFT: the migrated DB enum `duration_enums` is
-// ('basic','pro','premium') — see drizzle/0001_bent_retro_girl.sql and the 0002
-// snapshot — while schema.ts types the column as ('30','90','365'). The DB is
-// the runtime source of truth, so seed tier-matched labels it accepts and
-// bridge the stale TS type with the cast at the insert below.
 const PLAN_SEEDS: Array<{
   name: PlanName;
   price: string;
@@ -53,8 +32,6 @@ async function seed(): Promise<void> {
   try {
     console.log("Seeding reference data...\n");
 
-    // 1. Plans — `name` has no DB unique constraint, so look one up first to
-    //    stay idempotent instead of inserting duplicates on every run.
     const planIdByName: Record<string, number> = {};
     for (const plan of PLAN_SEEDS) {
       const [existing] = await db
@@ -74,8 +51,7 @@ async function seed(): Promise<void> {
         .values({
           name: plan.name,
           price: plan.price,
-          // See SCHEMA DRIFT note above: the DB enum accepts tier labels, not
-          // the "30"|"90"|"365" the stale TS type claims.
+
           durationInDays:
             plan.durationInDays as unknown as NewPlan["durationInDays"],
           isActive: 1,

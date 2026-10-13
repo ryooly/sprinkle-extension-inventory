@@ -5,9 +5,9 @@ import {
   VerificationStatus,
   BrowserPermission,
   ExtensionStatus,
-} from "../db/schema";
+} from "@/models";
 
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 
 import { topicToCategory } from "../depends/topics-library";
 

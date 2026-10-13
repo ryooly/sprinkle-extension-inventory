@@ -1,12 +1,3 @@
-// ── Search Safety Tests ─────────────────────────────────────────────────────
-// Verifies that LIKE wildcards in user search input are neutralised, so a
-// search term matches literally instead of changing the query semantics
-// (e.g. `?name=%` must not return every row).
-//
-// Pure unit tests – no database or HTTP layer required.
-//
-// Run:  bun test tests/search.test.ts
-
 import { describe, expect, test } from "bun:test";
 import { escapeLikePattern } from "../src/modules/automation-engine/depends/sanitize";
 

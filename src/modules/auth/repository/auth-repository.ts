@@ -1,6 +1,6 @@
 import { eq, or } from "drizzle-orm";
-import { db } from "@/modules/auth/db/client";
-import { accounts, saved, inventory, refreshTokens } from "@/modules/auth/db/schema";
+import { db } from "@/db/client";
+import { accounts, saved, inventory, refreshTokens } from "@/models";
 import {
   RegisterInput,
   LoginInput,
@@ -8,7 +8,7 @@ import {
   GetUserByUsernameInput,
   GetUserByIdInput,
   NewRefreshTokenInput,
-} from "@/modules/auth/schemas/auth-schema";
+} from "@/schemas/auth";
 
 export const UserRepository = {
   insertNewUser: async (body: RegisterInput) => {

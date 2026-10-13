@@ -1,11 +1,3 @@
-// cli/commands/metrics.ts
-//
-// Automation-engine metric counters (backend prefix `/extensions`, public —
-// these routes are registered without the auth middleware):
-//   POST /extensions/:id/view       → increment views
-//   POST /extensions/:id/download   → increment downloads
-//   POST /extensions/:id/displayed  → increment amountDisplayed
-
 import { http, errorMessage, type HttpResult } from "../lib/http";
 import * as out from "../lib/output";
 import { str } from "../lib/args";

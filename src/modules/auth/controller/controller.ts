@@ -3,9 +3,9 @@ import type {
   LoginInput,
   BeBuilderInput,
   GetUserByUsernameInput,
-} from "../schemas/auth-schema";
+} from "@/schemas/auth";
 import { UserService } from "@/modules/auth/services/auth-services";
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 
 export class UserController {
   static async registerHandle(body: RegisterInput) {

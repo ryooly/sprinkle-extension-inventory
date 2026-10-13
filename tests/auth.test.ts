@@ -1,17 +1,5 @@
-// ── Auth API Integration Tests ──────────────────────────────────────────────
-// Tests the auth module endpoints: /user/register, /user/login,
-// /user/beBuilder, /user/getUserByUsername/:username
-//
-// Prerequisites:
-//   1. Auth server running on localhost:3001  (bun run dev)
-//   2. Database migrated                       (bun run migrate)
-//
-// Run:  bun test tests/auth.test.ts
-
 import { describe, expect, test, beforeAll } from "bun:test";
 import { apiRequest, unique } from "./helpers";
-
-// ── Fixtures ────────────────────────────────────────────────────────────────
 
 const testUser = {
   username: unique("testuser"),
@@ -21,8 +9,6 @@ const testUser = {
 
 let accountCookies: Record<string, string> = {};
 let accountId: string = "";
-
-// ── POST /user/register ─────────────────────────────────────────────────────
 
 describe("POST /user/register", () => {
   test("should register a new user and return cookies", async () => {
@@ -39,7 +25,6 @@ describe("POST /user/register", () => {
 
     accountId = res.data.data.id;
 
-    // Server should set auth + accountId cookies
     expect(res.cookies["auth"]).toBeDefined();
     expect(res.cookies["accountId"]).toBeDefined();
 
@@ -87,8 +72,6 @@ describe("POST /user/register", () => {
   });
 });
 
-// ── POST /user/login ────────────────────────────────────────────────────────
-
 describe("POST /user/login", () => {
   test("should login with valid credentials", async () => {
     const res = await apiRequest<{
@@ -103,7 +86,6 @@ describe("POST /user/login", () => {
     expect(res.data.success).toBe(true);
     expect(res.data.data.email).toBe(testUser.email);
 
-    // Fresh cookies should be issued
     expect(res.cookies["auth"]).toBeDefined();
     expect(res.cookies["accountId"]).toBeDefined();
   });
@@ -127,8 +109,6 @@ describe("POST /user/login", () => {
   });
 });
 
-// ── PATCH /user/beBuilder ───────────────────────────────────────────────────
-
 describe("PATCH /user/beBuilder", () => {
   test("should promote user to builder role", async () => {
     const res = await apiRequest<{ success: boolean; massage: string }>(
@@ -144,7 +124,6 @@ describe("PATCH /user/beBuilder", () => {
   test("should reject promoting same user twice", async () => {
     const res = await apiRequest("PATCH", "/user/beBuilder", { accountId });
 
-    // Already a builder → should fail
     expect(res.ok).toBe(false);
   });
 
@@ -156,8 +135,6 @@ describe("PATCH /user/beBuilder", () => {
     expect(res.ok).toBe(false);
   });
 });
-
-// ── GET /user/getUserByUsername/:username ───────────────────────────────────
 
 describe("GET /user/getUserByUsername/:username", () => {
   test("should return user by username", async () => {

@@ -1,13 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { ParsedArgs } from "./args";
 
-/** Command handlers receive this context from the router in index.ts. */
 export interface CommandContext {
-  /** Positional arguments after the command name. */
+
   args: string[];
-  /** Parsed flags for this command. */
+
   flags: ParsedArgs["flags"];
-  /** True when the global --json flag was passed. */
+
   json: boolean;
 }
 
@@ -21,8 +20,6 @@ export interface CommandDef {
   usage: string;
   handler: CommandHandler;
 }
-
-// --- Enum whitelists (kept in sync with the backend request validators) -----
 
 export const CATEGORIES = [
   "productivity",
@@ -62,8 +59,6 @@ export function isVerified(v: string): boolean {
   return (VERIFIED as readonly string[]).includes(v);
 }
 
-// --- JWT helpers ------------------------------------------------------------
-
 export interface JwtPayload {
   userId?: string;
   exp?: number;
@@ -71,7 +66,6 @@ export interface JwtPayload {
   [key: string]: unknown;
 }
 
-/** Decode (not verify) a JWT and return its payload, or null if malformed. */
 export function decodeJwt(token: string): JwtPayload | null {
   const parts = token.split(".");
   if (parts.length < 2) return null;
@@ -85,7 +79,6 @@ export function decodeJwt(token: string): JwtPayload | null {
   }
 }
 
-/** Human-readable "expires in Xm" from a JWT `exp` claim. */
 export function describeExpiry(exp?: number): string {
   if (!exp) return "unknown";
   const ms = exp * 1000 - Date.now();

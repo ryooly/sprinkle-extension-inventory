@@ -1,5 +1,5 @@
 import * as PaymentRepository from "../services/payment.service";
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 
 export interface ControllerResult<T> {
   success: boolean;

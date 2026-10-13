@@ -1,12 +1,12 @@
 import * as service from "../services/services";
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 import type {
   CreateExtensionPayload,
   UpdateExtensionPayload,
   CategoryInput,
   BrowserInput,
-} from "../schemas/ekstension-input";
-import type { Extension } from "../../automation-engine/db/schema";
+} from "@/schemas/extension-input";
+import type { Extension } from "@/models";
 export interface ControllerResult<T> {
   success: boolean;
   data?: T;

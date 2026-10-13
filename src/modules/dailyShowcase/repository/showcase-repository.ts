@@ -1,8 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
-import { db } from "../db/client";
-import { dailyShowcase } from "../db/schema";
-import { extensions } from "@/modules/automation-engine/db/schema";
-
+import { db } from "@/db/client";
+import { dailyShowcase, extensions } from "@/models";
 
 export async function insertShowcaseExtensions(
   extensionIds: string[],
@@ -44,5 +42,3 @@ export async function findShowcaseByDate(showcaseDate: string) {
     .where(eq(dailyShowcase.showcaseDate, showcaseDate))
     .orderBy(desc(dailyShowcase.createdAt));
 }
-
-

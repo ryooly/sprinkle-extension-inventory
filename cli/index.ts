@@ -1,14 +1,4 @@
 #!/usr/bin/env bun
-// cli/index.ts
-//
-// Entry point + router for the Sprinkle CLI. It is a pure HTTP client used to
-// exercise the running gateway (default http://localhost:3000) so every
-// endpoint can be verified before the frontend is built.
-//
-//   bun run cli/index.ts <command> [args] [--flags]
-//   bun run cli/index.ts help
-//
-// Global flags: --api <url>, --session <path>, --json, --verbose/-v, --help/-h
 
 import { parseArgs, str, bool } from "./lib/args";
 import { getConfig, currentConfig, type CliConfig } from "./lib/config";

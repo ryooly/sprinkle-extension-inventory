@@ -3,9 +3,7 @@ import * as PaymentController from "../controller/payment.controller";
 import { authMiddleware } from "@/middlewares/auth-middleware";
 
 export const paymentRoutes = new Elysia({ prefix: "/payment" })
-  // Midtrans payment notification (server-to-server webhook). Registered before
-  // authMiddleware on purpose: Midtrans sends no session cookies, and the call
-  // is authenticated by `signature_key` inside verifyGatewayNotification().
+
   .post(
     "/gateway",
     async ({ body }) => {

@@ -1,4 +1,4 @@
-import { Category } from "../../db/schema";
+import { Category } from "@/models";
 import { buildPrompt } from "../../depends/gpt-automation";
 import { ExtensionRepo } from "../../github-explorer/api-engine";
 import {
@@ -55,7 +55,7 @@ export class GeminiBrowsingProvider {
         tools: [{ urlContext: {} }, { googleSearch: {} }],
         generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
       }),
-    }); /// kita akan melakukan perubahan jika sewaktu diperlukan
+    });
 
     if (!res.ok) {
       throw new Error(`Gemini error: ${res.status} ${res.statusText}`);
@@ -85,7 +85,11 @@ export class GithubAIEngine {
     availableCategories: Category[] = AVAILABLE_CATEGORIES,
     concurrency: number = 3,
   ): Promise<ExtensionRepo[]> {
-    return this.analyzeMany(searchResultItems, availableCategories, concurrency);
+    return this.analyzeMany(
+      searchResultItems,
+      availableCategories,
+      concurrency,
+    );
   }
 
   async analyze(
@@ -129,12 +133,12 @@ export class GithubAIEngine {
     for (let i = 0; i < candidates.length; i += concurrency) {
       const batch = candidates.slice(i, i + concurrency);
       const batchResults = await Promise.all(
-        batch.map((candidate) =>
-          this.analyze(candidate, availableCategories),
-        ),
+        batch.map((candidate) => this.analyze(candidate, availableCategories)),
       );
       results.push(
-        ...batchResults.filter((result): result is ExtensionRepo => result !== null),
+        ...batchResults.filter(
+          (result): result is ExtensionRepo => result !== null,
+        ),
       );
     }
 

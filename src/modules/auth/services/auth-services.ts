@@ -7,8 +7,8 @@ import {
   LoginInput,
   BeBuilderInput,
   GetUserByUsernameInput,
-} from "@/modules/auth/schemas/auth-schema";
-import { AppError } from "@/middlewares/errorHandler";
+} from "@/schemas/auth";
+import { AppError } from "@/errorhandler";
 
 export class UserService {
   static async register(body: RegisterInput) {

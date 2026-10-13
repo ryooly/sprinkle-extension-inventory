@@ -1,5 +1,5 @@
-import { db } from "../../db/client";
-import { extensions } from "../../db/schema";
+import { db } from "@/db/client";
+import { extensions } from "@/models";
 import { and, eq, inArray, gte } from "drizzle-orm";
 
 const STALE_AMOUNT_DISPLAYED = 5;

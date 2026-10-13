@@ -6,8 +6,8 @@ import {
   findExtensionByNameAndDeveloper,
 } from "../repository/saving-repository";
 import type { ExtensionRepo } from "../../github-explorer/api-engine";
-import type { Category } from "../../db/schema";
-import { AppError } from "@/middlewares/errorHandler";
+import type { Category } from "@/models";
+import { AppError } from "@/errorhandler";
 import { validateExtensionRepo } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {

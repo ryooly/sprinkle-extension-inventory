@@ -1,14 +1,7 @@
-import type {
-  BrowserPermission,
-  Category,
-  VerificationStatus,
-} from "../db/schema";
-import { browserPermissionEnum } from "../db/schema";
+import type { BrowserPermission, Category, VerificationStatus } from "@/models";
+import { browserPermissionEnum } from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
-import {
-  buildGithubZipUrl,
-  sanitizeCategories,
-} from "./extension-utils";
+import { buildGithubZipUrl, sanitizeCategories } from "./extension-utils";
 
 const VALID_PERMISSIONS = new Set<BrowserPermission>(
   browserPermissionEnum.enumValues,
@@ -32,7 +25,10 @@ const MANIFEST_PERMISSION_MAP: Record<string, BrowserPermission> = {
 };
 
 function normalizePermissionKey(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z]/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
 }
 
 export function mapAiPermissions(raw: unknown): BrowserPermission[] {
@@ -110,7 +106,9 @@ export function mapAiResponseToExtensionRepo(
 
     return {
       name: String(parsed.name).trim(),
-      publisher: String(parsed.publisher ?? candidate.fullName.split("/")[0]).trim(),
+      publisher: String(
+        parsed.publisher ?? candidate.fullName.split("/")[0],
+      ).trim(),
       description,
       downloadUrl: buildGithubZipUrl(candidate.link, candidate.defaultBranch),
       category: sanitizeCategories(parsed.category as Category[]),

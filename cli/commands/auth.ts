@@ -1,15 +1,3 @@
-// cli/commands/auth.ts
-//
-// Auth endpoints (all under the backend's `/user` prefix):
-//   POST  /user/register                 → create account, sets session cookies
-//   POST  /user/login                    → authenticate, sets session cookies
-//   PATCH /user/beBuilder                → upgrade the account role to "builder"
-//   GET   /user/getUserByUsername/:name  → public profile lookup
-//
-// NOTE: the backend has no logout endpoint. `logout` therefore clears the
-// locally stored session (cookies). The server-side refresh token simply
-// expires on its own (7 days) — see the note printed by the command.
-
 import { http, errorMessage, type HttpResult } from "../lib/http";
 import {
   clearSession,
@@ -28,8 +16,6 @@ import {
   type CommandContext,
 } from "../lib/util";
 
-// The account row returned by register/login includes the password hash; keep
-// only the safe, useful fields in the local session.
 function pickUser(account: unknown): SessionUser | undefined {
   if (!account || typeof account !== "object") return undefined;
   const a = account as Record<string, unknown>;
@@ -49,7 +35,6 @@ function bodyOf(res: HttpResult): Record<string, unknown> {
   >;
 }
 
-// Persist the logged-in user alongside the cookies captured by the http layer.
 function storeUser(res: HttpResult): SessionUser | undefined {
   const user = pickUser(bodyOf(res).data);
   const existing = loadSession();

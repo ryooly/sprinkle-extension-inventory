@@ -1,14 +1,3 @@
-// cli/commands/extensions.ts
-//
-// Manual-extension endpoints (backend prefix `/extensions`, guarded by
-// authMiddleware + builderMiddleware, so you must be logged in as a builder):
-//   POST   /extensions/creating            → create
-//   PATCH  /extensions/:id                 → edit
-//   DELETE /extensions/:id                 → delete
-//   GET    /extensions/search/by-name      → ?name=
-//   POST   /extensions/search/by-category  → { category }
-//   POST   /extensions/search/by-browser   → { browser }
-
 import { http, errorMessage, type HttpResult } from "../lib/http";
 import { loadSession } from "../lib/session";
 import * as out from "../lib/output";
@@ -41,7 +30,6 @@ function requireSession(): boolean {
   return true;
 }
 
-// Render an array of extension rows as a compact table.
 function printExtensions(rows: Row[]): void {
   if (!rows.length) {
     out.info("No extensions returned.");

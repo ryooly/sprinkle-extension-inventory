@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import crypto from "crypto";
-import { AppError } from "../src/middlewares/errorHandler";
+import { AppError } from "../src/errorhandler";
 
 const SERVER_KEY = "SB-Mid-server-UnitTest123";
 process.env.MIDTRANS_SERVER_KEY = SERVER_KEY;

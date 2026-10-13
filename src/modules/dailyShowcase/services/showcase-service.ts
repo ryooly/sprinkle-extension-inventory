@@ -1,4 +1,4 @@
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 import { hasActiveSubscription } from "@/middlewares/premium-middleware";
 import {
   GithubAIEngine,
@@ -7,7 +7,7 @@ import {
 import { parseGithubZipUrl } from "@/modules/automation-engine/depends/extension-utils";
 import type { RepoCandidateContext } from "@/modules/automation-engine/depends/ai-response-mapper";
 import type { ExtensionRepo } from "@/modules/automation-engine/github-explorer/api-engine";
-import type { Extension } from "@/modules/automation-engine/db/schema";
+import type { Extension } from "@/models";
 import {
   insertShowcaseExtensions,
   getLatestShowcaseDate,

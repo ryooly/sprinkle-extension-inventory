@@ -1,13 +1,12 @@
-// service/extension.service.ts
 import * as repo from "../../automation-engine/saving-engine/repository/saving-repository";
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 import type {
   CreateExtensionPayload,
   UpdateExtensionPayload,
   CategoryInput,
   BrowserInput,
-} from "../schemas/ekstension-input";
-import type { Extension } from "../../automation-engine/db/schema";
+} from "@/schemas/extension-input";
+import type { Extension } from "@/models";
 
 export async function createExtension(
   payload: CreateExtensionPayload,
@@ -51,7 +50,6 @@ export async function searchExtensionsByName(
 ): Promise<Extension[]> {
   const term = name.trim();
 
-  // A blank term would build a `%%` pattern and match every row.
   if (term.length === 0) {
     throw new AppError("Search term must not be empty", 400);
   }

@@ -1,5 +1,4 @@
-import type { Category } from "../db/schema";
-import { categoryEnum } from "../db/schema";
+import { categoryEnum, type Category } from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
 
 export const MIN_DESCRIPTION_LENGTH = 10;

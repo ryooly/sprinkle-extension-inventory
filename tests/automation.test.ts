@@ -1,17 +1,3 @@
-// ── TwentyFourHour Automation Tests ─────────────────────────────────────────
-// Tests the automation class methods directly (no HTTP layer needed).
-//
-// Option B architecture: the automation is a pure *global generator*. It has no
-// user/tier context; each hourly run refreshes the shared `extensions` pool with
-// basic extensions. Premium is not generated here — it is an on-demand delivery
-// option (AI enrichment) anchored to the dailyShowcase module.
-//
-// Prerequisites:
-//   1. Database migrated                (bun run migrate)
-//   2. GITHUB_TOKEN set in .env         (for GitHub API calls)
-//
-// Run:  bun test tests/automation.test.ts
-
 import { describe, expect, test, beforeAll } from "bun:test";
 import * as dotenv from "dotenv";
 import { TwentyFourHourAutomation } from "../src/modules/twentyFourHour/extension-automation";
@@ -24,8 +10,6 @@ dotenv.config();
 
 let automation: TwentyFourHourAutomation;
 
-// ── Class instantiation ─────────────────────────────────────────────────────
-
 describe("TwentyFourHourAutomation – instantiation", () => {
   test("should create an instance without any user context", () => {
     automation = new TwentyFourHourAutomation();
@@ -33,8 +17,6 @@ describe("TwentyFourHourAutomation – instantiation", () => {
     expect(automation).toBeInstanceOf(TwentyFourHourAutomation);
   });
 });
-
-// ── Hourly job (basic + premium insertion + cleanup) ────────────────────────
 
 describe("TwentyFourHourAutomation – runHourlyJob", () => {
   beforeAll(() => {
@@ -44,7 +26,6 @@ describe("TwentyFourHourAutomation – runHourlyJob", () => {
   test("should return a structured HourlyJobResult", async () => {
     const result: HourlyJobResult = await automation.runHourlyJob();
 
-    // Top-level shape
     expect(result).toHaveProperty("insertion");
     expect(result).toHaveProperty("cleanup");
     expect(result).toHaveProperty("errors");
@@ -74,13 +55,10 @@ describe("TwentyFourHourAutomation – runHourlyJob", () => {
   test("should collect errors instead of throwing", async () => {
     const result = await automation.runHourlyJob();
 
-    // Should not throw – errors are collected
     expect(result).toBeDefined();
     expect(Array.isArray(result.errors)).toBe(true);
   });
 });
-
-// ── Daily job (retrieve extensions) ─────────────────────────────────────────
 
 describe("TwentyFourHourAutomation – runDailyJob", () => {
   beforeAll(() => {
@@ -103,8 +81,6 @@ describe("TwentyFourHourAutomation – runDailyJob", () => {
   });
 });
 
-// ── getTwentyFourHourExtensions ─────────────────────────────────────────────
-
 describe("TwentyFourHourAutomation – getTwentyFourHourExtensions", () => {
   beforeAll(() => {
     automation = new TwentyFourHourAutomation();
@@ -121,13 +97,11 @@ describe("TwentyFourHourAutomation – getTwentyFourHourExtensions", () => {
   });
 });
 
-// ── Cron lifecycle ──────────────────────────────────────────────────────────
-
 describe("TwentyFourHourAutomation – cron lifecycle", () => {
   test("startCronJobs should not throw", () => {
     const instance = new TwentyFourHourAutomation();
     expect(() => instance.startCronJobs()).not.toThrow();
-    instance.stopCronJobs(); // cleanup immediately
+    instance.stopCronJobs();
   });
 
   test("stopCronJobs should be callable even without starting", () => {

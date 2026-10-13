@@ -1,4 +1,3 @@
-// routes/extension.routes.ts
 import { t } from "elysia";
 
 export const categorySchema = t.Union([
@@ -55,6 +54,3 @@ export const updateExtensionSchema = t.Object({
   verified: t.Optional(verifiedSchema),
   categories: t.Optional(t.Array(categorySchema)),
 });
-
-
-/// GANTI JADI ZOD

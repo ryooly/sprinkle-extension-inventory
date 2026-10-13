@@ -31,3 +31,7 @@ export const dailyShowcaseRoutes = new Elysia({ prefix: "/showcase" })
       }),
     },
   );
+
+
+
+// tambahkan routes untuk manual extension - mereka kan mausk ke dalam database kemduain tambahkan fitur rekomendasi dan fitur filtering

@@ -315,12 +315,15 @@ sprinkle/
 │   ├── db/                  # migrate.ts, seed.ts (idempotent dev seed)
 │   ├── gateway/             # Elysia app entry (index.ts) + CORS plugin
 │   ├── middlewares/         # auth, builder role, premium gate, cookie policy, errors
+│   ├── models/              # all Drizzle table definitions (split by domain)
+│   ├── schemas/             # request/validation schemas (zod + TypeBox)
 │   ├── modules/
 │   │   ├── auth/            # register / login / refresh / roles
 │   │   ├── automation-engine/   # the discovery + AI + persistence pipeline
 │   │   ├── dailyShowcase/   # daily & premium showcase delivery
 │   │   ├── manual-ekstension/   # builder CRUD + search
 │   │   ├── payment-gateway/ # Midtrans plans, subscriptions, webhooks
+│   │   ├── saved-extensions/    # per-user saved extensions (dup-guarded)
 │   │   └── twentyFourHour/  # cron orchestrator for the automation engine
 │   └── types/               # shared type declarations
 ├── tests/                   # Bun test suite (auth, automation, search, payment)
@@ -556,7 +559,7 @@ bun test                 # run everything
 
 ## Data Model
 
-Core tables (Drizzle schema under each module's `db/schema.ts`):
+Core tables (Drizzle schema under `src/models/`):
 
 | Table                   | Purpose                                                                                                                                                            |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

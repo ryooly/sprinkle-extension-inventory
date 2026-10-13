@@ -1,15 +1,3 @@
-// cli/commands/showcase.ts
-//
-// Daily-showcase endpoints (backend prefix `/showcase`). The showcase is the
-// visible, end-to-end output of the automation engine: the hourly job refreshes
-// the shared `extensions` pool and the daily job pins a snapshot via
-// `recordDailyShowcase`, which these routes then serve.
-//
-//   GET /showcase          → public; the latest (or ?date=) pinned extensions
-//   GET /showcase/premium  → auth + active premium subscription; AI-enriched set
-//
-// Both accept an optional date (positional or --date) in YYYY-MM-DD form.
-
 import { http, errorMessage, type HttpResult } from "../lib/http";
 import { loadSession } from "../lib/session";
 import * as out from "../lib/output";
@@ -22,7 +10,6 @@ function bodyOf(res: HttpResult): Row {
   return (res.data && typeof res.data === "object" ? res.data : {}) as Row;
 }
 
-// The showcase payload is { success, data: { date, extensions } }.
 function showcaseOf(res: HttpResult): { date: string | null; rows: Row[] } {
   const data = bodyOf(res).data as
     | { date?: string | null; extensions?: unknown }
@@ -33,9 +20,6 @@ function showcaseOf(res: HttpResult): { date: string | null; rows: Row[] } {
   return { date: data?.date ?? null, rows };
 }
 
-// The public route returns persisted `Extension` rows (id/developer/browser/
-// extensionLink); the premium route returns AI-enriched `ExtensionRepo` objects
-// (publisher/downloadUrl, no id). These columns tolerate both shapes.
 function printShowcase(date: string | null, rows: Row[]): void {
   out.fields({ date: date ?? "none" });
   if (!rows.length) {

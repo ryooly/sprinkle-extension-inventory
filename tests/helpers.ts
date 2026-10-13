@@ -1,8 +1,3 @@
-// ── Shared test utilities ────────────────────────────────────────────────────
-// Isolated from the core backend – safe to delete entirely.
-
-// The gateway (src/gateway/index.ts) serves all module routes, including
-// the /user/* auth routes, on this port.
 const AUTH_BASE_URL = "http://localhost:3000";
 
 interface ApiResponse<T = unknown> {
@@ -12,10 +7,6 @@ interface ApiResponse<T = unknown> {
   cookies: Record<string, string>;
 }
 
-/**
- * Thin wrapper around fetch for hitting the auth API.
- * Automatically parses JSON and extracts Set-Cookie headers.
- */
 export async function apiRequest<T = unknown>(
   method: string,
   path: string,

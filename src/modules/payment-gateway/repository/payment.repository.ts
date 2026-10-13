@@ -1,7 +1,6 @@
 import { eq, and } from "drizzle-orm";
-import { db } from "../db/client";
-import { plans, subscriptions, payments } from "../db/schema";
-import { accounts } from "@/modules/auth/db/schema";
+import { db } from "@/db/client";
+import { plans, subscriptions, payments, accounts } from "@/models";
 
 export async function getPlanById(planId: number) {
   const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
@@ -122,5 +121,3 @@ export async function refundAndCancel(
     return updatedPayment;
   });
 }
-
-// Massage (ubah status valudation dengan mebuat vairable berisi statusnya jadi kita gak perlu lagi yanng namanya menuliskan ulang)

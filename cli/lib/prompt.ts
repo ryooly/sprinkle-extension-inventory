@@ -1,9 +1,3 @@
-// cli/lib/prompt.ts
-//
-// Interactive prompts built on node:readline (works under Bun). Used when a
-// command is invoked without the flags it needs, so the CLI is comfortable for
-// manual exploration while staying fully scriptable via flags.
-
 import * as readline from "node:readline";
 import { stdout, stdin } from "node:process";
 
@@ -14,7 +8,6 @@ function withInterface<T>(
   return fn(rl).finally(() => rl.close());
 }
 
-/** Ask a question and return the trimmed answer. Repeats while empty. */
 export async function ask(
   question: string,
   opts: { default?: string } = {},
@@ -65,7 +58,6 @@ function question_(rl: readline.Interface, q: string): Promise<string> {
   return new Promise((resolve) => rl.question(q, resolve));
 }
 
-// Toggle terminal echo so passwords are not displayed while typing.
 function muteStdout(mute: boolean): Promise<void> {
   return new Promise((resolve) => {
     try {
@@ -73,7 +65,7 @@ function muteStdout(mute: boolean): Promise<void> {
         (
           stdin as unknown as { setRawMode?: (m: boolean) => void }
         ).setRawMode?.(true);
-        stdout.write("\x1b[8m"); // ANSI hidden text
+        stdout.write("\x1b[8m");
       } else {
         stdout.write("\x1b[0m");
         (
@@ -81,7 +73,7 @@ function muteStdout(mute: boolean): Promise<void> {
         ).setRawMode?.(false);
       }
     } catch {
-      /* ignore: not all environments support raw mode */
+
     }
     resolve();
   });

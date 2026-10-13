@@ -8,7 +8,7 @@ import {
   timestamp,
   pgEnum,
 } from "drizzle-orm/pg-core";
-import { accounts } from "@/modules/auth/db/schema";
+import { accounts } from "./accounts";
 
 export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "pending",
@@ -32,8 +32,8 @@ export const plans = pgTable("plans", {
   id: serial("id").primaryKey(),
   name: planNameEnums("name").notNull(),
   price: numeric("price", { precision: 12, scale: 2 }).notNull(),
-  durationInDays:  durationEnums("duration_in_days").notNull(),
-  isActive: integer("is_active").notNull().default(1), 
+  durationInDays: durationEnums("duration_in_days").notNull(),
+  isActive: integer("is_active").notNull().default(1),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -54,8 +54,8 @@ export const payments = pgTable("payments", {
   subscriptionId: uuid("subscription_id")
     .notNull()
     .references(() => subscriptions.id),
-  transactionId: varchar("transaction_id", { length: 255 }).notNull().unique(), 
-  paymentMethod: varchar("payment_method", { length: 50 }), 
+  transactionId: varchar("transaction_id", { length: 255 }).notNull().unique(),
+  paymentMethod: varchar("payment_method", { length: 50 }),
   snapToken: varchar("snap_token", { length: 255 }),
   status: paymentStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

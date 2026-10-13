@@ -1,4 +1,4 @@
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 import {
   getDailyShowcase,
   getPremiumShowcase,

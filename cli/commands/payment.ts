@@ -1,15 +1,3 @@
-// cli/commands/payment.ts
-//
-// Payment-gateway endpoints (backend prefix `/payment`):
-//   POST /payment/create   → start a subscription/payment (requires auth)
-//   POST /payment/refund   → refund a payment (requires auth)
-//   POST /payment/gateway  → Midtrans server-to-server webhook (public; the
-//                             backend verifies `signature_key` itself)
-//
-// The webhook needs a signature that only Midtrans can produce, so
-// `payment-gateway` is mainly for replaying a captured payload (--file) to
-// confirm the route + verification logic respond as expected.
-
 import * as fs from "node:fs";
 import { http, errorMessage, type HttpResult } from "../lib/http";
 import { loadSession } from "../lib/session";

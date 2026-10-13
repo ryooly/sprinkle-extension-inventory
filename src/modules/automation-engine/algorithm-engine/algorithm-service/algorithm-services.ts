@@ -3,7 +3,7 @@ import {
   incrementAmountDisplayed,
   findUserExtensions,
 } from "../repository/repository";
-import { AppError } from "@/middlewares/errorHandler";
+import { AppError } from "@/errorhandler";
 import { config } from "config";
 
 export interface EngineResult<T> {
@@ -19,7 +19,7 @@ export async function getExtensions(): Promise<EngineResult<unknown>> {
     const data = await findExtensions();
 
     for (const extension of data) {
-      await incrementAmountDisplayed(extension.id); // akan dihapus aja dan diganti dengan yang lain 
+      await incrementAmountDisplayed(extension.id);
     }
 
     return { success: true, data };
@@ -99,4 +99,3 @@ export async function incrementDownload(id: string) {
     );
   }
 }
-

@@ -1,12 +1,3 @@
-// ── Auth Middleware Tests ───────────────────────────────────────────────────
-// Verifies the access-token fast path and the refresh fallback in
-// src/middlewares/auth-middleware.ts.
-//
-// These tests never reach the database: every case either returns from a valid
-// access token or is rejected by the cookie guard before any query runs.
-//
-// Run:  bun test tests/auth-middleware.test.ts
-
 import { describe, expect, test } from "bun:test";
 import { Elysia } from "elysia";
 import jwt from "jsonwebtoken";
@@ -15,9 +6,6 @@ import { authMiddleware } from "../src/middlewares/auth-middleware";
 
 const VALID_ACCOUNT_ID = "11111111-1111-4111-8111-111111111111";
 
-// Elysia keeps a plugin's derived types local, so `user` is present at runtime
-// but not on the parent context type. Same cast pattern used by
-// src/middlewares/builder-middlewares.ts.
 type AuthContext = {
   user?: {
     userId: string;

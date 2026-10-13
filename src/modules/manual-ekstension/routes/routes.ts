@@ -5,7 +5,7 @@ import {
   updateExtensionSchema,
   categorySchema,
   browserSchema,
-} from "../schemas/request-validator";
+} from "@/schemas/extension-validator";
 import {
   handleCreateExtension,
   handleEditExtension,

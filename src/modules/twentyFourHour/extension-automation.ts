@@ -51,7 +51,7 @@ export class TwentyFourHourAutomation {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`insertion failed: ${msg}`);
-      console.error("[hourly] Insertion step failed", err); /// replace to logging
+      console.error("[hourly] Insertion step failed", err);
     }
 
     try {
@@ -82,7 +82,7 @@ export class TwentyFourHourAutomation {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[daily] Extension retrieval failed", err);
-      return { success: false, count: 0, error: msg }; // replace menggunakna logging
+      return { success: false, count: 0, error: msg };
     }
   }
 

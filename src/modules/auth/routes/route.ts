@@ -6,7 +6,7 @@ import type {
   LoginInput,
   BeBuilderInput,
   GetUserByUsernameInput,
-} from "@/modules/auth/schemas/auth-schema";
+} from "@/schemas/auth";
 
 export const userRoutes = new Elysia({ prefix: "/user" })
   .post(
@@ -93,7 +93,6 @@ export const userRoutes = new Elysia({ prefix: "/user" })
   )
 
   .patch(
-    // nanti menggunakan cooked aja sehingga verifikasi hanya jadi pelengkap aja (tidak perlu)
     "/beBuilder",
     async ({ body }) => {
       return await UserController.beBuilderHandle(body as BeBuilderInput);

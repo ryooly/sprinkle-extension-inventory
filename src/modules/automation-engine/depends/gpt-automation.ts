@@ -1,4 +1,4 @@
-import { Category } from "../db/schema"
+import { Category } from "@/models"
 
 export function buildPrompt(link: string, availableCategories: Category[]): string {
   return `
