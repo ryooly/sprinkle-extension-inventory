@@ -5,6 +5,7 @@ import {
   type EngineResult,
 } from "@/modules/automation-engine/algorithm-engine/algorithm-service/algorithm-services";
 import { recordDailyShowcase } from "@/modules/dailyShowcase/services/showcase-service";
+import { logger } from "@/logger";
 
 import type {
   InsertionResult,
@@ -51,7 +52,7 @@ export class TwentyFourHourAutomation {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`insertion failed: ${msg}`);
-      console.error("[hourly] Insertion step failed", err);
+      logger.error(`[hourly] Insertion step failed: ${msg}`);
     }
 
     try {
@@ -59,7 +60,7 @@ export class TwentyFourHourAutomation {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       errors.push(`cleanup failed: ${msg}`);
-      console.error("[hourly] Cleanup step failed", err);
+      logger.error(`[hourly] Cleanup step failed: ${msg}`);
     }
 
     return { insertion, cleanup, errors };
@@ -81,7 +82,7 @@ export class TwentyFourHourAutomation {
       return { success: result.success, count };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[daily] Extension retrieval failed", err);
+      logger.error(`[daily] Extension retrieval failed: ${msg}`);
       return { success: false, count: 0, error: msg };
     }
   }
@@ -89,43 +90,49 @@ export class TwentyFourHourAutomation {
   startCronJobs() {
     this.hourlyCron = Bun.cron("0 * * * *", async () => {
       const started = Date.now();
-      console.log(
+      logger.info(
         `[hourly] Extension automation started at ${new Date().toISOString()}`,
-      ); // logging
+      );
 
       const result = await this.runHourlyJob();
 
       const duration = ((Date.now() - started) / 1000).toFixed(1);
-      console.log("[hourly] Extension automation completed", {
-        duration: `${duration}s`,
-        inserted: result.insertion?.inserted ?? 0,
-        failed: result.insertion?.failed ?? 0,
-        skipped: result.insertion?.skipped ?? 0,
-        deleted: result.cleanup?.deleted ?? 0,
-        errors: result.errors.length > 0 ? result.errors : undefined,
-      }); // logging
+      logger.info(
+        {
+          duration: `${duration}s`,
+          inserted: result.insertion?.inserted ?? 0,
+          failed: result.insertion?.failed ?? 0,
+          skipped: result.insertion?.skipped ?? 0,
+          deleted: result.cleanup?.deleted ?? 0,
+          errors: result.errors.length > 0 ? result.errors : undefined,
+        },
+        "[hourly] Extension automation completed",
+      );
     });
 
     this.dailyCron = Bun.cron("0 0 * * *", async () => {
       const started = Date.now();
-      console.log(
+      logger.info(
         `[daily] Extension export started at ${new Date().toISOString()}`,
-      ); // logging
+      );
 
       const result = await this.runDailyJob();
 
       const duration = ((Date.now() - started) / 1000).toFixed(1);
-      console.log("[daily] Extension export completed", {
-        duration: `${duration}s`,
-        success: result.success,
-        count: result.count,
-        error: result.error,
-      }); // logging
+      logger.info(
+        {
+          duration: `${duration}s`,
+          success: result.success,
+          count: result.count,
+          error: result.error,
+        },
+        "[daily] Extension export completed",
+      );
     });
 
-    console.log(
+    logger.info(
       "[cron] Scheduled hourly (0 * * * *) basic generation + cleanup and daily (0 0 * * *) showcase export (global generator, no user context)",
-    ); // logging
+    );
   }
 
   stopCronJobs() {
@@ -133,6 +140,6 @@ export class TwentyFourHourAutomation {
     this.dailyCron?.stop();
     this.hourlyCron = null;
     this.dailyCron = null;
-    console.log("[cron] All scheduled jobs stopped");
+    logger.info("[cron] All scheduled jobs stopped");
   }
 }

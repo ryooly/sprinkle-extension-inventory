@@ -29,6 +29,27 @@
       "when": 1791863602915,
       "tag": "0003_add_saved_extensions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791893744594,
+      "tag": "0004_add_extension_license",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791898682894,
+      "tag": "0005_add_premium_extensions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791900156413,
+      "tag": "0006_add_license_url",
+      "breakpoints": true
     }
   ]
 }

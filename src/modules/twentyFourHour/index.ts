@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import { TwentyFourHourAutomation } from "./extension-automation";
+import { logger } from "@/logger";
 
 export { TwentyFourHourAutomation };
 
@@ -9,12 +10,12 @@ if (import.meta.main) {
   const automation = new TwentyFourHourAutomation();
   automation.startCronJobs();
 
-  console.log(
+  logger.info(
     "TwentyFourHour automation started (global generator: hourly basic+premium, daily export)",
   );
 
   const shutdown = () => {
-    console.log("\nShutting down automation...");
+    logger.info("\nShutting down automation...");
     automation.stopCronJobs();
     process.exit(0);
   };

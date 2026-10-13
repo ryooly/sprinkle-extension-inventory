@@ -28,6 +28,7 @@
     "@elysiajs/cors": "^1.4.2",
     "@elysiajs/jwt": "^1.4.2",
     "@octokit/rest": "^22.0.1",
+    "axios": "^1.20.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
@@ -36,6 +37,8 @@
     "jsonwebtoken": "^9.0.3",
     "midtrans-client": "^1.4.3",
     "pg": "^8.21.0",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
     "zod": "^4.4.3"
   }
 }

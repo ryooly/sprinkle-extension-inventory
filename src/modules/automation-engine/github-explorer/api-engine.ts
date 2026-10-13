@@ -23,6 +23,7 @@ import {
 import {
   isRepoAlreadyProcessed,
   paginateGithubSearch,
+  extractLicense,
 } from "../depends/github-search-utils";
 
 export interface ExtensionRepo {
@@ -45,6 +46,12 @@ export interface ExtensionRepo {
   verificationPercentage?: number;
 
   permissions?: BrowserPermission[];
+
+  licenseKey?: string;
+
+  licenseName?: string;
+
+  licenseUrl?: string;
 }
 
 export interface SearchOptions {
@@ -102,6 +109,8 @@ async function toExtensionRepo(
 
   const owner = item.owner as { login?: string } | undefined;
 
+  const license = extractLicense(item);
+
   return {
     name: fullName,
 
@@ -119,6 +128,12 @@ async function toExtensionRepo(
     sourceRepoName: fullName,
 
     extensionStatus: "basic",
+
+    licenseKey: license ? license.key || license.spdxId : undefined,
+
+    licenseName: license ? license.name || license.spdxId : undefined,
+
+    licenseUrl: license?.url || undefined,
   };
 }
 

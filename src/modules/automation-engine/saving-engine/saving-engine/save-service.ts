@@ -8,7 +8,11 @@ import {
 import type { ExtensionRepo } from "../../github-explorer/api-engine";
 import type { Category } from "@/models";
 import { AppError } from "@/errorhandler";
-import { validateExtensionRepo } from "../../depends/extension-utils";
+import { logger } from "@/logger";
+import {
+  validateExtensionRepo,
+  fetchLicenseDetails,
+} from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
   categories?: Category[];
@@ -62,6 +66,10 @@ export async function insertExtensionsFromGithub(
 
     const normalized = validated.data;
 
+    const license = normalized.licenseKey
+      ? await fetchLicenseDetails(normalized.licenseKey)
+      : null;
+
     try {
       const existing = await findExtensionByNameAndDeveloper(
         normalized.name,
@@ -85,6 +93,13 @@ export async function insertExtensionsFromGithub(
         verified: normalized.verified ?? "not_verified",
         verificationPercentage: normalized.verificationPercentage ?? 0,
         permissions: normalized.permissions,
+        licenseName: license?.name ?? normalized.licenseName ?? null,
+        licenseKey: normalized.licenseKey ?? license?.name ?? null,
+        licenseDescription: license?.description ?? null,
+        licensePermissions: license?.permissions ?? null,
+        licenseConditions: license?.conditions ?? null,
+        licenseLimitations: license?.limitations ?? null,
+        licenseUrl: license?.url || normalized.licenseUrl || null,
       });
 
       await markRepoAsFetched(normalized.sourceRepoName);
@@ -94,10 +109,10 @@ export async function insertExtensionsFromGithub(
       const reason =
         error instanceof Error ? error.message : "unknown insert error";
       failures.push({ name: normalized.name, reason });
-      console.error(`Failed to insert extension "${normalized.name}"`, {
-        statusCode: 500,
-        cause: error,
-      });
+      logger.error(
+        { err: error, name: normalized.name },
+        "Failed to insert extension",
+      );
     }
   }
 

@@ -57,6 +57,14 @@ export const extensions = pgTable(
       .notNull()
       .default("basic"),
 
+    licenseName: text("license_name"),
+    licenseKey: text("license_key"),
+    licenseDescription: text("license_description"),
+    licensePermissions: text("license_permissions").array(),
+    licenseConditions: text("license_conditions").array(),
+    licenseLimitations: text("license_limitations").array(),
+    licenseUrl: text("license_url"),
+
     views: integer("views").notNull().default(0),
     downloads: integer("downloads").notNull().default(0),
     amountDisplayed: integer("amount_displayed").notNull().default(0),

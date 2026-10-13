@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import { and, eq, type InferInsertModel } from "drizzle-orm";
 import { config } from "../../config";
 import { accounts, plans, subscriptions } from "@/models";
+import { logger } from "@/logger";
 import { password as passwordUtil } from "@/modules/auth/utils/bcrypt";
 
 const DEMO_USERNAME = "premium_demo";
@@ -30,7 +31,7 @@ async function seed(): Promise<void> {
   const db = drizzle(pool);
 
   try {
-    console.log("Seeding reference data...\n");
+    logger.info("Seeding reference data...\n");
 
     const planIdByName: Record<string, number> = {};
     for (const plan of PLAN_SEEDS) {
@@ -42,7 +43,7 @@ async function seed(): Promise<void> {
 
       if (existing) {
         planIdByName[plan.name] = existing.id;
-        console.log(`• plan "${plan.name}" exists (id=${existing.id})`);
+        logger.info(`• plan "${plan.name}" exists (id=${existing.id})`);
         continue;
       }
 
@@ -58,7 +59,7 @@ async function seed(): Promise<void> {
         })
         .returning();
       planIdByName[plan.name] = inserted.id;
-      console.log(`• seeded plan "${plan.name}" (id=${inserted.id})`);
+      logger.info(`• seeded plan "${plan.name}" (id=${inserted.id})`);
     }
 
     const premiumPlanId = planIdByName["premium"];
@@ -73,7 +74,7 @@ async function seed(): Promise<void> {
       .limit(1);
 
     if (demo) {
-      console.log(`• premium demo account exists (id=${demo.id})`);
+      logger.info(`• premium demo account exists (id=${demo.id})`);
     } else {
       const hashed = await passwordUtil.hash(DEMO_PASSWORD);
       [demo] = await db
@@ -86,7 +87,7 @@ async function seed(): Promise<void> {
           isVerified: "verified",
         })
         .returning();
-      console.log(`• seeded premium demo account (id=${demo.id})`);
+      logger.info(`• seeded premium demo account (id=${demo.id})`);
     }
 
     // 3. Active subscription on the premium plan — this is what flips
@@ -103,7 +104,7 @@ async function seed(): Promise<void> {
       .limit(1);
 
     if (activeSub) {
-      console.log(
+      logger.info(
         `• premium demo already has an active subscription (id=${activeSub.id})`,
       );
     } else {
@@ -115,13 +116,13 @@ async function seed(): Promise<void> {
           status: "active",
         })
         .returning();
-      console.log(
+      logger.info(
         `• seeded ACTIVE premium subscription (id=${sub.id}, planId=${premiumPlanId})`,
       );
     }
 
-    console.log("\nSeed complete.");
-    console.log(
+    logger.info("\nSeed complete.");
+    logger.info(
       `Premium demo login → email: ${DEMO_EMAIL}  password: ${DEMO_PASSWORD}`,
     );
   } finally {
@@ -130,9 +131,9 @@ async function seed(): Promise<void> {
 }
 
 seed().catch((err) => {
-  console.error(
+  logger.error(
     "\nSeed failed. Is the database migrated (`bun run migrate`) and reachable?",
   );
-  console.error(err);
+  logger.error(String(err));
   process.exit(1);
 });

@@ -1,5 +1,63 @@
 import { categoryEnum, type Category } from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
+import axios from "axios";
+
+export interface LicenseDetails {
+  name: string;
+  description: string;
+  permissions: string[];
+  conditions: string[];
+  limitations: string[];
+  url: string;
+}
+
+const GITHUB_LICENSES_BASE = "https://api.github.com/licenses";
+
+export async function fetchLicenseDetails(
+  licenseKey: string,
+  token?: string,
+): Promise<LicenseDetails | null> {
+  const key = licenseKey.trim();
+  if (!key) return null;
+
+  const auth = token ?? process.env.GITHUB_TOKEN;
+
+  try {
+    const { data } = await axios.get(
+      `${GITHUB_LICENSES_BASE}/${encodeURIComponent(key)}`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+          ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+        },
+        timeout: 8000,
+      },
+    );
+
+    const toStringArray = (value: unknown): string[] =>
+      Array.isArray(value)
+        ? value.filter((v): v is string => typeof v === "string")
+        : [];
+
+    return {
+      name: typeof data?.name === "string" ? data.name : key,
+      description:
+        typeof data?.description === "string" ? data.description : "",
+      permissions: toStringArray(data?.permissions),
+      conditions: toStringArray(data?.conditions),
+      limitations: toStringArray(data?.limitations),
+      url:
+        typeof data?.html_url === "string"
+          ? data.html_url
+          : typeof data?.url === "string"
+            ? data.url
+            : "",
+    };
+  } catch {
+    return null;
+  }
+}
 
 export const MIN_DESCRIPTION_LENGTH = 10;
 export const MIN_CREATED_YEAR = 2017;

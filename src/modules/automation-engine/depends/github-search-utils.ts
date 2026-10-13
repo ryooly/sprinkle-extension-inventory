@@ -16,6 +16,33 @@ export async function isRepoAlreadyProcessed(
   return Boolean(fetched || existingExtension);
 }
 
+export interface GithubLicense {
+  key: string;
+  name: string;
+  spdxId: string;
+  url: string;
+}
+
+export function extractLicense(
+  item: Record<string, unknown>,
+): GithubLicense | null {
+  const license = item.license as
+    | { key?: unknown; name?: unknown; spdx_id?: unknown; url?: unknown }
+    | null
+    | undefined;
+
+  if (!license || typeof license !== "object") return null;
+
+  const key = typeof license.key === "string" ? license.key : "";
+  const name = typeof license.name === "string" ? license.name : "";
+  const spdxId = typeof license.spdx_id === "string" ? license.spdx_id : "";
+  const url = typeof license.url === "string" ? license.url : "";
+
+  if (!key && !name && !spdxId) return null;
+
+  return { key, name, spdxId, url };
+}
+
 export async function paginateGithubSearch<T>(
   octokit: Octokit,
   searchQuery: string,

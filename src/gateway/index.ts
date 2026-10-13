@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { logger } from "@/logger";
 
 import { buildCorsPlugin } from "./cors";
 import { AppError } from "@/errorhandler";
@@ -31,7 +32,9 @@ const app = new Elysia()
         : 500;
 
     if (status >= 500) {
-      console.error("[gateway] unhandled error:", error);
+      logger.error(
+        `[gateway] unhandled error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return fail(status, "Internal server error");
     }
 
@@ -50,4 +53,4 @@ const app = new Elysia()
   .use(savedExtensionRoutes)
   .listen(3000);
 
-console.log("Gateway running at http://localhost:3000");
+logger.info("Gateway running at http://localhost:3000");

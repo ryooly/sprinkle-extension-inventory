@@ -104,6 +104,18 @@ export function mapAiResponseToExtensionRepo(
         ? Math.min(100, Math.max(0, parsed.verificationPercentage))
         : undefined;
 
+    const licenseName =
+      typeof parsed.licenseName === "string"
+        ? parsed.licenseName.trim()
+        : typeof parsed.license === "string"
+          ? parsed.license.trim()
+          : undefined;
+
+    const licenseUrl =
+      typeof parsed.licenseUrl === "string"
+        ? parsed.licenseUrl.trim()
+        : undefined;
+
     return {
       name: String(parsed.name).trim(),
       publisher: String(
@@ -117,6 +129,11 @@ export function mapAiResponseToExtensionRepo(
       verificationPercentage,
       verified: mapAiVerified(parsed.verified, verificationPercentage),
       extensionStatus: "premium",
+      licenseKey: licenseName
+        ? licenseName.toLowerCase().replace(/\s+/g, "-")
+        : undefined,
+      licenseName,
+      licenseUrl,
     };
   } catch {
     return null;

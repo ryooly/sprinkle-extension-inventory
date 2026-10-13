@@ -1,4 +1,5 @@
 import { Category } from "@/models";
+import { logger } from "@/logger";
 import { buildPrompt } from "../../depends/gpt-automation";
 import { ExtensionRepo } from "../../github-explorer/api-engine";
 import {
@@ -106,18 +107,17 @@ export class GithubAIEngine {
 
         if (result) return result;
 
-        console.warn(
+        logger.warn(
           `[GithubAIEngine] Attempt ${attempt + 1} failed to parse ${candidate.fullName}, retrying...`,
         );
       } catch (err) {
-        console.error(
-          `[GithubAIEngine] Error analyzing ${candidate.fullName}:`,
-          err,
+        logger.error(
+          `[GithubAIEngine] Error analyzing ${candidate.fullName}: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
     }
 
-    console.error(
+    logger.error(
       `[GithubAIEngine] Gave up after ${maxRetries + 1} attempts: ${candidate.fullName}`,
     );
     return null;
