@@ -1,59 +1,10 @@
-import type { BrowserPermission, Category, VerificationStatus } from "@/models";
-import { browserPermissionEnum } from "@/models";
+import type { Category, VerificationStatus } from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
-import { buildGithubZipUrl, sanitizeCategories } from "./extension-utils";
-
-const VALID_PERMISSIONS = new Set<BrowserPermission>(
-  browserPermissionEnum.enumValues,
-);
-
-const MANIFEST_PERMISSION_MAP: Record<string, BrowserPermission> = {
-  history: "readBrowsingHistory",
-  tabs: "readOpenTabs",
-  activetab: "accessCurrentWebsite",
-  cookies: "readCookies",
-  storage: "readWebsiteData",
-  webrequest: "accessAllWebsites",
-  clipboardread: "clipboardRead",
-  clipboardwrite: "clipboardWrite",
-  notifications: "showNotifications",
-  geolocation: "accessAllWebsites",
-  downloads: "manageDownloads",
-  bookmarks: "manageBookmarks",
-  background: "backgroundExecution",
-  unlimitedstorage: "readWebsiteData",
-};
-
-function normalizePermissionKey(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z]/g, "");
-}
-
-export function mapAiPermissions(raw: unknown): BrowserPermission[] {
-  if (!Array.isArray(raw)) return [];
-
-  const permissions = new Set<BrowserPermission>();
-
-  for (const entry of raw) {
-    if (typeof entry !== "string") continue;
-
-    const normalized = normalizePermissionKey(entry);
-    const mapped = MANIFEST_PERMISSION_MAP[normalized];
-
-    if (mapped) {
-      permissions.add(mapped);
-      continue;
-    }
-
-    if (VALID_PERMISSIONS.has(entry as BrowserPermission)) {
-      permissions.add(entry as BrowserPermission);
-    }
-  }
-
-  return [...permissions];
-}
+import {
+  buildGithubZipUrl,
+  sanitizeCategories,
+  mapManifestPermissions,
+} from "./extension-utils";
 
 export function mapAiVerified(
   raw: unknown,
@@ -125,7 +76,7 @@ export function mapAiResponseToExtensionRepo(
       downloadUrl: buildGithubZipUrl(candidate.link, candidate.defaultBranch),
       category: sanitizeCategories(parsed.category as Category[]),
       sourceRepoName: candidate.fullName,
-      permissions: mapAiPermissions(parsed.permissions),
+      permissions: mapManifestPermissions(parsed.permissions),
       verificationPercentage,
       verified: mapAiVerified(parsed.verified, verificationPercentage),
       extensionStatus: "premium",

@@ -1,8 +1,65 @@
-import { categoryEnum, type Category } from "@/models";
-import type { Browser } from "@/models";
+import {
+  categoryEnum,
+  browserPermissionEnum,
+  type Category,
+  type Browser,
+  type BrowserPermission,
+} from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
 import axios from "axios";
 import { Octokit } from "@octokit/rest";
+
+const VALID_PERMISSIONS = new Set<BrowserPermission>(
+  browserPermissionEnum.enumValues,
+);
+
+const MANIFEST_PERMISSION_MAP: Record<string, BrowserPermission> = {
+  history: "readBrowsingHistory",
+  tabs: "readOpenTabs",
+  activetab: "accessCurrentWebsite",
+  cookies: "readCookies",
+  storage: "readWebsiteData",
+  webrequest: "accessAllWebsites",
+  clipboardread: "clipboardRead",
+  clipboardwrite: "clipboardWrite",
+  notifications: "showNotifications",
+  geolocation: "accessAllWebsites",
+  downloads: "manageDownloads",
+  bookmarks: "manageBookmarks",
+  background: "backgroundExecution",
+  unlimitedstorage: "readWebsiteData",
+};
+
+function normalizePermissionKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+}
+
+export function mapManifestPermissions(raw: unknown): BrowserPermission[] {
+  if (!Array.isArray(raw)) return [];
+
+  const permissions = new Set<BrowserPermission>();
+
+  for (const entry of raw) {
+    if (typeof entry !== "string") continue;
+
+    const normalized = normalizePermissionKey(entry);
+    const mapped = MANIFEST_PERMISSION_MAP[normalized];
+
+    if (mapped) {
+      permissions.add(mapped);
+      continue;
+    }
+
+    if (VALID_PERMISSIONS.has(entry as BrowserPermission)) {
+      permissions.add(entry as BrowserPermission);
+    }
+  }
+
+  return [...permissions];
+}
 
 export const PRIMARY_BROWSERS = [
   "chrome",
@@ -111,6 +168,43 @@ export async function detectBrowserSupport(
   }
 
   return browserSpecific.length > 0 ? browserSpecific : ["chrome"];
+}
+
+export async function detectManifestPermissions(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<BrowserPermission[]> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return [];
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  for (const path of GENERIC_MANIFEST_PATHS) {
+    const manifest = await readManifestFile(
+      octokit,
+      trimmedOwner,
+      trimmedRepo,
+      path,
+    );
+
+    if (manifest) return mapManifestPermissions(manifest.permissions);
+  }
+
+  for (const { path } of BROWSER_MANIFEST_PATHS) {
+    const manifest = await readManifestFile(
+      octokit,
+      trimmedOwner,
+      trimmedRepo,
+      path,
+    );
+
+    if (manifest) return mapManifestPermissions(manifest.permissions);
+  }
+
+  return [];
 }
 
 export interface LicenseDetails {

@@ -13,6 +13,7 @@ import {
   validateExtensionRepo,
   fetchLicenseDetails,
   detectBrowserSupport,
+  detectManifestPermissions,
 } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
@@ -75,6 +76,10 @@ export async function insertExtensionsFromGithub(
     const [owner, ...repoSegments] = repoFullName.split("/");
     const repoName = repoSegments.join("/");
     const supportedBrowsers = await detectBrowserSupport(owner, repoName);
+    const manifestPermissions = await detectManifestPermissions(
+      owner,
+      repoName,
+    );
 
     try {
       const existing = await findExtensionByNameAndDeveloper(
@@ -98,7 +103,10 @@ export async function insertExtensionsFromGithub(
         extensionStatus: normalized.extensionStatus ?? "basic",
         verified: normalized.verified ?? "not_verified",
         verificationPercentage: normalized.verificationPercentage ?? 0,
-        permissions: normalized.permissions,
+        permissions:
+          manifestPermissions.length > 0
+            ? manifestPermissions
+            : normalized.permissions,
         browser: supportedBrowsers[0] ?? "chrome",
         supportedBrowsers,
         licenseName: license?.name ?? normalized.licenseName ?? null,
