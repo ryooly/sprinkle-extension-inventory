@@ -1,6 +1,117 @@
 import { categoryEnum, type Category } from "@/models";
+import type { Browser } from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
 import axios from "axios";
+import { Octokit } from "@octokit/rest";
+
+export const PRIMARY_BROWSERS = [
+  "chrome",
+  "firefox",
+  "edge",
+  "opera",
+  "safari",
+] as const satisfies readonly Browser[];
+
+const CHROMIUM_BROWSERS: Browser[] = ["chrome", "edge", "opera"];
+
+const GENERIC_MANIFEST_PATHS = [
+  "manifest.json",
+  "src/manifest.json",
+  "extension/manifest.json",
+  "app/manifest.json",
+  "dist/manifest.json",
+  "build/manifest.json",
+  "public/manifest.json",
+];
+
+const BROWSER_MANIFEST_PATHS: { browser: Browser; path: string }[] = [
+  { browser: "chrome", path: "chrome/manifest.json" },
+  { browser: "firefox", path: "firefox/manifest.json" },
+  { browser: "edge", path: "edge/manifest.json" },
+  { browser: "opera", path: "opera/manifest.json" },
+  { browser: "safari", path: "safari/manifest.json" },
+];
+
+async function readManifestFile(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path: string,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const { data } = await octokit.rest.repos.getContent({ owner, repo, path });
+
+    if (!data || Array.isArray(data) || data.type !== "file") return null;
+
+    const content = (data as { content?: string }).content;
+    if (typeof content !== "string") return null;
+
+    const decoded = Buffer.from(content, "base64").toString("utf-8");
+    const parsed: unknown = JSON.parse(decoded);
+
+    return parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function classifyGenericManifest(manifest: Record<string, unknown>): Browser[] {
+  const supported = new Set<Browser>(CHROMIUM_BROWSERS);
+
+  const specific = (manifest.browser_specific_settings ??
+    manifest.applications) as Record<string, unknown> | undefined;
+
+  if (specific && (specific.gecko || specific.firefox)) {
+    supported.add("firefox");
+  }
+
+  if (manifest.manifest_version === 3) {
+    supported.add("safari");
+  }
+
+  return PRIMARY_BROWSERS.filter((browser) => supported.has(browser));
+}
+
+export async function detectBrowserSupport(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<Browser[]> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return ["chrome"];
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  for (const path of GENERIC_MANIFEST_PATHS) {
+    const manifest = await readManifestFile(
+      octokit,
+      trimmedOwner,
+      trimmedRepo,
+      path,
+    );
+
+    if (manifest) return classifyGenericManifest(manifest);
+  }
+
+  const browserSpecific: Browser[] = [];
+
+  for (const { browser, path } of BROWSER_MANIFEST_PATHS) {
+    const manifest = await readManifestFile(
+      octokit,
+      trimmedOwner,
+      trimmedRepo,
+      path,
+    );
+
+    if (manifest) browserSpecific.push(browser);
+  }
+
+  return browserSpecific.length > 0 ? browserSpecific : ["chrome"];
+}
 
 export interface LicenseDetails {
   name: string;

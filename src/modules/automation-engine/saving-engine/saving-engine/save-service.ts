@@ -12,6 +12,7 @@ import { logger } from "@/logger";
 import {
   validateExtensionRepo,
   fetchLicenseDetails,
+  detectBrowserSupport,
 } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
@@ -70,6 +71,11 @@ export async function insertExtensionsFromGithub(
       ? await fetchLicenseDetails(normalized.licenseKey)
       : null;
 
+    const repoFullName = normalized.sourceRepoName ?? normalized.name;
+    const [owner, ...repoSegments] = repoFullName.split("/");
+    const repoName = repoSegments.join("/");
+    const supportedBrowsers = await detectBrowserSupport(owner, repoName);
+
     try {
       const existing = await findExtensionByNameAndDeveloper(
         normalized.name,
@@ -93,6 +99,8 @@ export async function insertExtensionsFromGithub(
         verified: normalized.verified ?? "not_verified",
         verificationPercentage: normalized.verificationPercentage ?? 0,
         permissions: normalized.permissions,
+        browser: supportedBrowsers[0] ?? "chrome",
+        supportedBrowsers,
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
         licenseDescription: license?.description ?? null,

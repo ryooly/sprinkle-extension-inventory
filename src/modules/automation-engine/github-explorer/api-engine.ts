@@ -5,6 +5,7 @@ import {
   VerificationStatus,
   BrowserPermission,
   ExtensionStatus,
+  type Browser,
 } from "@/models";
 
 import { AppError } from "@/errorhandler";
@@ -52,6 +53,8 @@ export interface ExtensionRepo {
   licenseName?: string;
 
   licenseUrl?: string;
+
+  supportedBrowsers?: Browser[]; // hilankan hanya ada ketika di saving service 
 }
 
 export interface SearchOptions {

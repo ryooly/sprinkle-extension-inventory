@@ -51,6 +51,12 @@ export type UpdateExtensionPayload = z.infer<typeof updateExtensionSchema>;
 
 export type CategoryInput = z.infer<typeof categorySchema>;
 
-export const browserSchema = z.enum(["chrome", "opera", "edge"]);
+export const browserSchema = z.enum([
+  "chrome",
+  "opera",
+  "edge",
+  "firefox",
+  "safari",
+]);
 
 export type BrowserInput = z.infer<typeof browserSchema>;

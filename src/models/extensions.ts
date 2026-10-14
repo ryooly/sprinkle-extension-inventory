@@ -29,7 +29,13 @@ export const publisherTypeEnum = pgEnum("publisher_type", [
   "user",
 ]);
 
-export const browserEnum = pgEnum("browser", ["chrome", "opera", "edge"]);
+export const browserEnum = pgEnum("browser", [
+  "chrome",
+  "opera",
+  "edge",
+  "firefox",
+  "safari",
+]);
 
 export const extensionStatusEnum = pgEnum("extension_status", [
   "premium",
@@ -53,6 +59,7 @@ export const extensions = pgTable(
     source: sourceEnum("source").notNull().default("github"),
     extensionLink: text("extension_link").notNull(),
     browser: browserEnum("browser").notNull().default("chrome"),
+    supportedBrowsers: browserEnum("supported_browsers").array(),
     extensionStatus: extensionStatusEnum("extension_status")
       .notNull()
       .default("basic"),

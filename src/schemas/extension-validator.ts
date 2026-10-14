@@ -27,6 +27,8 @@ export const browserSchema = t.Union([
   t.Literal("chrome"),
   t.Literal("opera"),
   t.Literal("edge"),
+  t.Literal("firefox"),
+  t.Literal("safari"),
 ]);
 
 const verifiedSchema = t.Union([
