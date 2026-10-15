@@ -60,6 +60,8 @@ export const extensions = pgTable(
     extensionLink: text("extension_link").notNull(),
     browser: browserEnum("browser").notNull().default("chrome"),
     supportedBrowsers: browserEnum("supported_browsers").array(),
+    frontendLanguages: text("frontend_languages").array(),
+    backendLanguages: text("backend_languages").array(),
     extensionStatus: extensionStatusEnum("extension_status")
       .notNull()
       .default("basic"),

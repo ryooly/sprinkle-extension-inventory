@@ -57,6 +57,13 @@
       "when": 1791949942653,
       "tag": "0007_add_browser_support",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792063383158,
+      "tag": "0008_add_extension_frontend_backend_languages",
+      "breakpoints": true
     }
   ]
 }

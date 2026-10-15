@@ -207,6 +207,98 @@ export async function detectManifestPermissions(
   return [];
 }
 
+// Common GitHub language names (lower-cased) grouped by where they are
+// typically used. A language is matched case-insensitively against these sets.
+export const FRONTEND_LANGUAGES: ReadonlySet<string> = new Set([
+  "javascript",
+  "typescript",
+  "html",
+  "css",
+  "scss",
+  "sass",
+  "less",
+  "stylus",
+  "vue",
+  "svelte",
+  "coffeescript",
+  "jsx",
+  "tsx",
+]);
+
+export const BACKEND_LANGUAGES: ReadonlySet<string> = new Set([
+  "python",
+  "java",
+  "go",
+  "ruby",
+  "php",
+  "c#",
+  "c",
+  "c++",
+  "rust",
+  "scala",
+  "kotlin",
+  "elixir",
+  "erlang",
+  "haskell",
+  "perl",
+  "dart",
+  "clojure",
+  "crystal",
+  "groovy",
+  "objectivec",
+  "swift",
+  "lua",
+]);
+
+export function classifyLanguage(name: string): "frontend" | "backend" | null {
+  const normalized = name.trim().toLowerCase();
+
+  if (FRONTEND_LANGUAGES.has(normalized)) return "frontend";
+  if (BACKEND_LANGUAGES.has(normalized)) return "backend";
+
+  return null;
+}
+
+export async function detectLanguages(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<[string[], string[]]> {
+  const frontend: string[] = [];
+  const backend: string[] = [];
+
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return [frontend, backend];
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  try {
+    const { data } = await octokit.rest.repos.listLanguages({
+      owner: trimmedOwner,
+      repo: trimmedRepo,
+    });
+
+    const entries = Object.entries(data)
+      .filter(
+        (entry): entry is [string, number] => typeof entry[1] === "number",
+      )
+      .sort((a, b) => b[1] - a[1]);
+
+    for (const [name] of entries) {
+      const category = classifyLanguage(name);
+
+      if (category === "frontend") frontend.push(name);
+      else if (category === "backend") backend.push(name);
+    }
+
+    return [frontend, backend];
+  } catch {
+    return [frontend, backend];
+  }
+}
+
 export interface LicenseDetails {
   name: string;
   description: string;

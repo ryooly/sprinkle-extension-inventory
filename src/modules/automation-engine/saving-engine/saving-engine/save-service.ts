@@ -14,6 +14,7 @@ import {
   fetchLicenseDetails,
   detectBrowserSupport,
   detectManifestPermissions,
+  detectLanguages,
 } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
@@ -80,6 +81,10 @@ export async function insertExtensionsFromGithub(
       owner,
       repoName,
     );
+    const [frontendLanguages, backendLanguages] = await detectLanguages(
+      owner,
+      repoName,
+    );
 
     try {
       const existing = await findExtensionByNameAndDeveloper(
@@ -109,6 +114,14 @@ export async function insertExtensionsFromGithub(
             : normalized.permissions,
         browser: supportedBrowsers[0] ?? "chrome",
         supportedBrowsers,
+        frontendLanguages:
+          frontendLanguages.length > 0
+            ? frontendLanguages
+            : (normalized.frontendLanguages ?? null),
+        backendLanguages:
+          backendLanguages.length > 0
+            ? backendLanguages
+            : (normalized.backendLanguages ?? null),
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
         licenseDescription: license?.description ?? null,

@@ -54,7 +54,11 @@ export interface ExtensionRepo {
 
   licenseUrl?: string;
 
-  supportedBrowsers?: Browser[]; // hilankan hanya ada ketika di saving service 
+  supportedBrowsers?: Browser[]; // hilankan hanya ada ketika di saving service
+
+  frontendLanguages?: string[]; // hilankan hanya ada ketika di saving service
+
+  backendLanguages?: string[]; // hilankan hanya ada ketika di saving service
 }
 
 export interface SearchOptions {
