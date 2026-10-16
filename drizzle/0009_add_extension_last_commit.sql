@@ -1,0 +1,1 @@
+ALTER TABLE "extensions" ADD COLUMN "last_commit_date" timestamp with time zone;

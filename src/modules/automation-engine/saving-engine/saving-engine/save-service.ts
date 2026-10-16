@@ -15,6 +15,8 @@ import {
   detectBrowserSupport,
   detectManifestPermissions,
   detectLanguages,
+  getLastCommitDate,
+  getRepositoryStars,
 } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
@@ -85,6 +87,10 @@ export async function insertExtensionsFromGithub(
       owner,
       repoName,
     );
+    const lastCommitDate = await getLastCommitDate(owner, repoName);
+    const stars = await getRepositoryStars(owner, repoName);
+
+    /// tambbahkan fungisi yang digunakan untuk mengecek trust dari si repository berdasarkan nilai
 
     try {
       const existing = await findExtensionByNameAndDeveloper(
@@ -122,6 +128,8 @@ export async function insertExtensionsFromGithub(
           backendLanguages.length > 0
             ? backendLanguages
             : (normalized.backendLanguages ?? null),
+        lastCommitDate: lastCommitDate ?? normalized.lastCommitDate ?? null,
+        stars: stars ?? normalized.stars ?? null,
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
         licenseDescription: license?.description ?? null,

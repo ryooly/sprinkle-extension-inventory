@@ -62,6 +62,8 @@ export const extensions = pgTable(
     supportedBrowsers: browserEnum("supported_browsers").array(),
     frontendLanguages: text("frontend_languages").array(),
     backendLanguages: text("backend_languages").array(),
+    lastCommitDate: timestamp("last_commit_date", { withTimezone: true }),
+    stars: integer("stars"),
     extensionStatus: extensionStatusEnum("extension_status")
       .notNull()
       .default("basic"),

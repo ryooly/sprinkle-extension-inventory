@@ -64,6 +64,20 @@
       "when": 1792063383158,
       "tag": "0008_add_extension_frontend_backend_languages",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792119160164,
+      "tag": "0009_add_extension_last_commit",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792119484507,
+      "tag": "0010_add_extension_stars",
+      "breakpoints": true
     }
   ]
 }

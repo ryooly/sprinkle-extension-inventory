@@ -299,6 +299,61 @@ export async function detectLanguages(
   }
 }
 
+export async function getLastCommitDate(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<Date | null> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return null;
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  try {
+    const { data } = await octokit.rest.repos.listCommits({
+      owner: trimmedOwner,
+      repo: trimmedRepo,
+      per_page: 1,
+    });
+
+    const latest = data[0];
+    const date =
+      latest?.commit?.committer?.date ?? latest?.commit?.author?.date;
+
+    return date ? new Date(date) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getRepositoryStars(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<number | null> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return null;
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  try {
+    const { data } = await octokit.rest.repos.get({
+      owner: trimmedOwner,
+      repo: trimmedRepo,
+    });
+
+    return typeof data?.stargazers_count === "number"
+      ? data.stargazers_count
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export interface LicenseDetails {
   name: string;
   description: string;

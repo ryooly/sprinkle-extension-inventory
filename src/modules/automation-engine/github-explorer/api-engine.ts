@@ -59,6 +59,10 @@ export interface ExtensionRepo {
   frontendLanguages?: string[]; // hilankan hanya ada ketika di saving service
 
   backendLanguages?: string[]; // hilankan hanya ada ketika di saving service
+
+  lastCommitDate?: Date | null; // hilankan hanya ada ketika di saving service
+
+  stars?: number | null; // hilankan hanya ada ketika di saving service
 }
 
 export interface SearchOptions {
