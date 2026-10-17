@@ -129,6 +129,16 @@ export async function findExtensionByNameAndDeveloper(
   return extension ?? null;
 }
 
+export async function findExtensionById(id: string): Promise<Extension | null> {
+  const [extension] = await db
+    .select()
+    .from(extensions)
+    .where(eq(extensions.id, id))
+    .limit(1);
+
+  return extension ?? null;
+}
+
 export async function getFetchedRepoByName(repoName: string) {
   const [repo] = await db
     .select()

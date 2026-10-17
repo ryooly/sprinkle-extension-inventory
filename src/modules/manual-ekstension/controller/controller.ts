@@ -1,4 +1,5 @@
 import * as service from "../services/services";
+import type { RepoFileResult } from "../services/services";
 import { AppError } from "@/errorhandler";
 import type {
   CreateExtensionPayload,
@@ -100,6 +101,26 @@ export async function handleSearchExtensionsByBrowser(
     if (err instanceof AppError) throw err;
     throw new AppError(
       `Failed to search extensions by browser "${browser}"`,
+      500,
+      {
+        cause: err,
+      },
+    );
+  }
+}
+
+export async function handleOpenExtensionFile(
+  id: string,
+  path: string,
+): Promise<ControllerResult<RepoFileResult>> {
+  try {
+    const result = await service.openExtensionRepoFile(id, path);
+
+    return { success: true, data: result };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      `Failed to open file "${path}" for extension "${id}"`,
       500,
       {
         cause: err,

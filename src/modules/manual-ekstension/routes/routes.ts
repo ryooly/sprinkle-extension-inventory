@@ -13,6 +13,7 @@ import {
   handleSearchExtensionsByName,
   handleSearchExtensionsByCategory,
   handleSearchExtensionsByBrowser,
+  handleOpenExtensionFile,
 } from "../controller/controller";
 import { authMiddleware } from "@/middlewares/auth-middleware";
 import { builderMiddleware } from "@/middlewares/builder-middlewares";
@@ -94,6 +95,22 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
     {
       body: t.Object({
         browser: browserSchema,
+      }),
+    },
+  )
+
+  .get(
+    "/:id/file",
+    async ({ params, query }) => {
+      const result = await handleOpenExtensionFile(params.id, query.path);
+      return result;
+    },
+    {
+      params: t.Object({
+        id: t.String({ format: "uuid" }),
+      }),
+      query: t.Object({
+        path: t.String({ minLength: 1, maxLength: 255 }),
       }),
     },
   );

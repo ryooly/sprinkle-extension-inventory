@@ -390,6 +390,62 @@ export async function getRepoFiles(
   }
 }
 
+export interface RepoFileContent {
+  name: string;
+  path: string;
+  sha: string;
+  size: number;
+  encoding: "base64";
+  content: string;
+}
+
+export async function fetchRepoFile(
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+  token?: string,
+): Promise<RepoFileContent | null> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+  const trimmedPath = path?.trim();
+
+  if (!trimmedOwner || !trimmedRepo || !trimmedPath) return null;
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner: trimmedOwner,
+      repo: trimmedRepo,
+      path: trimmedPath,
+      ref: resolveDefaultBranch(ref),
+    });
+
+    if (
+      !data ||
+      Array.isArray(data) ||
+      data.type !== "file" ||
+      typeof (data as { content?: unknown }).content !== "string"
+    ) {
+      return null;
+    }
+
+    // tambahakan cache 
+
+    return {
+      name: data.name,
+      path: data.path,
+      sha: data.sha,
+      size: data.size ?? 0,
+      encoding: "base64",
+      content: (data as { content: string }).content,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export interface LicenseDetails {
   name: string;
   description: string;
