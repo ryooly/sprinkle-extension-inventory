@@ -9,6 +9,7 @@ import { extensionRoutes } from "@/modules/manual-ekstension";
 import { paymentRoutes } from "@/modules/payment-gateway";
 import { extensionMetricsRoutes } from "@/modules/automation-engine";
 import { dailyShowcaseRoutes } from "@/modules/dailyShowcase";
+import { commentRoutes } from "@/modules/comments";
 import { savedExtensionRoutes } from "@/modules/automation-engine/algorithm-engine/routes/saved-extensions.route";
 
 const app = new Elysia()
@@ -50,6 +51,7 @@ const app = new Elysia()
   .use(paymentRoutes)
   .use(extensionMetricsRoutes)
   .use(dailyShowcaseRoutes)
+  .use(commentRoutes)
   .use(savedExtensionRoutes)
   .listen(3000);
 
