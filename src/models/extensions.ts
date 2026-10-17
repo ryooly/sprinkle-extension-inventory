@@ -64,6 +64,7 @@ export const extensions = pgTable(
     backendLanguages: text("backend_languages").array(),
     lastCommitDate: timestamp("last_commit_date", { withTimezone: true }),
     stars: integer("stars"),
+    repoFiles: text("repo_files").array(),
     extensionStatus: extensionStatusEnum("extension_status")
       .notNull()
       .default("basic"),

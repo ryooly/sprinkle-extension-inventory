@@ -63,6 +63,8 @@ export interface ExtensionRepo {
   lastCommitDate?: Date | null; // hilankan hanya ada ketika di saving service
 
   stars?: number | null; // hilankan hanya ada ketika di saving service
+
+  repoFiles?: string[]; // hilankan hanya ada ketika di saving service
 }
 
 export interface SearchOptions {

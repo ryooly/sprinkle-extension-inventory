@@ -354,6 +354,42 @@ export async function getRepositoryStars(
   }
 }
 
+export const MAX_REPO_FILES = 200;
+
+export async function getRepoFiles(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<string[]> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return [];
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  try {
+    const { data } = await octokit.rest.git.getTree({
+      owner: trimmedOwner,
+      repo: trimmedRepo,
+      tree_sha: "HEAD",
+      recursive: "1",
+    });
+
+    if (!Array.isArray(data?.tree)) return [];
+
+    const files = data.tree
+      .filter(
+        (entry) => entry?.type === "blob" && typeof entry.path === "string",
+      )
+      .map((entry) => entry.path);
+
+    return files.slice(0, MAX_REPO_FILES);
+  } catch {
+    return [];
+  }
+}
+
 export interface LicenseDetails {
   name: string;
   description: string;
