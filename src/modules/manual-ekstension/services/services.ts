@@ -103,7 +103,7 @@ export interface RepoFileResult {
   ref: string;
 }
 
-export async function openExtensionRepoFile(
+export async function openExtensionRepoFile( /// open content of a file in a repository 
   id: string,
   path: string,
 ): Promise<RepoFileResult> {
@@ -173,3 +173,5 @@ export async function openExtensionRepoFile(
     ref: parsed.defaultBranch,
   };
 }
+
+

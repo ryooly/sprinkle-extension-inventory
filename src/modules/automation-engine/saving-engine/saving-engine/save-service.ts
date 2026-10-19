@@ -91,6 +91,7 @@ export async function insertExtensionsFromGithub(
     const lastCommitDate = await getLastCommitDate(owner, repoName);
     const stars = await getRepositoryStars(owner, repoName);
     const repoFiles = await getRepoFiles(owner, repoName);
+    /// tambahkan api scarping - prosesnya antara lain ambil hasil dari repofiles kemudain di cari yang masuk ke dalam list potential berisi api dan insert ke dalam ai untuk di rating dan di kembalikan.
 
     /// tambbahkan fungisi yang digunakan untuk mengecek trust dari si repository berdasarkan nilai
 
