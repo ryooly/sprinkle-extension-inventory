@@ -98,9 +98,9 @@ export async function insertExtensionsFromGithub(
       normalized.downloadUrl,
     )?.defaultBranch;
     const endpoints = await findApi(owner, repoName, defaultBranch);
-    const apiEndpoints = [
-      ...new Set(endpoints.map((e) => `${e.method} ${e.path}`)),
-    ];
+    const apiEndpoints = endpoints.map(
+      (e) => `${e.type}:${e.method} ${e.path}`,
+    );
 
     /// tambbahkan fungisi yang digunakan untuk mengecek trust dari si repository berdasarkan nilai
 

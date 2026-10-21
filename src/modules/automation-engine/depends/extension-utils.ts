@@ -606,8 +606,13 @@ export function validateExtensionRepo(
   };
 }
 
+// Internal: framework route registrations (Express-style app/router.<verb>("/path"))
 const API_ENDPOINT_REGEX =
   /\b(app|router)\.(get|post|put|delete|patch)\s*\(\s*['"`](.*?)['"`]/g;
+
+// External: outbound HTTP calls (axios.<verb>("https://...") or fetch("https://..."))
+const EXTERNAL_API_REGEX =
+  /\b(axios\.(get|post|put|delete|patch)|fetch)\s*\(\s*['"`](https?:\/\/.*?)['"`]/g;
 
 const SKIP_FILE_PATTERN =
   /(^|\/)node_modules\/|(dist|build|coverage)\/|\.(test|spec|min)\.[cm]?[jt]s$/;
@@ -615,7 +620,10 @@ const SKIP_FILE_PATTERN =
 // Skip suspiciously large sources — a single 1 MB+ generated file is not worth scanning
 const MAX_SCANNED_FILE_BYTES = 1_000_000;
 
+export type ApiEndpointType = "internal" | "external";
+
 export interface RepoApiEndpoint {
+  type: ApiEndpointType;
   file: string;
   method: string;
   path: string;
@@ -662,7 +670,8 @@ export async function findApi(
         !SKIP_FILE_PATTERN.test(file.name) &&
         file.originalSize <= MAX_SCANNED_FILE_BYTES,
     });
-    const foundEndpoints: RepoApiEndpoint[] = [];
+    // Dedupe by type + method + path so identical endpoints are kept only once
+    const uniqueEndpoints = new Map<string, RepoApiEndpoint>();
 
     for (const [path, data] of Object.entries(files)) {
       if (!/\.[cm]?[jt]s$/.test(path) || SKIP_FILE_PATTERN.test(path)) {
@@ -677,13 +686,38 @@ export async function findApi(
       let match: RegExpExecArray | null;
 
       while ((match = API_ENDPOINT_REGEX.exec(content)) !== null) {
-        foundEndpoints.push({
-          file: path,
-          method: match[2].toUpperCase(),
-          path: match[3],
-        });
+        const method = match[2].toUpperCase();
+        const key = `internal|${method}|${match[3]}`;
+
+        if (!uniqueEndpoints.has(key)) {
+          uniqueEndpoints.set(key, {
+            type: "internal",
+            file: path,
+            method,
+            path: match[3],
+          });
+        }
+      }
+
+      EXTERNAL_API_REGEX.lastIndex = 0;
+
+      while ((match = EXTERNAL_API_REGEX.exec(content)) !== null) {
+        // fetch carries no verb in group 2, so it defaults to GET
+        const method = (match[2] ?? "get").toUpperCase();
+        const key = `external|${method}|${match[3]}`;
+
+        if (!uniqueEndpoints.has(key)) {
+          uniqueEndpoints.set(key, {
+            type: "external",
+            file: path,
+            method,
+            path: match[3],
+          });
+        }
       }
     }
+
+    const foundEndpoints = [...uniqueEndpoints.values()];
 
     logger.info(
       { owner: trimmedOwner, repo: trimmedRepo, count: foundEndpoints.length },
