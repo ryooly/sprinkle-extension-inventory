@@ -10,6 +10,7 @@ import { logger } from "@/logger";
 import axios from "axios";
 import { unzipSync } from "fflate";
 import { Octokit } from "@octokit/rest";
+import { checkUrlSafety, type UrlSafetyVerdict } from "../tools/url-safety";
 
 const VALID_PERMISSIONS = new Set<BrowserPermission>(
   browserPermissionEnum.enumValues,
@@ -622,11 +623,36 @@ const MAX_SCANNED_FILE_BYTES = 1_000_000;
 
 export type ApiEndpointType = "internal" | "external";
 
+// Google Safe Browsing verdict for the endpoint, minus the redundant `url`
+// field (the endpoint already carries its own path)
+export type ApiEndpointSecurity = Omit<UrlSafetyVerdict, "url">;
+
 export interface RepoApiEndpoint {
   type: ApiEndpointType;
   file: string;
   method: string;
   path: string;
+  security: ApiEndpointSecurity;
+}
+
+function toEndpointSecurity(verdict: UrlSafetyVerdict): ApiEndpointSecurity {
+  return {
+    safe: verdict.safe,
+    threats: verdict.threats,
+    checkedAt: verdict.checkedAt,
+    skippedOnError: verdict.skippedOnError,
+  };
+}
+
+// Used for internal route paths (e.g. "/users"), which are not full URLs and
+// therefore cannot be evaluated by Safe Browsing
+function neutralEndpointSecurity(): ApiEndpointSecurity {
+  return {
+    safe: true,
+    threats: [],
+    checkedAt: new Date().toISOString(),
+    skippedOnError: true,
+  };
 }
 
 export async function findApi(
@@ -670,6 +696,13 @@ export async function findApi(
         !SKIP_FILE_PATTERN.test(file.name) &&
         file.originalSize <= MAX_SCANNED_FILE_BYTES,
     });
+    // Fresh regex instances per call: awaiting the safety check inside the scan
+    // loop could otherwise clobber a shared lastIndex across concurrent findApi
+    // invocations. Each exec loop runs until null, which resets lastIndex, so
+    // reusing one instance across files is safe.
+    const internalRegex = new RegExp(API_ENDPOINT_REGEX.source, "g");
+    const externalRegex = new RegExp(EXTERNAL_API_REGEX.source, "g");
+
     // Dedupe by type + method + path so identical endpoints are kept only once
     const uniqueEndpoints = new Map<string, RepoApiEndpoint>();
 
@@ -680,12 +713,11 @@ export async function findApi(
 
       const content = new TextDecoder().decode(data);
 
-      // Reset lastIndex because the regex is shared across files
-      API_ENDPOINT_REGEX.lastIndex = 0;
-
       let match: RegExpExecArray | null;
 
-      while ((match = API_ENDPOINT_REGEX.exec(content)) !== null) {
+      // Internal route paths (e.g. "/users") are not full URLs, so they get a
+      // neutral not-checked verdict instead of a Safe Browsing call
+      while ((match = internalRegex.exec(content)) !== null) {
         const method = match[2].toUpperCase();
         const key = `internal|${method}|${match[3]}`;
 
@@ -695,25 +727,31 @@ export async function findApi(
             file: path,
             method,
             path: match[3],
+            security: neutralEndpointSecurity(),
           });
         }
       }
 
-      EXTERNAL_API_REGEX.lastIndex = 0;
-
-      while ((match = EXTERNAL_API_REGEX.exec(content)) !== null) {
+      // External outbound URLs: verify safety once the endpoint is first detected
+      while ((match = externalRegex.exec(content)) !== null) {
         // fetch carries no verb in group 2, so it defaults to GET
         const method = (match[2] ?? "get").toUpperCase();
-        const key = `external|${method}|${match[3]}`;
+        const url = match[3];
+        const key = `external|${method}|${url}`;
 
-        if (!uniqueEndpoints.has(key)) {
-          uniqueEndpoints.set(key, {
-            type: "external",
-            file: path,
-            method,
-            path: match[3],
-          });
-        }
+        if (uniqueEndpoints.has(key)) continue;
+
+        // checkUrlSafety fail-opens (never throws), so a quota/network error
+        // yields skippedOnError instead of aborting the scan
+        const verdict = await checkUrlSafety(url);
+
+        uniqueEndpoints.set(key, {
+          type: "external",
+          file: path,
+          method,
+          path: url,
+          security: toEndpointSecurity(verdict),
+        });
       }
     }
 
