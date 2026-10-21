@@ -99,6 +99,13 @@
       "when": 1792209078445,
       "tag": "0013_add_extension_repo_files",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792582866902,
+      "tag": "0014_add_extension_api_endpoints",
+      "breakpoints": true
     }
   ]
 }

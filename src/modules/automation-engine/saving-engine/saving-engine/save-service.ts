@@ -18,6 +18,8 @@ import {
   getLastCommitDate,
   getRepositoryStars,
   getRepoFiles,
+  findApi,
+  parseGithubZipUrl,
 } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
@@ -87,11 +89,18 @@ export async function insertExtensionsFromGithub(
     const [frontendLanguages, backendLanguages] = await detectLanguages(
       owner,
       repoName,
-    ); 
+    );
     const lastCommitDate = await getLastCommitDate(owner, repoName);
     const stars = await getRepositoryStars(owner, repoName);
     const repoFiles = await getRepoFiles(owner, repoName);
-    /// tambahkan api scarping - prosesnya antara lain ambil hasil dari repofiles kemudain di cari yang masuk ke dalam list potential berisi api dan insert ke dalam ai untuk di rating dan di kembalikan.
+
+    const defaultBranch = parseGithubZipUrl(
+      normalized.downloadUrl,
+    )?.defaultBranch;
+    const endpoints = await findApi(owner, repoName, defaultBranch);
+    const apiEndpoints = [
+      ...new Set(endpoints.map((e) => `${e.method} ${e.path}`)),
+    ];
 
     /// tambbahkan fungisi yang digunakan untuk mengecek trust dari si repository berdasarkan nilai
 
@@ -135,6 +144,7 @@ export async function insertExtensionsFromGithub(
         stars: stars ?? normalized.stars ?? null,
         repoFiles:
           repoFiles.length > 0 ? repoFiles : (normalized.repoFiles ?? null),
+        apiEndpoints: apiEndpoints.length > 0 ? apiEndpoints : null,
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
         licenseDescription: license?.description ?? null,

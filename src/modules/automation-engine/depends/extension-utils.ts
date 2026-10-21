@@ -6,7 +6,9 @@ import {
   type BrowserPermission,
 } from "@/models";
 import type { ExtensionRepo } from "../github-explorer/api-engine";
+import { logger } from "@/logger";
 import axios from "axios";
+import { unzipSync } from "fflate";
 import { Octokit } from "@octokit/rest";
 
 const VALID_PERMISSIONS = new Set<BrowserPermission>(
@@ -431,7 +433,7 @@ export async function fetchRepoFile(
       return null;
     }
 
-    // tambahakan cache 
+    // tambahakan cache
 
     return {
       name: data.name,
@@ -603,6 +605,125 @@ export function validateExtensionRepo(
     },
   };
 }
+
+const API_ENDPOINT_REGEX =
+  /\b(app|router)\.(get|post|put|delete|patch)\s*\(\s*['"`](.*?)['"`]/g;
+
+const SKIP_FILE_PATTERN =
+  /(^|\/)node_modules\/|(dist|build|coverage)\/|\.(test|spec|min)\.[cm]?[jt]s$/;
+
+// Skip suspiciously large sources — a single 1 MB+ generated file is not worth scanning
+const MAX_SCANNED_FILE_BYTES = 1_000_000;
+
+export interface RepoApiEndpoint {
+  file: string;
+  method: string;
+  path: string;
+}
+
+export async function findApi(
+  owner: string,
+  repo: string,
+  ref?: string | null,
+  token?: string,
+): Promise<RepoApiEndpoint[]> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  if (!trimmedOwner || !trimmedRepo) return [];
+
+  const auth = token ?? process.env.GITHUB_TOKEN;
+
+  try {
+    // Octokit parses response bodies eagerly (string/ArrayBuffer, never a Blob),
+    // so fetch the zipball bytes directly — one request, expanded in memory
+    const { data } = await axios.get<ArrayBuffer>(
+      `https://api.github.com/repos/${encodeURIComponent(trimmedOwner)}/${encodeURIComponent(trimmedRepo)}/zipball/${encodeURIComponent(resolveDefaultBranch(ref))}`,
+      {
+        responseType: "arraybuffer",
+        timeout: 30000,
+        maxContentLength: 50 * 1024 * 1024,
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+          ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+        },
+      },
+    );
+
+    const buffer = new Uint8Array(data);
+
+    // Directory entries end with "/"; filter by name before inflation so
+    // non-source and oversized members are never decompressed
+    const files = unzipSync(buffer, {
+      filter: (file) =>
+        !file.name.endsWith("/") &&
+        /\.[cm]?[jt]s$/.test(file.name) &&
+        !SKIP_FILE_PATTERN.test(file.name) &&
+        file.originalSize <= MAX_SCANNED_FILE_BYTES,
+    });
+    const foundEndpoints: RepoApiEndpoint[] = [];
+
+    for (const [path, data] of Object.entries(files)) {
+      if (!/\.[cm]?[jt]s$/.test(path) || SKIP_FILE_PATTERN.test(path)) {
+        continue;
+      }
+
+      const content = new TextDecoder().decode(data);
+
+      // Reset lastIndex because the regex is shared across files
+      API_ENDPOINT_REGEX.lastIndex = 0;
+
+      let match: RegExpExecArray | null;
+
+      while ((match = API_ENDPOINT_REGEX.exec(content)) !== null) {
+        foundEndpoints.push({
+          file: path,
+          method: match[2].toUpperCase(),
+          path: match[3],
+        });
+      }
+    }
+
+    logger.info(
+      { owner: trimmedOwner, repo: trimmedRepo, count: foundEndpoints.length },
+      "findApi scanned repo endpoints",
+    );
+
+    return foundEndpoints;
+  } catch (error) {
+    logger.warn(
+      { owner: trimmedOwner, repo: trimmedRepo, error },
+      "findApi failed to scan repo",
+    );
+    return [];
+  }
+}
+
+// ==========================================
+// CATATAN ARSITEKTUR: ENGINE SCANNER API REPO
+// ==========================================
+
+// 1. MASALAH UTAMA & SOLUSI
+// - Masalah: Narik file repo satu-satu pake Octokit bikin lambat, boros network, dan rawan kena Rate Limit GitHub.
+// - Solusi: Pakai "Zipball API" (download seluruh repo jadi 1 file ZIP dalam 1x request HTTP).
+
+// 2. KENAPA CARA INI ENTENG & AMAN BUAT SERVER?
+// - In-Memory Processing: File ZIP langsung dibaca di RAM (Buffer), TIDAK disimpan permanen ke harddisk server (0% sampah disk).
+// - RAM Kecil & Aman: Karena ukuran repo extension kecil (1-5 MB), RAM cuma dipakai sebentar lalu langsung dibersihkan oleh Garbage Collection.
+// - CPU Santai: Proses dilakukan bergantian (Sequential/Looping satu-satu), tidak mendadak menembak 20 repo bersamaan agar CPU tidak spike.
+// - Efisiensi Waktu: Proses 20 repo extension cuma butuh waktu belasan detik saja, bisa dijadwalkan via Cron Job (misal tiap jam 2 pagi).
+
+// 3. TOOLS / LIBRARY YANG DIBUTUHKAN
+// - npm install @octokit/rest adm-zip
+
+// 4. KERANGKA ALUR KERJA ENGINE
+// - Step A: Ambil list repo target extension.
+// - Step B: Download zipball repo via Octokit (downloadZipballArchive).
+// - Step C: Ekstrak zip secara instan di memori pakai 'adm-zip'.
+// - Step D: Filter file (hanya ambil file kode .js/.ts, abaikan node_modules).
+// - Step E: Scan isi teks file menggunakan Regex untuk menangkap method (GET/POST) dan path.
+// - Step F: Kumpulkan hasil akhir ke dalam format JSON object terstruktur per repo.
 
 export function isEligibleGithubSearchItem(
   item: Record<string, unknown>,
