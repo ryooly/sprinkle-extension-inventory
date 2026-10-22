@@ -136,6 +136,3 @@ export async function checkUrlsSafety(
 
   return verdicts;
 }
-
-
-/// buat bentuk outputnya, kemduain integrasikan di extension utils 

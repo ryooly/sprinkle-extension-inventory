@@ -669,8 +669,6 @@ export async function findApi(
   const auth = token ?? process.env.GITHUB_TOKEN;
 
   try {
-    // Octokit parses response bodies eagerly (string/ArrayBuffer, never a Blob),
-    // so fetch the zipball bytes directly — one request, expanded in memory
     const { data } = await axios.get<ArrayBuffer>(
       `https://api.github.com/repos/${encodeURIComponent(trimmedOwner)}/${encodeURIComponent(trimmedRepo)}/zipball/${encodeURIComponent(resolveDefaultBranch(ref))}`,
       {
@@ -687,8 +685,6 @@ export async function findApi(
 
     const buffer = new Uint8Array(data);
 
-    // Directory entries end with "/"; filter by name before inflation so
-    // non-source and oversized members are never decompressed
     const files = unzipSync(buffer, {
       filter: (file) =>
         !file.name.endsWith("/") &&
@@ -696,14 +692,10 @@ export async function findApi(
         !SKIP_FILE_PATTERN.test(file.name) &&
         file.originalSize <= MAX_SCANNED_FILE_BYTES,
     });
-    // Fresh regex instances per call: awaiting the safety check inside the scan
-    // loop could otherwise clobber a shared lastIndex across concurrent findApi
-    // invocations. Each exec loop runs until null, which resets lastIndex, so
-    // reusing one instance across files is safe.
+    
     const internalRegex = new RegExp(API_ENDPOINT_REGEX.source, "g");
     const externalRegex = new RegExp(EXTERNAL_API_REGEX.source, "g");
 
-    // Dedupe by type + method + path so identical endpoints are kept only once
     const uniqueEndpoints = new Map<string, RepoApiEndpoint>();
 
     for (const [path, data] of Object.entries(files)) {
@@ -715,8 +707,6 @@ export async function findApi(
 
       let match: RegExpExecArray | null;
 
-      // Internal route paths (e.g. "/users") are not full URLs, so they get a
-      // neutral not-checked verdict instead of a Safe Browsing call
       while ((match = internalRegex.exec(content)) !== null) {
         const method = match[2].toUpperCase();
         const key = `internal|${method}|${match[3]}`;
@@ -732,17 +722,13 @@ export async function findApi(
         }
       }
 
-      // External outbound URLs: verify safety once the endpoint is first detected
       while ((match = externalRegex.exec(content)) !== null) {
-        // fetch carries no verb in group 2, so it defaults to GET
         const method = (match[2] ?? "get").toUpperCase();
         const url = match[3];
         const key = `external|${method}|${url}`;
 
         if (uniqueEndpoints.has(key)) continue;
 
-        // checkUrlSafety fail-opens (never throws), so a quota/network error
-        // yields skippedOnError instead of aborting the scan
         const verdict = await checkUrlSafety(url);
 
         uniqueEndpoints.set(key, {
