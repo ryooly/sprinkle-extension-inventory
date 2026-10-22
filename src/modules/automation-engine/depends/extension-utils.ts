@@ -692,7 +692,7 @@ export async function findApi(
         !SKIP_FILE_PATTERN.test(file.name) &&
         file.originalSize <= MAX_SCANNED_FILE_BYTES,
     });
-    
+
     const internalRegex = new RegExp(API_ENDPOINT_REGEX.source, "g");
     const externalRegex = new RegExp(EXTERNAL_API_REGEX.source, "g");
 
@@ -782,6 +782,183 @@ export async function findApi(
 // - Step D: Filter file (hanya ambil file kode .js/.ts, abaikan node_modules).
 // - Step E: Scan isi teks file menggunakan Regex untuk menangkap method (GET/POST) dan path.
 // - Step F: Kumpulkan hasil akhir ke dalam format JSON object terstruktur per repo.
+
+export type RepoGrade = "S" | "A" | "B" | "C" | "D" | "E";
+
+export interface RepoRatingInput {
+  stargazers_count: number;
+  forks_count: number;
+  pushed_at: Date | string;
+  open_issues_count: number;
+  closed_issues_count: number;
+  security_alerts_count?: number;
+}
+
+export interface RepoRatingBreakdown {
+  stars: number;
+  forks: number;
+  lastUpdate: number;
+  closedIssueRatio: number;
+  securityAlerts: number;
+}
+
+export interface RepoRating {
+  totalScore: number;
+  grade: RepoGrade;
+  breakdown: RepoRatingBreakdown;
+}
+
+const DAY_MS = 86_400_000;
+
+function scoreStars(stars: number): number {
+  if (stars >= 1000) return 25;
+  if (stars >= 250) return 20;
+  if (stars >= 50) return 15;
+  if (stars >= 10) return 10;
+  return 5;
+}
+
+function scoreForks(forks: number): number {
+  if (forks >= 300) return 20;
+  if (forks >= 100) return 16;
+  if (forks >= 20) return 12;
+  if (forks >= 5) return 8;
+  return 4;
+}
+
+function daysSince(date: Date | string): number {
+  const parsed = date instanceof Date ? date : new Date(date);
+  const time = parsed.getTime();
+
+  if (Number.isNaN(time)) return Number.POSITIVE_INFINITY;
+
+  return Math.max(0, Math.floor((Date.now() - time) / DAY_MS));
+}
+
+function scoreLastUpdate(days: number): number {
+  if (days <= 30) return 20;
+  if (days <= 90) return 15;
+  if (days <= 180) return 10;
+  if (days <= 365) return 5;
+  return 0;
+}
+
+function scoreClosedIssueRatio(open: number, closed: number): number {
+  const total = open + closed;
+  if (total <= 0) return 10;
+
+  const ratio = (closed / total) * 100;
+
+  if (ratio >= 80) return 20;
+  if (ratio >= 60) return 15;
+  if (ratio >= 40) return 10;
+  if (ratio >= 20) return 5;
+  return 0;
+}
+
+function scoreSecurityAlerts(alerts: number): number {
+  if (alerts <= 0) return 15;
+  if (alerts <= 2) return 10;
+  return 0;
+}
+
+function toRepoGrade(totalScore: number): RepoGrade {
+  if (totalScore >= 85) return "S";
+  if (totalScore >= 70) return "A";
+  if (totalScore >= 55) return "B";
+  if (totalScore >= 40) return "C";
+  if (totalScore >= 25) return "D";
+  return "E";
+}
+
+export function rateRepository(input: RepoRatingInput): RepoRating {
+  const breakdown: RepoRatingBreakdown = {
+    stars: scoreStars(input.stargazers_count),
+    forks: scoreForks(input.forks_count),
+    lastUpdate: scoreLastUpdate(daysSince(input.pushed_at)),
+    closedIssueRatio: scoreClosedIssueRatio(
+      input.open_issues_count,
+      input.closed_issues_count,
+    ),
+    securityAlerts: scoreSecurityAlerts(input.security_alerts_count ?? 0),
+  };
+
+  const totalScore =
+    breakdown.stars +
+    breakdown.forks +
+    breakdown.lastUpdate +
+    breakdown.closedIssueRatio +
+    breakdown.securityAlerts;
+
+  return { totalScore, grade: toRepoGrade(totalScore), breakdown };
+}
+
+async function countClosedIssues(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+): Promise<number> {
+  try {
+    const { data } = await octokit.search.issuesAndPullRequests({
+      q: `repo:${owner}/${repo} type:issue state:closed`,
+      per_page: 1,
+    });
+
+    return typeof data?.total_count === "number" ? data.total_count : 0;
+  } catch {
+    return 0;
+  }
+}
+
+// Gathers every rating input from the GitHub REST API. repos.get yields stars,
+// forks, pushed_at and open_issues; the search API yields the closed-issue
+// count. GitHub does not expose other repos' security alerts to the automation
+// token, so security_alerts_count stays at the spec default of 0 here.
+export async function getRepositoryMetrics(
+  owner: string,
+  repo: string,
+  token?: string,
+): Promise<RepoRatingInput> {
+  const trimmedOwner = owner?.trim();
+  const trimmedRepo = repo?.trim();
+
+  const empty: RepoRatingInput = {
+    stargazers_count: 0,
+    forks_count: 0,
+    pushed_at: new Date(0),
+    open_issues_count: 0,
+    closed_issues_count: 0,
+    security_alerts_count: 0,
+  };
+
+  if (!trimmedOwner || !trimmedRepo) return empty;
+
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+
+  try {
+    const { data } = await octokit.rest.repos.get({
+      owner: trimmedOwner,
+      repo: trimmedRepo,
+    });
+
+    const closedIssues = await countClosedIssues(
+      octokit,
+      trimmedOwner,
+      trimmedRepo,
+    );
+
+    return {
+      stargazers_count: data.stargazers_count ?? 0,
+      forks_count: data.forks_count ?? 0,
+      pushed_at: data.pushed_at ?? new Date(),
+      open_issues_count: data.open_issues_count ?? 0,
+      closed_issues_count: closedIssues,
+      security_alerts_count: 0,
+    };
+  } catch {
+    return empty;
+  }
+}
 
 export function isEligibleGithubSearchItem(
   item: Record<string, unknown>,

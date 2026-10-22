@@ -16,10 +16,11 @@ import {
   detectManifestPermissions,
   detectLanguages,
   getLastCommitDate,
-  getRepositoryStars,
+  getRepositoryMetrics,
   getRepoFiles,
   findApi,
   parseGithubZipUrl,
+  rateRepository,
 } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
@@ -91,7 +92,7 @@ export async function insertExtensionsFromGithub(
       repoName,
     );
     const lastCommitDate = await getLastCommitDate(owner, repoName);
-    const stars = await getRepositoryStars(owner, repoName);
+    const repoMetrics = await getRepositoryMetrics(owner, repoName);
     const repoFiles = await getRepoFiles(owner, repoName);
 
     const defaultBranch = parseGithubZipUrl(
@@ -102,7 +103,16 @@ export async function insertExtensionsFromGithub(
       (e) => `${e.type}:${e.method} ${e.path}`,
     );
 
-    /// tambbahkan fungisi yang digunakan untuk mengecek trust dari si repository berdasarkan nilai
+    const repoRating = rateRepository(repoMetrics);
+    logger.info(
+      {
+        name: normalized.name,
+        grade: repoRating.grade,
+        totalScore: repoRating.totalScore,
+        breakdown: repoRating.breakdown,
+      },
+      "repository trust rating computed",
+    );
 
     try {
       const existing = await findExtensionByNameAndDeveloper(
@@ -141,7 +151,7 @@ export async function insertExtensionsFromGithub(
             ? backendLanguages
             : (normalized.backendLanguages ?? null),
         lastCommitDate: lastCommitDate ?? normalized.lastCommitDate ?? null,
-        stars: stars ?? normalized.stars ?? null,
+        stars: repoMetrics.stargazers_count || normalized.stars || null,
         repoFiles:
           repoFiles.length > 0 ? repoFiles : (normalized.repoFiles ?? null),
         apiEndpoints: apiEndpoints.length > 0 ? apiEndpoints : null,
