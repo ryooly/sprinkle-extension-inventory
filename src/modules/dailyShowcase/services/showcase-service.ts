@@ -1,30 +1,93 @@
 import { AppError } from "@/errorhandler";
-import { hasActiveSubscription } from "@/middlewares/premium-middleware";
-import {
-  GithubAIEngine,
-  GeminiBrowsingProvider,
-} from "@/modules/automation-engine/premium-engine/ai-engine/gpt.engine";
-import { parseGithubZipUrl } from "@/modules/automation-engine/depends/extension-utils";
-import type { RepoCandidateContext } from "@/modules/automation-engine/depends/ai-response-mapper";
-import type { ExtensionRepo } from "@/modules/automation-engine/github-explorer/api-engine";
-import type { Extension } from "@/models";
+import type { Extension, PublisherType, Source } from "@/models";
 import {
   insertShowcaseExtensions,
   getLatestShowcaseDate,
   findShowcaseByDate,
-  findPremiumByDate,
-  insertPremiumExtensions,
-  type PremiumShowcaseRow,
-  type PremiumExtensionInput,
+  findAvailableExtensions,
 } from "../repository/showcase-repository";
+
+export interface ShowcaseBasicExtension {
+  id: string;
+  publishedBy: PublisherType;
+  name: string;
+  description: string;
+  developer: string;
+  source: Source;
+  extensionLink: string;
+  frontendLanguages: string[] | null;
+  backendLanguages: string[] | null;
+  licenseName: string | null;
+  licenseKey: string | null;
+  licenseDescription: string | null;
+  licensePermissions: string[] | null;
+  licenseConditions: string[] | null;
+  licenseLimitations: string[] | null;
+  licenseUrl: string | null;
+  views: number;
+  downloads: number;
+  amountDisplayed: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface ShowcaseResult {
   date: string | null;
-  extensions: ExtensionRepo[] | Extension[];
+  extensions: Extension[] | ShowcaseBasicExtension[];
 }
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function toBasicExtension(extension: Extension): ShowcaseBasicExtension {
+  return {
+    id: extension.id,
+    publishedBy: extension.publishedBy,
+    name: extension.name,
+    description: extension.description,
+    developer: extension.developer,
+    source: extension.source,
+    extensionLink: extension.extensionLink,
+    frontendLanguages: extension.frontendLanguages,
+    backendLanguages: extension.backendLanguages,
+    licenseName: extension.licenseName,
+    licenseKey: extension.licenseKey,
+    licenseDescription: extension.licenseDescription,
+    licensePermissions: extension.licensePermissions,
+    licenseConditions: extension.licenseConditions,
+    licenseLimitations: extension.licenseLimitations,
+    licenseUrl: extension.licenseUrl,
+    views: extension.views,
+    downloads: extension.downloads,
+    amountDisplayed: extension.amountDisplayed,
+    createdAt: extension.createdAt,
+    updatedAt: extension.updatedAt,
+  };
+}
+
+async function resolveShowcaseExtensions(
+  showcaseDate: string,
+): Promise<Extension[]> {
+  const rows = await findShowcaseByDate(showcaseDate);
+
+  if (rows.length > 0) {
+    return rows.map((row) => row.extension);
+  }
+
+  const sourceExtensions = await findAvailableExtensions();
+
+  if (sourceExtensions.length === 0) {
+    return [];
+  }
+
+  const extensionIds = sourceExtensions
+    .map((extension) => extension.id)
+    .filter((id): id is string => typeof id === "string");
+
+  await insertShowcaseExtensions(extensionIds, showcaseDate);
+
+  return sourceExtensions;
 }
 
 export async function recordDailyShowcase(
@@ -40,17 +103,14 @@ export async function recordDailyShowcase(
 
 export async function getDailyShowcase(date?: string): Promise<ShowcaseResult> {
   try {
-    const showcaseDate = date?.trim() || (await getLatestShowcaseDate());
+    const showcaseDate =
+      date?.trim() || (await getLatestShowcaseDate()) || todayISO();
 
-    if (!showcaseDate) {
-      return { date: null, extensions: [] };
-    }
-
-    const rows = await findShowcaseByDate(showcaseDate);
+    const extensions = await resolveShowcaseExtensions(showcaseDate);
 
     return {
       date: showcaseDate,
-      extensions: rows.map((row) => row.extension),
+      extensions: extensions.map(toBasicExtension),
     };
   } catch (err) {
     if (err instanceof AppError) throw err;
@@ -58,109 +118,14 @@ export async function getDailyShowcase(date?: string): Promise<ShowcaseResult> {
   }
 }
 
-function toAiCandidate(extension: Extension): RepoCandidateContext | null {
-  const parsed = parseGithubZipUrl(extension.extensionLink);
-  if (!parsed) return null;
-
-  return {
-    link: parsed.repoUrl,
-    fullName: extension.name,
-    defaultBranch: parsed.defaultBranch,
-  };
-}
-
-function toPremiumExtensionRepo(row: PremiumShowcaseRow): ExtensionRepo {
-  return {
-    name: row.extension.name,
-    publisher: row.extension.developer,
-    description: row.premium.aiDescription,
-    downloadUrl: row.extension.extensionLink,
-    category: row.premium.categories,
-    sourceRepoName: row.extension.name,
-    extensionStatus: "premium",
-    verified: row.premium.verified,
-    verificationPercentage: row.premium.verificationPercentage ?? 0,
-    permissions: row.premium.permissions ?? [],
-    licenseKey: row.premium.licenseKey ?? undefined,
-    licenseName: row.premium.licenseName ?? undefined,
-    licenseUrl: row.premium.licenseUrl ?? undefined,
-  };
-}
-
-async function persistPremiumExtensions(
-  rows: { extension: Extension }[],
-  generated: ExtensionRepo[],
-  premiumDate: string,
-): Promise<void> {
-  const idByName = new Map(
-    rows.map((row) => [row.extension.name, row.extension.id] as const),
-  );
-
-  const inputs: PremiumExtensionInput[] = [];
-
-  for (const repo of generated) {
-    const extensionId = idByName.get(repo.sourceRepoName ?? repo.name);
-    if (!extensionId) continue;
-
-    inputs.push({
-      extensionId,
-      premiumDate,
-      aiDescription: repo.description,
-      verified: repo.verified ?? "not_verified",
-      verificationPercentage: repo.verificationPercentage ?? 0,
-      categories: repo.category,
-      permissions: repo.permissions ?? [],
-      licenseKey: repo.licenseKey ?? null,
-      licenseName: repo.licenseName ?? null,
-      licenseUrl: repo.licenseUrl ?? null,
-    });
-  }
-
-  if (inputs.length > 0) {
-    await insertPremiumExtensions(inputs);
-  }
-}
-
 export async function getPremiumShowcase(
-  userId: string,
   date?: string,
 ): Promise<ShowcaseResult> {
-  const isPremium = await hasActiveSubscription(userId);
-  if (!isPremium) {
-    throw new AppError("Premium subscription required", 403);
-  }
-
   try {
-    const showcaseDate = date?.trim() || (await getLatestShowcaseDate());
+    const showcaseDate =
+      date?.trim() || (await getLatestShowcaseDate()) || todayISO();
 
-    if (!showcaseDate) {
-      return { date: null, extensions: [] };
-    }
-
-    const cached = await findPremiumByDate(showcaseDate);
-    if (cached.length > 0) {
-      return {
-        date: showcaseDate,
-        extensions: cached.map(toPremiumExtensionRepo),
-      };
-    }
-
-    const rows = await findShowcaseByDate(showcaseDate);
-
-    const candidates = rows
-      .map((row) => toAiCandidate(row.extension))
-      .filter(
-        (candidate): candidate is RepoCandidateContext => candidate !== null,
-      );
-
-    if (candidates.length === 0) {
-      return { date: showcaseDate, extensions: [] };
-    }
-
-    const engine = new GithubAIEngine(new GeminiBrowsingProvider());
-    const extensions = await engine.processGithubSearchResults(candidates);
-
-    await persistPremiumExtensions(rows, extensions, showcaseDate);
+    const extensions = await resolveShowcaseExtensions(showcaseDate);
 
     return { date: showcaseDate, extensions };
   } catch (err) {

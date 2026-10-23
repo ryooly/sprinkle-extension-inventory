@@ -17,13 +17,12 @@ export const dailyShowcaseRoutes = new Elysia({ prefix: "/showcase" })
       }),
     },
   )
-  
+
   .use(authMiddleware)
   .get(
     "/premium",
-    async ({ user, query }) => {
-      const userId = (user as { userId?: string } | undefined)?.userId;
-      return await handleGetPremiumShowcase(userId, query.date);
+    async ({ query }) => {
+      return await handleGetPremiumShowcase(query.date);
     },
     {
       query: t.Object({
@@ -31,7 +30,5 @@ export const dailyShowcaseRoutes = new Elysia({ prefix: "/showcase" })
       }),
     },
   );
-
-
 
 // tambahkan routes untuk manual extension - mereka kan mausk ke dalam database kemduain tambahkan fitur rekomendasi dan fitur filtering

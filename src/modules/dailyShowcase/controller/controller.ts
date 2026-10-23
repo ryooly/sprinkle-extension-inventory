@@ -22,15 +22,10 @@ export async function handleGetDailyShowcase(
 }
 
 export async function handleGetPremiumShowcase(
-  userId: string | undefined,
   date?: string,
 ): Promise<ControllerResult<unknown>> {
-  if (!userId) {
-    throw new AppError("Unauthorized", 401);
-  }
-
   try {
-    const data = await getPremiumShowcase(userId, date);
+    const data = await getPremiumShowcase(date);
     return { success: true, data };
   } catch (err) {
     if (err instanceof AppError) throw err;
