@@ -134,81 +134,8 @@ function classifyGenericManifest(manifest: Record<string, unknown>): Browser[] {
   return PRIMARY_BROWSERS.filter((browser) => supported.has(browser));
 }
 
-export async function detectBrowserSupport(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<Browser[]> {
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  if (!trimmedOwner || !trimmedRepo) return ["chrome"];
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  for (const path of GENERIC_MANIFEST_PATHS) {
-    const manifest = await readManifestFile(
-      octokit,
-      trimmedOwner,
-      trimmedRepo,
-      path,
-    );
-
-    if (manifest) return classifyGenericManifest(manifest);
-  }
-
-  const browserSpecific: Browser[] = [];
-
-  for (const { browser, path } of BROWSER_MANIFEST_PATHS) {
-    const manifest = await readManifestFile(
-      octokit,
-      trimmedOwner,
-      trimmedRepo,
-      path,
-    );
-
-    if (manifest) browserSpecific.push(browser);
-  }
-
-  return browserSpecific.length > 0 ? browserSpecific : ["chrome"];
-}
-
-export async function detectManifestPermissions(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<BrowserPermission[]> {
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  if (!trimmedOwner || !trimmedRepo) return [];
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  for (const path of GENERIC_MANIFEST_PATHS) {
-    const manifest = await readManifestFile(
-      octokit,
-      trimmedOwner,
-      trimmedRepo,
-      path,
-    );
-
-    if (manifest) return mapManifestPermissions(manifest.permissions);
-  }
-
-  for (const { path } of BROWSER_MANIFEST_PATHS) {
-    const manifest = await readManifestFile(
-      octokit,
-      trimmedOwner,
-      trimmedRepo,
-      path,
-    );
-
-    if (manifest) return mapManifestPermissions(manifest.permissions);
-  }
-
-  return [];
-}
+// NOTE: Browser/permission detection now lives on the ExtensionUtils class so a
+// single Octokit instance is reused across calls instead of being rebuilt each time.
 
 // Common GitHub language names (lower-cased) grouped by where they are
 // typically used. A language is matched case-insensitively against these sets.
@@ -262,136 +189,7 @@ export function classifyLanguage(name: string): "frontend" | "backend" | null {
   return null;
 }
 
-export async function detectLanguages(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<[string[], string[]]> {
-  const frontend: string[] = [];
-  const backend: string[] = [];
-
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  if (!trimmedOwner || !trimmedRepo) return [frontend, backend];
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  try {
-    const { data } = await octokit.rest.repos.listLanguages({
-      owner: trimmedOwner,
-      repo: trimmedRepo,
-    });
-
-    const entries = Object.entries(data)
-      .filter(
-        (entry): entry is [string, number] => typeof entry[1] === "number",
-      )
-      .sort((a, b) => b[1] - a[1]);
-
-    for (const [name] of entries) {
-      const category = classifyLanguage(name);
-
-      if (category === "frontend") frontend.push(name);
-      else if (category === "backend") backend.push(name);
-    }
-
-    return [frontend, backend];
-  } catch {
-    return [frontend, backend];
-  }
-}
-
-export async function getLastCommitDate(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<Date | null> {
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  if (!trimmedOwner || !trimmedRepo) return null;
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  try {
-    const { data } = await octokit.rest.repos.listCommits({
-      owner: trimmedOwner,
-      repo: trimmedRepo,
-      per_page: 1,
-    });
-
-    const latest = data[0];
-    const date =
-      latest?.commit?.committer?.date ?? latest?.commit?.author?.date;
-
-    return date ? new Date(date) : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function getRepositoryStars(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<number | null> {
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  if (!trimmedOwner || !trimmedRepo) return null;
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  try {
-    const { data } = await octokit.rest.repos.get({
-      owner: trimmedOwner,
-      repo: trimmedRepo,
-    });
-
-    return typeof data?.stargazers_count === "number"
-      ? data.stargazers_count
-      : null;
-  } catch {
-    return null;
-  }
-}
-
 export const MAX_REPO_FILES = 200;
-
-export async function getRepoFiles(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<string[]> {
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  if (!trimmedOwner || !trimmedRepo) return [];
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  try {
-    const { data } = await octokit.rest.git.getTree({
-      owner: trimmedOwner,
-      repo: trimmedRepo,
-      tree_sha: "HEAD",
-      recursive: "1",
-    });
-
-    if (!Array.isArray(data?.tree)) return [];
-
-    const files = data.tree
-      .filter(
-        (entry) => entry?.type === "blob" && typeof entry.path === "string",
-      )
-      .map((entry) => entry.path);
-
-    return files.slice(0, MAX_REPO_FILES);
-  } catch {
-    return [];
-  }
-}
 
 export interface RepoFileContent {
   name: string;
@@ -409,13 +207,24 @@ export async function fetchRepoFile(
   ref?: string,
   token?: string,
 ): Promise<RepoFileContent | null> {
+  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
+  return readRepoFileContent(octokit, owner, repo, path, ref);
+}
+
+// Shared reader used by both the standalone fetchRepoFile and the
+// ExtensionUtils class so the file-fetch logic is written only once.
+async function readRepoFileContent(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+): Promise<RepoFileContent | null> {
   const trimmedOwner = owner?.trim();
   const trimmedRepo = repo?.trim();
   const trimmedPath = path?.trim();
 
   if (!trimmedOwner || !trimmedRepo || !trimmedPath) return null;
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
 
   try {
     const { data } = await octokit.rest.repos.getContent({
@@ -433,8 +242,6 @@ export async function fetchRepoFile(
     ) {
       return null;
     }
-
-    // tambahakan cache
 
     return {
       name: data.name,
@@ -914,51 +721,7 @@ async function countClosedIssues(
 // forks, pushed_at and open_issues; the search API yields the closed-issue
 // count. GitHub does not expose other repos' security alerts to the automation
 // token, so security_alerts_count stays at the spec default of 0 here.
-export async function getRepositoryMetrics(
-  owner: string,
-  repo: string,
-  token?: string,
-): Promise<RepoRatingInput> {
-  const trimmedOwner = owner?.trim();
-  const trimmedRepo = repo?.trim();
-
-  const empty: RepoRatingInput = {
-    stargazers_count: 0,
-    forks_count: 0,
-    pushed_at: new Date(0),
-    open_issues_count: 0,
-    closed_issues_count: 0,
-    security_alerts_count: 0,
-  };
-
-  if (!trimmedOwner || !trimmedRepo) return empty;
-
-  const octokit = new Octokit({ auth: token ?? process.env.GITHUB_TOKEN });
-
-  try {
-    const { data } = await octokit.rest.repos.get({
-      owner: trimmedOwner,
-      repo: trimmedRepo,
-    });
-
-    const closedIssues = await countClosedIssues(
-      octokit,
-      trimmedOwner,
-      trimmedRepo,
-    );
-
-    return {
-      stargazers_count: data.stargazers_count ?? 0,
-      forks_count: data.forks_count ?? 0,
-      pushed_at: data.pushed_at ?? new Date(),
-      open_issues_count: data.open_issues_count ?? 0,
-      closed_issues_count: closedIssues,
-      security_alerts_count: 0,
-    };
-  } catch {
-    return empty;
-  }
-}
+// (The gathering logic now lives on ExtensionUtils.getRepositoryMetrics.)
 
 export function isEligibleGithubSearchItem(
   item: Record<string, unknown>,
@@ -970,4 +733,278 @@ export function isEligibleGithubSearchItem(
     typeof description === "string" &&
     description.trim().length >= MIN_DESCRIPTION_LENGTH
   );
+}
+
+// Single entry point for every GitHub-backed extension scan. Constructing it
+// once reuses one Octokit client across all calls instead of rebuilding a
+// client per function, and lets callers (e.g. save-service) drive everything
+// from one object.
+export class ExtensionUtils {
+  private readonly octokit: Octokit;
+  private readonly token: string | undefined;
+
+  constructor(token?: string) {
+    this.token = token ?? process.env.GITHUB_TOKEN;
+    this.octokit = new Octokit({ auth: this.token });
+  }
+
+  async detectBrowserSupport(owner: string, repo: string): Promise<Browser[]> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return ["chrome"];
+
+    for (const path of GENERIC_MANIFEST_PATHS) {
+      const manifest = await readManifestFile(
+        this.octokit,
+        trimmedOwner,
+        trimmedRepo,
+        path,
+      );
+
+      if (manifest) return classifyGenericManifest(manifest);
+    }
+
+    const browserSpecific: Browser[] = [];
+
+    for (const { browser, path } of BROWSER_MANIFEST_PATHS) {
+      const manifest = await readManifestFile(
+        this.octokit,
+        trimmedOwner,
+        trimmedRepo,
+        path,
+      );
+
+      if (manifest) browserSpecific.push(browser);
+    }
+
+    return browserSpecific.length > 0 ? browserSpecific : ["chrome"];
+  }
+
+  async detectManifestPermissions(
+    owner: string,
+    repo: string,
+  ): Promise<BrowserPermission[]> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return [];
+
+    for (const path of GENERIC_MANIFEST_PATHS) {
+      const manifest = await readManifestFile(
+        this.octokit,
+        trimmedOwner,
+        trimmedRepo,
+        path,
+      );
+
+      if (manifest) return mapManifestPermissions(manifest.permissions);
+    }
+
+    for (const { path } of BROWSER_MANIFEST_PATHS) {
+      const manifest = await readManifestFile(
+        this.octokit,
+        trimmedOwner,
+        trimmedRepo,
+        path,
+      );
+
+      if (manifest) return mapManifestPermissions(manifest.permissions);
+    }
+
+    return [];
+  }
+
+  async detectLanguages(
+    owner: string,
+    repo: string,
+  ): Promise<[string[], string[]]> {
+    const frontend: string[] = [];
+    const backend: string[] = [];
+
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return [frontend, backend];
+
+    try {
+      const { data } = await this.octokit.rest.repos.listLanguages({
+        owner: trimmedOwner,
+        repo: trimmedRepo,
+      });
+
+      const entries = Object.entries(data)
+        .filter(
+          (entry): entry is [string, number] => typeof entry[1] === "number",
+        )
+        .sort((a, b) => b[1] - a[1]);
+
+      for (const [name] of entries) {
+        const category = classifyLanguage(name);
+
+        if (category === "frontend") frontend.push(name);
+        else if (category === "backend") backend.push(name);
+      }
+
+      return [frontend, backend];
+    } catch {
+      return [frontend, backend];
+    }
+  }
+
+  async getLastCommitDate(owner: string, repo: string): Promise<Date | null> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return null;
+
+    try {
+      const { data } = await this.octokit.rest.repos.listCommits({
+        owner: trimmedOwner,
+        repo: trimmedRepo,
+        per_page: 1,
+      });
+
+      const latest = data[0];
+      const date =
+        latest?.commit?.committer?.date ?? latest?.commit?.author?.date;
+
+      return date ? new Date(date) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async getRepositoryStars(
+    owner: string,
+    repo: string,
+  ): Promise<number | null> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return null;
+
+    try {
+      const { data } = await this.octokit.rest.repos.get({
+        owner: trimmedOwner,
+        repo: trimmedRepo,
+      });
+
+      return typeof data?.stargazers_count === "number"
+        ? data.stargazers_count
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async getRepoFiles(owner: string, repo: string): Promise<string[]> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return [];
+
+    try {
+      const { data } = await this.octokit.rest.git.getTree({
+        owner: trimmedOwner,
+        repo: trimmedRepo,
+        tree_sha: "HEAD",
+        recursive: "1",
+      });
+
+      if (!Array.isArray(data?.tree)) return [];
+
+      const files = data.tree
+        .filter(
+          (entry) => entry?.type === "blob" && typeof entry.path === "string",
+        )
+        .map((entry) => entry.path);
+
+      return files.slice(0, MAX_REPO_FILES);
+    } catch {
+      return [];
+    }
+  }
+
+  fetchRepoFile(
+    owner: string,
+    repo: string,
+    path: string,
+    ref?: string,
+  ): Promise<RepoFileContent | null> {
+    return readRepoFileContent(this.octokit, owner, repo, path, ref);
+  }
+
+  // Gathers every rating input from the GitHub REST API. repos.get yields stars,
+  // forks, pushed_at and open_issues; the search API yields the closed-issue
+  // count. GitHub does not expose other repos' security alerts to the automation
+  // token, so security_alerts_count stays at the spec default of 0 here.
+  async getRepositoryMetrics(
+    owner: string,
+    repo: string,
+  ): Promise<RepoRatingInput> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    const empty: RepoRatingInput = {
+      stargazers_count: 0,
+      forks_count: 0,
+      pushed_at: new Date(0),
+      open_issues_count: 0,
+      closed_issues_count: 0,
+      security_alerts_count: 0,
+    };
+
+    if (!trimmedOwner || !trimmedRepo) return empty;
+
+    try {
+      const { data } = await this.octokit.rest.repos.get({
+        owner: trimmedOwner,
+        repo: trimmedRepo,
+      });
+
+      const closedIssues = await countClosedIssues(
+        this.octokit,
+        trimmedOwner,
+        trimmedRepo,
+      );
+
+      return {
+        stargazers_count: data.stargazers_count ?? 0,
+        forks_count: data.forks_count ?? 0,
+        pushed_at: data.pushed_at ?? new Date(),
+        open_issues_count: data.open_issues_count ?? 0,
+        closed_issues_count: closedIssues,
+        security_alerts_count: 0,
+      };
+    } catch {
+      return empty;
+    }
+  }
+
+  findApi(
+    owner: string,
+    repo: string,
+    ref?: string | null,
+  ): Promise<RepoApiEndpoint[]> {
+    return findApi(owner, repo, ref, this.token);
+  }
+
+  fetchLicenseDetails(licenseKey: string): Promise<LicenseDetails | null> {
+    return fetchLicenseDetails(licenseKey, this.token);
+  }
+
+  validateRepo(
+    repo: ExtensionRepo,
+  ): { valid: true; data: ExtensionRepo } | { valid: false; reason: string } {
+    return validateExtensionRepo(repo);
+  }
+
+  parseZipUrl(url: string): { repoUrl: string; defaultBranch: string } | null {
+    return parseGithubZipUrl(url);
+  }
+
+  rateRepository(input: RepoRatingInput): RepoRating {
+    return rateRepository(input);
+  }
 }

@@ -9,19 +9,7 @@ import type { ExtensionRepo } from "../../github-explorer/api-engine";
 import type { Category } from "@/models";
 import { AppError } from "@/errorhandler";
 import { logger } from "@/logger";
-import {
-  validateExtensionRepo,
-  fetchLicenseDetails,
-  detectBrowserSupport,
-  detectManifestPermissions,
-  detectLanguages,
-  getLastCommitDate,
-  getRepositoryMetrics,
-  getRepoFiles,
-  findApi,
-  parseGithubZipUrl,
-  rateRepository,
-} from "../../depends/extension-utils";
+import { ExtensionUtils } from "../../depends/extension-utils";
 
 export interface InsertFromGithubOptions {
   categories?: Category[];
@@ -64,8 +52,12 @@ export async function insertExtensionsFromGithub(
   let skipped = 0;
   const failures: InsertGithubResult["failures"] = [];
 
+  // One shared client instance for the whole batch: Octokit is created once
+  // and reused across every repo instead of per call.
+  const ext = new ExtensionUtils();
+
   for (const repo of repos) {
-    const validated = validateExtensionRepo(repo);
+    const validated = ext.validateRepo(repo);
 
     if (!validated.valid) {
       failed++;
@@ -76,34 +68,34 @@ export async function insertExtensionsFromGithub(
     const normalized = validated.data;
 
     const license = normalized.licenseKey
-      ? await fetchLicenseDetails(normalized.licenseKey)
+      ? await ext.fetchLicenseDetails(normalized.licenseKey)
       : null;
 
     const repoFullName = normalized.sourceRepoName ?? normalized.name;
     const [owner, ...repoSegments] = repoFullName.split("/");
     const repoName = repoSegments.join("/");
-    const supportedBrowsers = await detectBrowserSupport(owner, repoName);
-    const manifestPermissions = await detectManifestPermissions(
+    const supportedBrowsers = await ext.detectBrowserSupport(owner, repoName);
+    const manifestPermissions = await ext.detectManifestPermissions(
       owner,
       repoName,
     );
-    const [frontendLanguages, backendLanguages] = await detectLanguages(
+    const [frontendLanguages, backendLanguages] = await ext.detectLanguages(
       owner,
       repoName,
     );
-    const lastCommitDate = await getLastCommitDate(owner, repoName);
-    const repoMetrics = await getRepositoryMetrics(owner, repoName);
-    const repoFiles = await getRepoFiles(owner, repoName);
+    const lastCommitDate = await ext.getLastCommitDate(owner, repoName);
+    const repoMetrics = await ext.getRepositoryMetrics(owner, repoName);
+    const repoFiles = await ext.getRepoFiles(owner, repoName);
 
-    const defaultBranch = parseGithubZipUrl(
+    const defaultBranch = ext.parseZipUrl(
       normalized.downloadUrl,
     )?.defaultBranch;
-    const endpoints = await findApi(owner, repoName, defaultBranch);
+    const endpoints = await ext.findApi(owner, repoName, defaultBranch);
     const apiEndpoints = endpoints.map(
       (e) => `${e.type}:${e.method} ${e.path}`,
     );
 
-    const repoRating = rateRepository(repoMetrics);
+    const repoRating = ext.rateRepository(repoMetrics);
     logger.info(
       {
         name: normalized.name,
