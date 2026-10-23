@@ -126,13 +126,10 @@ export async function insertExtensionsFromGithub(
         source: "github",
         categories: normalized.category,
         extensionStatus: normalized.extensionStatus ?? "basic",
-        verified: normalized.verified ?? "not_verified",
-        verificationPercentage: normalized.verificationPercentage ?? 0,
         permissions:
           manifestPermissions.length > 0
             ? manifestPermissions
             : normalized.permissions,
-        browser: supportedBrowsers[0] ?? "chrome",
         supportedBrowsers,
         frontendLanguages:
           frontendLanguages.length > 0

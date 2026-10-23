@@ -5,7 +5,7 @@ import {
   extensionPermissions,
   fetchedRepos,
 } from "@/models";
-import { and, eq, ilike } from "drizzle-orm";
+import { and, arrayContains, eq, ilike } from "drizzle-orm";
 import type {
   NewExtension,
   NewExtensionCategory,
@@ -189,5 +189,8 @@ export async function findExtensionByRepoFullName(fullName: string) {
 export async function findExtensionsByBrowser(
   browser: Browser,
 ): Promise<Extension[]> {
-  return db.select().from(extensions).where(eq(extensions.browser, browser));
+  return db
+    .select()
+    .from(extensions)
+    .where(arrayContains(extensions.supportedBrowsers, [browser]));
 }

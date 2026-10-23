@@ -52,13 +52,8 @@ export const extensions = pgTable(
     name: text("name").notNull(),
     description: text("description").notNull(),
     developer: text("developer").notNull(),
-    verified: verificationStatusEnum("verified")
-      .notNull()
-      .default("not_verified"),
-    verificationPercentage: integer("verification_percentage").default(0),
     source: sourceEnum("source").notNull().default("github"),
     extensionLink: text("extension_link").notNull(),
-    browser: browserEnum("browser").notNull().default("chrome"),
     supportedBrowsers: browserEnum("supported_browsers").array(),
     frontendLanguages: text("frontend_languages").array(),
     backendLanguages: text("backend_languages").array(),
@@ -92,7 +87,6 @@ export const extensions = pgTable(
   },
   (table) => ({
     developerIdx: index("extensions_developer_idx").on(table.developer),
-    verifiedIdx: index("extensions_verified_idx").on(table.verified),
     sourceIdx: index("extensions_source_idx").on(table.source),
     uniqueNamePerDeveloper: uniqueIndex("extensions_name_developer_uidx").on(
       table.name,

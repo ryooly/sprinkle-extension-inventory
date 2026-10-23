@@ -196,10 +196,9 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
         description: "Created by the Sprinkle CLI smoke test",
         developer: username,
         extensionLink: "https://example.com/smoke",
-        browser: "chrome",
+        supportedBrowsers: ["chrome"],
         categories: ["productivity"],
         source: "other",
-        verified: "not_verified",
       },
       { useSession: true },
     );

@@ -2,7 +2,6 @@ import { Octokit } from "@octokit/rest";
 
 import {
   Category,
-  VerificationStatus,
   BrowserPermission,
   ExtensionStatus,
   type Browser,
@@ -41,10 +40,6 @@ export interface ExtensionRepo {
   sourceRepoName?: string;
 
   extensionStatus?: ExtensionStatus;
-
-  verified?: VerificationStatus;
-
-  verificationPercentage?: number;
 
   permissions?: BrowserPermission[];
 

@@ -9,7 +9,6 @@ import {
   isBrowser,
   isCategory,
   isSource,
-  isVerified,
   type CommandDef,
   type CommandContext,
 } from "../lib/util";
@@ -36,16 +35,20 @@ function printExtensions(rows: Row[]): void {
     return;
   }
   out.table(
-    ["id", "name", "browser", "developer", "views", "downloads"],
+    ["id", "name", "browsers", "developer", "views", "downloads"],
     rows.map((r) => [
       String(r.id ?? "").slice(0, 8),
       String(r.name ?? ""),
-      String(r.browser ?? ""),
+      formatBrowsers(r.supportedBrowsers),
       String(r.developer ?? ""),
       String(r.views ?? r.view ?? 0),
       String(r.downloads ?? r.download ?? 0),
     ]),
   );
+}
+
+function formatBrowsers(value: unknown): string {
+  return Array.isArray(value) ? value.map(String).join(",") : "";
 }
 
 function printOne(r: Row): void {
@@ -55,9 +58,8 @@ function printOne(r: Row): void {
     description: r.description,
     developer: r.developer,
     link: r.extensionLink,
-    browser: r.browser,
+    browsers: formatBrowsers(r.supportedBrowsers),
     source: r.source,
-    verified: r.verified,
     views: r.views,
     downloads: r.downloads,
   });
@@ -80,10 +82,9 @@ async function createExtension(ctx: CommandContext): Promise<void> {
   const extensionLink =
     str(ctx.flags, "link") ??
     (interactive ? await ask("Extension link (url)") : undefined);
-  const browser = str(ctx.flags, "browser");
+  const browsers = list(ctx.flags, "browsers") ?? list(ctx.flags, "browser");
   const categories = list(ctx.flags, "categories");
   const source = str(ctx.flags, "source");
-  const verified = str(ctx.flags, "verified");
 
   if (!name || !description || !developer || !extensionLink) {
     out.error(
@@ -92,10 +93,19 @@ async function createExtension(ctx: CommandContext): Promise<void> {
     process.exitCode = 1;
     return;
   }
-  if (!browser || !isBrowser(browser)) {
-    out.error(`--browser must be one of: ${BROWSERS.join(", ")}`);
+  if (!browsers || !browsers.length) {
+    out.error(
+      `--browsers is required (comma-separated). Options: ${BROWSERS.join(", ")}`,
+    );
     process.exitCode = 1;
     return;
+  }
+  for (const browser of browsers) {
+    if (!isBrowser(browser)) {
+      out.error(`--browsers values must be one of: ${BROWSERS.join(", ")}`);
+      process.exitCode = 1;
+      return;
+    }
   }
   if (!categories || !categories.length) {
     out.error(
@@ -116,21 +126,15 @@ async function createExtension(ctx: CommandContext): Promise<void> {
     process.exitCode = 1;
     return;
   }
-  if (verified && !isVerified(verified)) {
-    out.error(`--verified must be one of: verified, not_verified`);
-    process.exitCode = 1;
-    return;
-  }
 
   const payload: Row = {
     name,
     description,
     developer,
     extensionLink,
-    browser,
+    supportedBrowsers: browsers,
     categories,
     ...(source ? { source } : {}),
-    ...(verified ? { verified } : {}),
   };
 
   const res = await http.post("/extensions/creating", payload, {
@@ -168,7 +172,7 @@ async function editExtension(ctx: CommandContext): Promise<void> {
   const developer = str(ctx.flags, "developer");
   const link = str(ctx.flags, "link");
   const source = str(ctx.flags, "source");
-  const verified = str(ctx.flags, "verified");
+  const browsers = list(ctx.flags, "browsers") ?? list(ctx.flags, "browser");
   const categories = list(ctx.flags, "categories");
 
   if (name) data.name = name;
@@ -176,7 +180,17 @@ async function editExtension(ctx: CommandContext): Promise<void> {
   if (developer) data.developer = developer;
   if (link) data.extensionLink = link;
   if (source) data.source = source;
-  if (verified) data.verified = verified;
+
+  if (browsers) {
+    for (const browser of browsers) {
+      if (!isBrowser(browser)) {
+        out.error(`--browsers values must be one of: ${BROWSERS.join(", ")}`);
+        process.exitCode = 1;
+        return;
+      }
+    }
+    data.supportedBrowsers = browsers;
+  }
 
   if (categories) {
     for (const cat of categories) {
@@ -316,7 +330,7 @@ export const extensionCommands: CommandDef[] = [
     group: "extensions",
     summary: "Create an extension (POST /extensions/creating)",
     usage:
-      "create-extension --name <n> --description <d> --developer <dev> --link <url> --browser <chrome|opera|edge> --categories <a,b> [--source <s>] [--verified <v>]",
+      "create-extension --name <n> --description <d> --developer <dev> --link <url> --browsers <chrome,edge> --categories <a,b> [--source <s>]",
     handler: createExtension,
   },
   {
@@ -324,7 +338,7 @@ export const extensionCommands: CommandDef[] = [
     group: "extensions",
     summary: "Edit an extension (PATCH /extensions/:id)",
     usage:
-      "edit-extension <id> [--name] [--description] [--developer] [--link] [--categories a,b] [--source] [--verified]",
+      "edit-extension <id> [--name] [--description] [--developer] [--link] [--categories a,b] [--source] [--browsers a,b]",
     handler: editExtension,
   },
   {

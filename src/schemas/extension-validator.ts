@@ -31,20 +31,14 @@ export const browserSchema = t.Union([
   t.Literal("safari"),
 ]);
 
-const verifiedSchema = t.Union([
-  t.Literal("verified"),
-  t.Literal("not_verified"),
-]);
-
 export const createExtensionSchema = t.Object({
   name: t.String(),
   description: t.String(),
   developer: t.String(),
   extensionLink: t.String({ format: "uri" }),
   source: t.Optional(sourceSchema),
-  verified: t.Optional(verifiedSchema),
   categories: t.Array(categorySchema),
-  browser: browserSchema,
+  supportedBrowsers: t.Array(browserSchema),
 });
 
 export const updateExtensionSchema = t.Object({
@@ -53,6 +47,6 @@ export const updateExtensionSchema = t.Object({
   developer: t.Optional(t.String()),
   extensionLink: t.Optional(t.String({ format: "uri" })),
   source: t.Optional(sourceSchema),
-  verified: t.Optional(verifiedSchema),
   categories: t.Optional(t.Array(categorySchema)),
+  supportedBrowsers: t.Optional(t.Array(browserSchema)),
 });

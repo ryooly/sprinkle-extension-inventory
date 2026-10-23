@@ -18,7 +18,15 @@ export const categorySchema = z.enum([
 
 export const sourceSchema = z.enum(["github", "gitlab", "bitbucket", "other"]);
 
-export const verifiedSchema = z.enum(["verified", "not_verified"]);
+export const browserSchema = z.enum([
+  "chrome",
+  "opera",
+  "edge",
+  "firefox",
+  "safari",
+]);
+
+export type BrowserInput = z.infer<typeof browserSchema>;
 
 export const createExtensionSchema = z.object({
   name: z.string(),
@@ -26,8 +34,8 @@ export const createExtensionSchema = z.object({
   developer: z.string(),
   extensionLink: z.string().url(),
   source: sourceSchema.optional(),
-  verified: verifiedSchema.optional(),
   categories: z.array(categorySchema),
+  supportedBrowsers: z.array(browserSchema).default(["chrome"]),
 });
 
 export type CreateExtensionPayload = z.infer<typeof createExtensionSchema>;
@@ -38,7 +46,7 @@ export const updateExtensionDataSchema = z.object({
   developer: z.string().optional(),
   extensionLink: z.string().url().optional(),
   source: sourceSchema.optional(),
-  verified: verifiedSchema.optional(),
+  supportedBrowsers: z.array(browserSchema).optional(),
 });
 
 export const updateExtensionSchema = z.object({
@@ -50,13 +58,3 @@ export const updateExtensionSchema = z.object({
 export type UpdateExtensionPayload = z.infer<typeof updateExtensionSchema>;
 
 export type CategoryInput = z.infer<typeof categorySchema>;
-
-export const browserSchema = z.enum([
-  "chrome",
-  "opera",
-  "edge",
-  "firefox",
-  "safari",
-]);
-
-export type BrowserInput = z.infer<typeof browserSchema>;

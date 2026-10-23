@@ -30,11 +30,13 @@ function printShowcase(date: string | null, rows: Row[]): void {
     return;
   }
   out.table(
-    ["name", "developer", "browser", "status", "link"],
+    ["name", "developer", "browsers", "status", "link"],
     rows.map((r) => [
       String(r.name ?? ""),
       String(r.developer ?? r.publisher ?? ""),
-      String(r.browser ?? ""),
+      Array.isArray(r.supportedBrowsers)
+        ? r.supportedBrowsers.map(String).join(",")
+        : "",
       String(r.extensionStatus ?? ""),
       String(r.extensionLink ?? r.downloadUrl ?? ""),
     ]),

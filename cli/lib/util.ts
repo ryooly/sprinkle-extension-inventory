@@ -41,8 +41,6 @@ export const BROWSERS = ["chrome", "opera", "edge"] as const;
 
 export const SOURCES = ["github", "gitlab", "bitbucket", "other"] as const;
 
-export const VERIFIED = ["verified", "not_verified"] as const;
-
 export type Category = (typeof CATEGORIES)[number];
 export type Browser = (typeof BROWSERS)[number];
 
@@ -54,9 +52,6 @@ export function isBrowser(v: string): v is Browser {
 }
 export function isSource(v: string): boolean {
   return (SOURCES as readonly string[]).includes(v);
-}
-export function isVerified(v: string): boolean {
-  return (VERIFIED as readonly string[]).includes(v);
 }
 
 export interface JwtPayload {
