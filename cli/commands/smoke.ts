@@ -1,6 +1,7 @@
 import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs";
+import { zipSync, strToU8 } from "fflate";
 import { http, errorMessage, type HttpResult } from "../lib/http";
 import { checkErrorShape } from "../lib/errors";
 import { clearSession, loadSession } from "../lib/session";
@@ -189,19 +190,26 @@ async function runSmoke(ctx: CommandContext): Promise<void> {
 
   // 5. create extension -----------------------------------------------------
   await record("create ext", "POST /extensions/creating", async () => {
-    const res = await http.post(
-      "/extensions/creating",
-      {
-        name: extName,
-        description: "Created by the Sprinkle CLI smoke test",
-        developer: username,
-        extensionLink: "https://example.com/smoke",
-        supportedBrowsers: ["chrome"],
-        categories: ["productivity"],
-        source: "other",
-      },
-      { useSession: true },
+    const form = new FormData();
+    form.set("name", extName);
+    form.set("description", "Created by the Sprinkle CLI smoke test");
+    form.set("developer", username);
+    form.set("source", "other");
+    form.append("supportedBrowsers", "chrome");
+    form.append("categories", "productivity");
+    form.set(
+      "file",
+      new File(
+        [zipSync({ "manifest.json": strToU8('{"manifest_version":3}') })],
+        "smoke.zip",
+        {
+          type: "application/zip",
+        },
+      ),
     );
+    const res = await http.postMultipart("/extensions/creating", form, {
+      useSession: true,
+    });
     if (!res.ok)
       return { verdict: "fail", detail: `${res.status}: ${errorMessage(res)}` };
     const data = bodyOf(res).data as Record<string, unknown> | undefined;

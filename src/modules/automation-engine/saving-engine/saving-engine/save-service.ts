@@ -1,30 +1,17 @@
 import {
   createExtension,
-  updateExtension,
-  deleteExtension,
   createFetchedRepo,
   findExtensionByNameAndDeveloper,
 } from "../repository/saving-repository";
 import type { ExtensionRepo } from "../../github-explorer/api-engine";
-import type { Category } from "@/models";
+import type { Category, Extension } from "@/models";
 import { AppError } from "@/errorhandler";
 import { logger } from "@/logger";
-import { ExtensionUtils } from "../../depends/extension-utils";
-
-export interface InsertFromGithubOptions {
-  categories?: Category[];
-}
-
-export interface UpdateExtensionOptions {
-  id: string;
-  data: {
-    name?: string;
-    description?: string;
-    developer?: string;
-    extensionLink?: string;
-    categories?: Category[];
-  };
-}
+import {
+  ExtensionUtils,
+  processLocalPackage,
+  type ExtensionUploadData,
+} from "../../depends/extension-utils";
 
 export interface InsertGithubResult {
   inserted: number;
@@ -118,6 +105,22 @@ export async function insertExtensionsFromGithub(
         continue;
       }
 
+      const unsafeEndpoint = endpoints.find((e) => !e.security.safe);
+
+      if (unsafeEndpoint) {
+        skipped++;
+        logger.warn(
+          {
+            name: normalized.name,
+            endpoint: unsafeEndpoint.path,
+            threats: unsafeEndpoint.security.threats,
+          },
+          "skipped extension: API endpoint flagged unsafe by Safe Browsing",
+        );
+        await markRepoAsFetched(normalized.sourceRepoName);
+        continue;
+      }
+
       await createExtension({
         name: normalized.name,
         description: normalized.description,
@@ -178,36 +181,51 @@ export async function insertExtensionsFromGithub(
   };
 }
 
-export async function updateExtensionById(
-  options: UpdateExtensionOptions,
-): Promise<EngineResult<unknown>> {
-  try {
-    const {
-      id,
-      data: { categories, ...rest },
-    } = options;
-
-    const updated = await updateExtension({
-      id,
-      data: rest,
-      categories,
-    });
-
-    return { success: true, data: updated };
-  } catch (err) {
-    if (err instanceof AppError) throw err;
-    throw new AppError(`Failed to update extension`, 500, { cause: err });
-  }
+export interface UserUploadInput {
+  data: ExtensionUploadData;
+  extensionLink: string;
+  bytes: Uint8Array;
 }
 
-export async function deleteExtensionById(
-  id: string,
-): Promise<EngineResult<unknown>> {
-  try {
-    const deleted = await deleteExtension(id);
-    return { success: true, data: deleted };
-  } catch (err) {
-    if (err instanceof AppError) throw err;
-    throw new AppError(`Failed to delete extension`, 500, { cause: err });
+export async function insertExtensionFromUpload(
+  input: UserUploadInput,
+): Promise<Extension> {
+  const { data, extensionLink, bytes } = input;
+
+  const local = processLocalPackage(bytes);
+
+  const result = await createExtension({
+    name: data.name,
+    description: data.description,
+    developer: data.developer,
+    extensionLink,
+    publishedBy: "user",
+    categories: data.categories as Category[],
+    supportedBrowsers:
+      local.supportedBrowsers.length > 0
+        ? local.supportedBrowsers
+        : data.supportedBrowsers,
+    permissions: local.permissions.length > 0 ? local.permissions : undefined,
+    frontendLanguages:
+      local.frontendLanguages.length > 0 ? local.frontendLanguages : null,
+    backendLanguages:
+      local.backendLanguages.length > 0 ? local.backendLanguages : null,
+    repoFiles: local.repoFiles.length > 0 ? local.repoFiles : null,
+    apiEndpoints: local.apiEndpoints.length > 0 ? local.apiEndpoints : null,
+  });
+
+  if (!result) {
+    throw new AppError("Failed to create extension", 500);
   }
+
+  logger.info(
+    {
+      name: data.name,
+      files: local.repoFiles.length,
+      endpoints: local.apiEndpoints.length,
+    },
+    "user extension created from upload",
+  );
+
+  return result;
 }

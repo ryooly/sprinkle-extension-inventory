@@ -11,6 +11,13 @@ import axios from "axios";
 import { unzipSync } from "fflate";
 import { Octokit } from "@octokit/rest";
 import { checkUrlSafety, type UrlSafetyVerdict } from "../tools/url-safety";
+import { z } from "zod";
+import {
+  browserSchema,
+  categorySchema,
+  type BrowserInput,
+  type CategoryInput,
+} from "@/schemas/extension-input";
 
 const VALID_PERMISSIONS = new Set<BrowserPermission>(
   browserPermissionEnum.enumValues,
@@ -1007,4 +1014,406 @@ export class ExtensionUtils {
   rateRepository(input: RepoRatingInput): RepoRating {
     return rateRepository(input);
   }
+
+  validateUpload(input: unknown): Promise<ExtensionUploadResult> {
+    return validateExtensionUpload(input);
+  }
+
+  inspectPackage(bytes: Uint8Array): ExtensionPackageScan {
+    return inspectExtensionPackage(bytes);
+  }
+
+  processLocalPackage(bytes: Uint8Array): LocalPackageResult {
+    return processLocalPackage(bytes);
+  }
+}
+
+export const extensionUploadSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "name must not be empty")
+    .max(120, "name must be 120 characters or fewer"),
+  description: z
+    .string()
+    .trim()
+    .min(
+      MIN_DESCRIPTION_LENGTH,
+      `description must be at least ${MIN_DESCRIPTION_LENGTH} characters`,
+    )
+    .max(2000, "description must be 2000 characters or fewer"),
+  developer: z
+    .string()
+    .trim()
+    .min(1, "developer must not be empty")
+    .max(100, "developer must be 100 characters or fewer"),
+  categories: z
+    .array(categorySchema)
+    .min(1, "at least one category is required")
+    .max(5, "at most five categories are allowed"),
+  supportedBrowsers: z
+    .array(browserSchema)
+    .min(1, "at least one supported browser is required")
+    .default(["chrome"]),
+});
+
+export type ExtensionUploadData = {
+  name: string;
+  description: string;
+  developer: string;
+  categories: CategoryInput[];
+  supportedBrowsers: BrowserInput[];
+};
+
+const PACKAGE_BLOCKED_PATH_REGEX =
+  /(^|\/)(node_modules|\.git|\.svn|\.hg|\.vscode|\.github|\.cache|__pycache__|coverage)(\/|$)/i;
+
+const PACKAGE_BINARY_REGEX =
+  /\.(exe|dll|so|dylib|msi|dmg|pkg|deb|rpm|class|jar|war|pyc|o|a|lib|bin|mp4|mkv|avi|mp3|wav|zip|tar|gz|7z|rar)$/i;
+
+export const MAX_PACKAGE_BYTES = 25 * 1024 * 1024;
+export const MAX_PACKAGE_ENTRIES = 1_000;
+export const MAX_PACKAGE_ENTRY_BYTES = 20 * 1024 * 1024;
+export const MAX_PACKAGE_UNCOMPRESSED_BYTES = 100 * 1024 * 1024;
+
+const MAX_PACKAGE_COMPRESSION_RATIO = 100;
+const ZIP_BOMB_MIN_BYTES = 1_000_000;
+
+export interface ExtensionPackageInfo {
+  fileName: string;
+  sizeBytes: number;
+  entryCount: number;
+  uncompressedBytes: number;
+  hasManifest: boolean;
+}
+
+export interface ExtensionPackageScan {
+  valid: boolean;
+  issues: string[];
+  info: ExtensionPackageInfo;
+}
+
+function isManifestPath(path: string): boolean {
+  return /(^|\/)manifest\.json$/i.test(path);
+}
+
+export function inspectExtensionPackage(
+  bytes: Uint8Array,
+  fileName = "package.zip",
+): ExtensionPackageScan {
+  const info: ExtensionPackageInfo = {
+    fileName,
+    sizeBytes: bytes.byteLength,
+    entryCount: 0,
+    uncompressedBytes: 0,
+    hasManifest: false,
+  };
+
+  const issues: string[] = [];
+
+  if (info.sizeBytes === 0) {
+    return { valid: false, issues: ["uploaded file is empty"], info };
+  }
+
+  if (info.sizeBytes > MAX_PACKAGE_BYTES) {
+    issues.push(
+      `package too large (${info.sizeBytes} bytes, max ${MAX_PACKAGE_BYTES})`,
+    );
+  }
+
+  const entries: { name: string; size: number; originalSize: number }[] = [];
+
+  try {
+    unzipSync(bytes, {
+      filter: (file) => {
+        entries.push({
+          name: file.name,
+          size: file.size,
+          originalSize: file.originalSize,
+        });
+        return false;
+      },
+    });
+  } catch {
+    issues.push("uploaded file is not a valid .zip archive");
+    return { valid: false, issues, info };
+  }
+
+  const files = entries.filter((entry) => !entry.name.endsWith("/"));
+
+  info.entryCount = files.length;
+  info.uncompressedBytes = files.reduce(
+    (total, entry) => total + entry.originalSize,
+    0,
+  );
+
+  if (files.length === 0) {
+    issues.push("package contains no files");
+  }
+
+  if (files.length > MAX_PACKAGE_ENTRIES) {
+    issues.push(
+      `package contains too many files (${files.length}, max ${MAX_PACKAGE_ENTRIES})`,
+    );
+  }
+
+  if (info.uncompressedBytes > MAX_PACKAGE_UNCOMPRESSED_BYTES) {
+    issues.push(
+      `package unpacks too large (${info.uncompressedBytes} bytes, max ${MAX_PACKAGE_UNCOMPRESSED_BYTES})`,
+    );
+  }
+
+  for (const entry of files) {
+    if (isManifestPath(entry.name)) info.hasManifest = true;
+
+    if (entry.name.includes("..") || entry.name.startsWith("/")) {
+      issues.push(`"${entry.name}" has an unsafe path`);
+      continue;
+    }
+
+    const blocked = PACKAGE_BLOCKED_PATH_REGEX.exec(entry.name);
+
+    if (blocked) {
+      issues.push(
+        `"${entry.name}" belongs to excluded build/dependency folder "${blocked[2]}"`,
+      );
+      continue;
+    }
+
+    if (PACKAGE_BINARY_REGEX.test(entry.name)) {
+      issues.push(`"${entry.name}" is a binary or archive payload`);
+      continue;
+    }
+
+    if (entry.originalSize > MAX_PACKAGE_ENTRY_BYTES) {
+      issues.push(
+        `"${entry.name}" is too large (${entry.originalSize} bytes, max ${MAX_PACKAGE_ENTRY_BYTES})`,
+      );
+      continue;
+    }
+
+    if (
+      entry.originalSize > ZIP_BOMB_MIN_BYTES &&
+      entry.size > 0 &&
+      entry.originalSize / entry.size > MAX_PACKAGE_COMPRESSION_RATIO
+    ) {
+      issues.push(`"${entry.name}" looks like a zip bomb`);
+    }
+  }
+
+  if (!info.hasManifest) {
+    issues.push("package is missing manifest.json");
+  }
+
+  const unique = [...new Set(issues)];
+
+  return { valid: unique.length === 0, issues: unique, info };
+}
+
+export type ExtensionUploadResult =
+  | {
+      valid: true;
+      data: ExtensionUploadData;
+      packageInfo: ExtensionPackageInfo;
+    }
+  | { valid: false; errors: string[] };
+
+export async function validateExtensionUpload(
+  input: unknown,
+): Promise<ExtensionUploadResult> {
+  const errors: string[] = [];
+
+  const parsed = extensionUploadSchema.safeParse(
+    (input as Record<string, unknown> | null) ?? {},
+  );
+
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      const field = issue.path.join(".") || "payload";
+      errors.push(`${field}: ${issue.message}`);
+    }
+  }
+
+  const file = (input as { file?: unknown } | null)?.file;
+  let scan: ExtensionPackageScan | null = null;
+
+  if (!(file instanceof File)) {
+    errors.push("file: extension package must be an uploaded file");
+  } else if (!file.name.toLowerCase().endsWith(".zip")) {
+    errors.push("file: extension package must be a .zip file");
+  } else {
+    try {
+      scan = inspectExtensionPackage(
+        new Uint8Array(await file.arrayBuffer()),
+        file.name,
+      );
+    } catch {
+      errors.push("file: extension package could not be read");
+    }
+
+    if (scan) {
+      for (const issue of scan.issues) errors.push(`file: ${issue}`);
+    }
+  }
+
+  if (errors.length > 0 || !parsed.success || !scan) {
+    return { valid: false, errors };
+  }
+
+  return {
+    valid: true,
+    data: {
+      name: parsed.data.name,
+      description: parsed.data.description,
+      developer: parsed.data.developer,
+      categories: parsed.data.categories as CategoryInput[],
+      supportedBrowsers: parsed.data.supportedBrowsers as BrowserInput[],
+    },
+    packageInfo: scan.info,
+  };
+}
+
+export interface LocalPackageResult {
+  supportedBrowsers: Browser[];
+  permissions: BrowserPermission[];
+  frontendLanguages: string[];
+  backendLanguages: string[];
+  repoFiles: string[];
+  apiEndpoints: string[];
+  manifest: Record<string, unknown> | null;
+}
+
+const EXT_TO_LANGUAGE: Record<string, string> = {
+  ".js": "JavaScript",
+  ".mjs": "JavaScript",
+  ".cjs": "JavaScript",
+  ".jsx": "JavaScript",
+  ".ts": "TypeScript",
+  ".tsx": "TypeScript",
+  ".html": "HTML",
+  ".css": "CSS",
+  ".scss": "SCSS",
+  ".sass": "Sass",
+  ".less": "Less",
+  ".vue": "Vue",
+  ".svelte": "Svelte",
+  ".py": "Python",
+  ".java": "Java",
+  ".go": "Go",
+  ".rb": "Ruby",
+  ".php": "PHP",
+  ".cs": "C#",
+  ".c": "C",
+  ".cpp": "C++",
+  ".rs": "Rust",
+  ".swift": "Swift",
+  ".kt": "Kotlin",
+  ".lua": "Lua",
+};
+
+function resolveInZip(
+  entries: Record<string, Uint8Array>,
+  relativePath: string,
+): Uint8Array | undefined {
+  if (entries[relativePath]) return entries[relativePath];
+
+  const suffix = "/" + relativePath;
+
+  for (const key of Object.keys(entries)) {
+    if (!key.endsWith(suffix)) continue;
+    const prefix = key.slice(0, key.length - suffix.length);
+    if (!prefix.includes("/")) return entries[key];
+  }
+
+  return undefined;
+}
+
+function scanLocalApiEndpoints(entries: Record<string, Uint8Array>): string[] {
+  const found = new Set<string>();
+  const internalRe = new RegExp(API_ENDPOINT_REGEX.source, "g");
+  const externalRe = new RegExp(EXTERNAL_API_REGEX.source, "g");
+
+  for (const [path, data] of Object.entries(entries)) {
+    if (!/\.[cm]?[jt]s$/.test(path) || SKIP_FILE_PATTERN.test(path)) continue;
+    if (data.length > MAX_SCANNED_FILE_BYTES) continue;
+
+    const content = new TextDecoder().decode(data);
+    let match: RegExpExecArray | null;
+
+    while ((match = internalRe.exec(content)) !== null) {
+      found.add(`internal:${match[2].toUpperCase()} ${match[3]}`);
+    }
+    while ((match = externalRe.exec(content)) !== null) {
+      found.add(`external:${(match[2] ?? "get").toUpperCase()} ${match[3]}`);
+    }
+  }
+
+  return [...found];
+}
+
+export function processLocalPackage(bytes: Uint8Array): LocalPackageResult {
+  const entries = unzipSync(bytes, {
+    filter: (file) =>
+      !file.name.endsWith("/") &&
+      !PACKAGE_BLOCKED_PATH_REGEX.test(file.name) &&
+      !PACKAGE_BINARY_REGEX.test(file.name) &&
+      !file.name.includes("..") &&
+      !file.name.startsWith("/"),
+  });
+
+  const paths = Object.keys(entries);
+  const repoFiles = paths.slice(0, MAX_REPO_FILES);
+
+  let manifest: Record<string, unknown> | null = null;
+
+  for (const mp of GENERIC_MANIFEST_PATHS) {
+    const data = resolveInZip(entries, mp);
+    if (!data) continue;
+    try {
+      const parsed = JSON.parse(new TextDecoder().decode(data));
+      if (parsed && typeof parsed === "object") {
+        manifest = parsed as Record<string, unknown>;
+        break;
+      }
+    } catch {
+      /* skip malformed */
+    }
+  }
+
+  const supportedBrowsers: Browser[] = manifest
+    ? classifyGenericManifest(manifest)
+    : ["chrome"];
+
+  const permissions: BrowserPermission[] = manifest
+    ? mapManifestPermissions(manifest.permissions)
+    : [];
+
+  const langSet = new Set<string>();
+
+  for (const path of paths) {
+    const ext = path.slice(path.lastIndexOf(".")).toLowerCase();
+    const lang = EXT_TO_LANGUAGE[ext];
+    if (lang) langSet.add(lang);
+  }
+
+  const frontendLanguages: string[] = [];
+  const backendLanguages: string[] = [];
+
+  for (const lang of langSet) {
+    const kind = classifyLanguage(lang);
+    if (kind === "frontend") frontendLanguages.push(lang);
+    else if (kind === "backend") backendLanguages.push(lang);
+  }
+
+  const apiEndpoints = scanLocalApiEndpoints(entries);
+
+  return {
+    supportedBrowsers,
+    permissions,
+    frontendLanguages,
+    backendLanguages,
+    repoFiles,
+    apiEndpoints,
+    manifest,
+  };
 }

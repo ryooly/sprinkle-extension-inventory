@@ -2,10 +2,16 @@ import * as repo from "../../automation-engine/saving-engine/repository/saving-r
 import {
   parseGithubZipUrl,
   fetchRepoFile,
+  validateExtensionUpload,
 } from "../../automation-engine/depends/extension-utils";
+import { insertExtensionFromUpload } from "../../automation-engine/saving-engine/saving-engine/save-service";
 import { AppError } from "@/errorhandler";
+import { mkdirSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { randomUUID } from "crypto";
+import { config } from "config";
 import type {
-  CreateExtensionPayload,
+  CreateExtensionUserPayload,
   UpdateExtensionPayload,
   CategoryInput,
   BrowserInput,
@@ -13,24 +19,55 @@ import type {
 import type { Extension } from "@/models";
 
 export async function createExtension(
-  payload: CreateExtensionPayload,
+  payload: CreateExtensionUserPayload,
 ): Promise<Extension> {
-  const result = await repo.createExtension({
-    ...payload,
-    publishedBy: "user",
-  });
+  const { file } = payload;
 
-  if (!result) {
-    throw new AppError(`Failed to create extension`, 500);
+  const upload = await validateExtensionUpload(payload);
+
+  if (!upload.valid) {
+    throw new AppError("Invalid extension upload", 400, upload.errors);
   }
 
-  return result;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  const uploadDir = resolve(config.uploadDir);
+  mkdirSync(uploadDir, { recursive: true });
+
+  const extensionLink = join(uploadDir, `${randomUUID()}.zip`);
+  await Bun.write(extensionLink, bytes);
+
+  return insertExtensionFromUpload({
+    data: upload.data,
+    extensionLink,
+    bytes,
+  });
 }
 
 export async function editExtension(
   payload: UpdateExtensionPayload,
 ): Promise<Extension> {
-  const result = await repo.updateExtension(payload);
+  const existing = await repo.findExtensionById(payload.id);
+
+  if (!existing) {
+    throw new AppError(`Extension with id "${payload.id}" not found`, 404);
+  }
+
+  if (existing.publishedBy !== "user") {
+    throw new AppError(
+      `Extension "${payload.id}" is not a user extension and cannot be edited`,
+      403,
+    );
+  }
+
+  const result = await repo.updateExtension({
+    id: payload.id,
+    data: {
+      name: payload.data.name,
+      description: payload.data.description,
+    },
+    categories: payload.categories,
+  });
 
   if (!result) {
     throw new AppError(`Extension with id "${payload.id}" not found`, 404);
@@ -103,7 +140,7 @@ export interface RepoFileResult {
   ref: string;
 }
 
-export async function openExtensionRepoFile( /// open content of a file in a repository 
+export async function openExtensionRepoFile( /// open content of a file in a repository
   id: string,
   path: string,
 ): Promise<RepoFileResult> {
@@ -132,8 +169,7 @@ export async function openExtensionRepoFile( /// open content of a file in a rep
     );
   }
 
-  const [, , , ownerSegment = "", repoSegment = ""] =
-    parsed.repoUrl.split("/");
+  const [, , , ownerSegment = "", repoSegment = ""] = parsed.repoUrl.split("/");
 
   if (!ownerSegment || !repoSegment) {
     throw new AppError("Unable to resolve GitHub owner and repository", 400);
@@ -173,5 +209,3 @@ export async function openExtensionRepoFile( /// open content of a file in a rep
     ref: parsed.defaultBranch,
   };
 }
-
-

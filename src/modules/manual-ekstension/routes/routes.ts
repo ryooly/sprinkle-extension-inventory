@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
-import { z } from "zod";
 import {
-  createExtensionSchema,
+  createExtensionUserSchema,
   updateExtensionSchema,
   categorySchema,
   browserSchema,
@@ -27,7 +26,7 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
       const result = await handleCreateExtension(body);
       return result;
     },
-    { body: createExtensionSchema },
+    { body: createExtensionUserSchema },
   )
 
   .patch(

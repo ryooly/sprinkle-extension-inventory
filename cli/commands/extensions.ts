@@ -12,6 +12,8 @@ import {
   type CommandDef,
   type CommandContext,
 } from "../lib/util";
+import { existsSync, readFileSync } from "node:fs";
+import { basename } from "node:path";
 
 type Row = Record<string, unknown>;
 
@@ -79,16 +81,16 @@ async function createExtension(ctx: CommandContext): Promise<void> {
   const developer =
     str(ctx.flags, "developer") ??
     (interactive ? await ask("Developer") : undefined);
-  const extensionLink =
-    str(ctx.flags, "link") ??
-    (interactive ? await ask("Extension link (url)") : undefined);
+  const filePath =
+    str(ctx.flags, "file") ??
+    (interactive ? await ask("Extension file (.zip)") : undefined);
   const browsers = list(ctx.flags, "browsers") ?? list(ctx.flags, "browser");
   const categories = list(ctx.flags, "categories");
   const source = str(ctx.flags, "source");
 
-  if (!name || !description || !developer || !extensionLink) {
+  if (!name || !description || !developer || !filePath) {
     out.error(
-      "Missing required field(s): --name --description --developer --link",
+      "Missing required field(s): --name --description --developer --file",
     );
     process.exitCode = 1;
     return;
@@ -127,17 +129,32 @@ async function createExtension(ctx: CommandContext): Promise<void> {
     return;
   }
 
-  const payload: Row = {
-    name,
-    description,
-    developer,
-    extensionLink,
-    supportedBrowsers: browsers,
-    categories,
-    ...(source ? { source } : {}),
-  };
+  if (!filePath.toLowerCase().endsWith(".zip")) {
+    out.error("--file must be a .zip file");
+    process.exitCode = 1;
+    return;
+  }
+  if (!existsSync(filePath)) {
+    out.error(`File not found: ${filePath}`);
+    process.exitCode = 1;
+    return;
+  }
 
-  const res = await http.post("/extensions/creating", payload, {
+  const form = new FormData();
+  form.set("name", name);
+  form.set("description", description);
+  form.set("developer", developer);
+  for (const browser of browsers) form.append("supportedBrowsers", browser);
+  for (const cat of categories) form.append("categories", cat);
+  if (source) form.set("source", source);
+  form.set(
+    "file",
+    new File([readFileSync(filePath)], basename(filePath), {
+      type: "application/zip",
+    }),
+  );
+
+  const res = await http.postMultipart("/extensions/creating", form, {
     useSession: true,
   });
   if (ctx.json) return out.json(res.data);
@@ -169,28 +186,10 @@ async function editExtension(ctx: CommandContext): Promise<void> {
   const data: Row = {};
   const name = str(ctx.flags, "name");
   const description = str(ctx.flags, "description");
-  const developer = str(ctx.flags, "developer");
-  const link = str(ctx.flags, "link");
-  const source = str(ctx.flags, "source");
-  const browsers = list(ctx.flags, "browsers") ?? list(ctx.flags, "browser");
   const categories = list(ctx.flags, "categories");
 
   if (name) data.name = name;
   if (description) data.description = description;
-  if (developer) data.developer = developer;
-  if (link) data.extensionLink = link;
-  if (source) data.source = source;
-
-  if (browsers) {
-    for (const browser of browsers) {
-      if (!isBrowser(browser)) {
-        out.error(`--browsers values must be one of: ${BROWSERS.join(", ")}`);
-        process.exitCode = 1;
-        return;
-      }
-    }
-    data.supportedBrowsers = browsers;
-  }
 
   if (categories) {
     for (const cat of categories) {
@@ -330,15 +329,14 @@ export const extensionCommands: CommandDef[] = [
     group: "extensions",
     summary: "Create an extension (POST /extensions/creating)",
     usage:
-      "create-extension --name <n> --description <d> --developer <dev> --link <url> --browsers <chrome,edge> --categories <a,b> [--source <s>]",
+      "create-extension --name <n> --description <d> --developer <dev> --file <path.zip> --browsers <chrome,edge> --categories <a,b> [--source <s>]",
     handler: createExtension,
   },
   {
     name: "edit-extension",
     group: "extensions",
     summary: "Edit an extension (PATCH /extensions/:id)",
-    usage:
-      "edit-extension <id> [--name] [--description] [--developer] [--link] [--categories a,b] [--source] [--browsers a,b]",
+    usage: "edit-extension <id> [--name] [--description] [--categories a,b]",
     handler: editExtension,
   },
   {

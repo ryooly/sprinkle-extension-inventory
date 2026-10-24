@@ -28,7 +28,21 @@ export const browserSchema = z.enum([
 
 export type BrowserInput = z.infer<typeof browserSchema>;
 
-export const createExtensionSchema = z.object({
+export const createExtensionUserSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  developer: z.string(),
+  file: z.instanceof(File),
+  source: sourceSchema.optional(),
+  categories: z.array(categorySchema),
+  supportedBrowsers: z.array(browserSchema).default(["chrome"]),
+});
+
+export type CreateExtensionUserPayload = z.infer<
+  typeof createExtensionUserSchema
+>;
+
+export const createExtensionAutomationSchema = z.object({
   name: z.string(),
   description: z.string(),
   developer: z.string(),
@@ -38,15 +52,13 @@ export const createExtensionSchema = z.object({
   supportedBrowsers: z.array(browserSchema).default(["chrome"]),
 });
 
-export type CreateExtensionPayload = z.infer<typeof createExtensionSchema>;
+export type CreateExtensionAutomationPayload = z.infer<
+  typeof createExtensionAutomationSchema
+>;
 
 export const updateExtensionDataSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
-  developer: z.string().optional(),
-  extensionLink: z.string().url().optional(),
-  source: sourceSchema.optional(),
-  supportedBrowsers: z.array(browserSchema).optional(),
 });
 
 export const updateExtensionSchema = z.object({

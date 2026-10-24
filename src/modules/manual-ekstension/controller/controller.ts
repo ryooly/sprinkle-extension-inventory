@@ -2,7 +2,7 @@ import * as service from "../services/services";
 import type { RepoFileResult } from "../services/services";
 import { AppError } from "@/errorhandler";
 import type {
-  CreateExtensionPayload,
+  CreateExtensionUserPayload,
   UpdateExtensionPayload,
   CategoryInput,
   BrowserInput,
@@ -14,7 +14,7 @@ export interface ControllerResult<T> {
 }
 
 export async function handleCreateExtension(
-  payload: CreateExtensionPayload,
+  payload: CreateExtensionUserPayload,
 ): Promise<ControllerResult<Extension>> {
   try {
     const result = await service.createExtension(payload);

@@ -9,6 +9,8 @@ export interface RequestOptions {
   query?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
 
+  form?: FormData;
+
   useSession?: boolean;
 
   updateSession?: boolean;
@@ -92,7 +94,7 @@ export async function request(opts: RequestOptions): Promise<HttpResult> {
     res = await fetch(url, {
       method,
       headers,
-      body: bodyText,
+      body: opts.form ?? bodyText,
       signal: controller.signal,
     });
   } catch (err) {
@@ -145,6 +147,11 @@ export const http = {
     request({ ...opts, method: "GET", path }),
   post: (path: string, body?: unknown, opts?: Partial<RequestOptions>) =>
     request({ ...opts, method: "POST", path, body }),
+  postMultipart: (
+    path: string,
+    form: FormData,
+    opts?: Partial<RequestOptions>,
+  ) => request({ ...opts, method: "POST", path, form }),
   patch: (path: string, body?: unknown, opts?: Partial<RequestOptions>) =>
     request({ ...opts, method: "PATCH", path, body }),
   delete: (path: string, opts?: Partial<RequestOptions>) =>

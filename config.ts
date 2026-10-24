@@ -8,7 +8,8 @@ export const config = {
   secretKey: process.env.SECRET_KEY!,
   port: process.env.PORT,
   apiBaseUrl: process.env.API_BASE_URL ?? "http://localhost:3000",
-  
+  uploadDir: process.env.UPLOAD_DIR ?? "uploads/extensions",
+
   corsOrigin: (process.env.CORS_ORIGIN ?? "http://localhost:5173")
     .split(",")
     .map((origin) => origin.trim())
