@@ -226,6 +226,9 @@
 
   function exitThenGo(url) {
 
+    try {
+      sessionStorage.setItem("sprinkle:navAt", String(Date.now()));
+    } catch (e) {}
     if (S.startLoadBar) S.startLoadBar();
     if (reducedMotion) {
       location.href = url;
@@ -265,9 +268,22 @@
   });
 
 
-  window.addEventListener("pageshow", function () {
+  window.addEventListener("pageshow", function (event) {
     document.documentElement.classList.remove("exiting");
+    if (event.persisted && S.startLoadBar) S.startLoadBar(160);
   });
+
+  (function initLoaderContinuity() {
+    var navAt = 0;
+    try {
+      navAt = parseInt(sessionStorage.getItem("sprinkle:navAt"), 10) || 0;
+      sessionStorage.removeItem("sprinkle:navAt");
+    } catch (e) {}
+    if (!navAt) return;
+    var since = Date.now() - navAt;
+    if (since < 0 || since > 15000) return;
+    if (S.startLoadBar) S.startLoadBar(Math.max(0, 250 - since));
+  })();
 
 
 

@@ -650,6 +650,56 @@ window.SPRINKLE = (function () {
     );
   }
 
+  var GENRE_ICONS = {
+    Recommendation: [
+      ["path", { d: "M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" }],
+      ["path", { d: "M20 2v4" }],
+      ["path", { d: "M22 4h-4" }],
+      ["circle", { cx: "4", cy: "20", r: "2" }],
+    ],
+    Productivity: [
+      ["path", { d: "M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" }],
+      ["rect", { width: "20", height: "14", x: "2", y: "6", rx: "2" }],
+    ],
+    AI: [
+      ["path", { d: "M12 13h4" }],
+      ["path", { d: "M12 18h6a2 2 0 012 2v1" }],
+      ["path", { d: "M12 8h8" }],
+      ["path", { d: "M12 9a4.17 4.17 0 01-3 4" }],
+      ["path", { d: "M16 8V5a2 2 0 012-2" }],
+      ["path", { d: "M6 18a4 4 0 01-2-7.465" }],
+      ["path", { d: "M6.004 5.125a4 4 0 00-2.526 5.77" }],
+      ["path", { d: "M6.294 6.294A3 3 0 1112 5v13a4 4 0 11-7.967-.518" }],
+      ["circle", { cx: "16", cy: "13", r: "0.5", fill: "currentColor" }],
+      ["circle", { cx: "18", cy: "3", r: "0.5", fill: "currentColor" }],
+      ["circle", { cx: "20", cy: "21", r: "0.5", fill: "currentColor" }],
+      ["circle", { cx: "20", cy: "8", r: "0.5", fill: "currentColor" }],
+    ],
+    Notes: [
+      ["path", { d: "M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" }],
+      ["path", { d: "M2 6h4" }],
+      ["path", { d: "M2 10h4" }],
+      ["path", { d: "M2 14h4" }],
+      ["path", { d: "M2 18h4" }],
+      ["path", { d: "M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" }],
+    ],
+    Design: [
+      ["path", { d: "m18 13-.654-4.736a4 4 0 00-2.756-3.266l-9.163-2.9a2 2 0 00-2.017.493l-.82.819a2 2 0 00-.492 2.017l2.9 9.163a4 4 0 003.266 2.756L13 18" }],
+      ["path", { d: "M18.648 12.352a1.205 1.205 0 011.704 0l1.296 1.296a1.205 1.205 0 010 1.704l-6.296 6.296a1.205 1.205 0 01-1.704 0l-1.296-1.296a1.205 1.205 0 010-1.704z" }],
+      ["path", { d: "m3 3 6.586 6.586" }],
+      ["circle", { cx: "11", cy: "11", r: "2" }],
+    ],
+    Developer: [
+      ["path", { d: "m18 16 4-4-4-4" }],
+      ["path", { d: "m6 8-4 4 4 4" }],
+      ["path", { d: "m14.5 4-5 16" }],
+    ],
+    Writing: [
+      ["path", { d: "M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }],
+      ["path", { d: "M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" }],
+    ],
+  };
+
   var icons = {
     menu: function (cls) {
       return svg(
@@ -782,21 +832,25 @@ window.SPRINKLE = (function () {
     },
 
     genre: function (genre, cls) {
-      var paths = {
-        Productivity:
-          "M13 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1ZM6 10.5 3.5 8 4.56 6.94 6 8.38l3.94-3.94L11 5.5 6 10.5Z",
-        AI: "M8 1a1 1 0 0 1 1 1v1h2.5a.5.5 0 0 1 0 1H9v1a1 1 0 0 1-2 0V4H4.5a.5.5 0 0 1 0-1H7V2a1 1 0 0 1 1-1Zm5.5 5.5a.5.5 0 0 1 0 1H13v.5a1 1 0 0 1-1 1h-.5v1.5a.5.5 0 0 1-1 0V9H10a1 1 0 0 1-1-1v-.5H2.5a.5.5 0 0 1 0-1H9V6a1 1 0 0 1 1-1h.5V3.5a.5.5 0 0 1 1 0V5h.5a1 1 0 0 1 1 1v.5h.5Z",
-        Notes:
-          "M11.5 1h-7A1.5 1.5 0 0 0 3 2.5v11A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 11.5 1ZM5 4h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1Zm0 3h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1Zm0 3h4a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1Z",
-        Design:
-          "M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 1.5a5.5 5.5 0 1 1 0 11A5.5 5.5 0 0 1 8 2.5Zm0 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm-3 5a3 3 0 0 1 6 0H5Z",
-        Developer:
-          "M5.78 5.22a.75.75 0 0 0-1.06 1.06L6.94 8.5 4.72 10.72a.75.75 0 1 0 1.06 1.06l2.75-2.75a.75.75 0 0 0 0-1.06L5.78 5.22ZM9.25 10.5a.75.75 0 0 0 0 1.5h2a.75.75 0 0 0 0-1.5h-2Z",
-        Writing:
-          "M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm1.414 1.06a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354l-1.086-1.086Z",
-      };
-      var d = paths[genre] || paths.Developer;
-      return svg('<path d="' + d + '"/>', "0 0 16 16", cls);
+      var nodes = GENRE_ICONS[genre] || GENRE_ICONS.Developer;
+      var inner = nodes
+        .map(function (node) {
+          var attrs = Object.keys(node[1])
+            .map(function (k) {
+              return k + '="' + node[1][k] + '"';
+            })
+            .join(" ");
+          return "<" + node[0] + " " + attrs + "/>";
+        })
+        .join("");
+      return (
+        '<svg class="' +
+        cls +
+        '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        inner +
+        "</svg>"
+      );
     },
     eye: function (cls) {
       return svg(
@@ -1182,30 +1236,55 @@ window.SPRINKLE = (function () {
     bar.setAttribute("aria-label", "Page loading");
     document.body.insertBefore(bar, document.body.firstChild);
 
+    var overlay = document.createElement("div");
+    overlay.className = "page-loader done";
+    overlay.setAttribute("role", "progressbar");
+    overlay.setAttribute("aria-label", "Page loading");
+    overlay.innerHTML =
+      '<div class="page-loader-inner"><div class="page-loader-ring"></div>' +
+      '<div class="page-loader-ring page-loader-ring-inner"></div></div>';
+    document.body.appendChild(overlay);
+
     var startedAt = 0;
+    var minUntil = 0;
     var finishTimer = null;
+    var watchdogTimer = null;
 
     function finish() {
       if (bar.classList.contains("done")) return;
       clearTimeout(finishTimer);
+      clearTimeout(watchdogTimer);
 
-      var visible = Math.max(0, 350 - (Date.now() - startedAt));
+      var visible = Math.max(0, 160 - (Date.now() - startedAt));
+      var lingering = Math.max(0, minUntil - Date.now());
       finishTimer = setTimeout(function () {
         bar.classList.add("done");
-      }, visible);
+        overlay.classList.add("done");
+      }, Math.max(visible, lingering));
     }
 
-    function start() {
+    function start(minVisibleMs) {
       clearTimeout(finishTimer);
+      clearTimeout(watchdogTimer);
       bar.classList.remove("done");
+      overlay.classList.remove("done");
       startedAt = Date.now();
+      minUntil = startedAt + (minVisibleMs || 0);
 
-      finishTimer = setTimeout(finish, 8000);
+      watchdogTimer = setTimeout(finish, 1500);
+    }
+
+    function ready() {
+      if (document.readyState != "loading") {
+        finish();
+        return;
+      }
+      document.addEventListener("DOMContentLoaded", finish);
+      window.addEventListener("load", finish);
     }
 
     start();
-    if (document.readyState === "complete") finish();
-    else window.addEventListener("load", finish);
+    ready();
     return start;
   }
 
@@ -1227,8 +1306,8 @@ window.SPRINKLE = (function () {
     initHeader: initHeader,
     injectHeader: injectHeader,
     hydrateIcons: hydrateIcons,
-    startLoadBar: function () {
-      if (startLoadBar) startLoadBar();
+    startLoadBar: function (minVisibleMs) {
+      if (startLoadBar) startLoadBar(minVisibleMs);
     },
   };
 })();
