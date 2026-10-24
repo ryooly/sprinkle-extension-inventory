@@ -882,29 +882,6 @@ export class ExtensionUtils {
     }
   }
 
-  async getRepositoryStars(
-    owner: string,
-    repo: string,
-  ): Promise<number | null> {
-    const trimmedOwner = owner?.trim();
-    const trimmedRepo = repo?.trim();
-
-    if (!trimmedOwner || !trimmedRepo) return null;
-
-    try {
-      const { data } = await this.octokit.rest.repos.get({
-        owner: trimmedOwner,
-        repo: trimmedRepo,
-      });
-
-      return typeof data?.stargazers_count === "number"
-        ? data.stargazers_count
-        : null;
-    } catch {
-      return null;
-    }
-  }
-
   async getRepoFiles(owner: string, repo: string): Promise<string[]> {
     const trimmedOwner = owner?.trim();
     const trimmedRepo = repo?.trim();
@@ -931,15 +908,6 @@ export class ExtensionUtils {
     } catch {
       return [];
     }
-  }
-
-  fetchRepoFile(
-    owner: string,
-    repo: string,
-    path: string,
-    ref?: string,
-  ): Promise<RepoFileContent | null> {
-    return readRepoFileContent(this.octokit, owner, repo, path, ref);
   }
 
   // Gathers every rating input from the GitHub REST API. repos.get yields stars,
@@ -1013,18 +981,6 @@ export class ExtensionUtils {
 
   rateRepository(input: RepoRatingInput): RepoRating {
     return rateRepository(input);
-  }
-
-  validateUpload(input: unknown): Promise<ExtensionUploadResult> {
-    return validateExtensionUpload(input);
-  }
-
-  inspectPackage(bytes: Uint8Array): ExtensionPackageScan {
-    return inspectExtensionPackage(bytes);
-  }
-
-  processLocalPackage(bytes: Uint8Array): LocalPackageResult {
-    return processLocalPackage(bytes);
   }
 }
 

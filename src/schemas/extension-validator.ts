@@ -58,5 +58,3 @@ export const updateExtensionSchema = t.Object({
   description: t.Optional(t.String()),
   categories: t.Optional(t.Array(categorySchema)),
 });
-
-// nanti validasinya dibonnkar merak punya zip kemdian ketika description gak ada tapi ada readme.md maka apakai itu saja, kemudian validasi apabila disana teruplod file berat kayak node modules dll maka ditolak
