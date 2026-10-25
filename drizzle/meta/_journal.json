@@ -113,6 +113,13 @@
       "when": 1792757284340,
       "tag": "0015_drop_extension_verified_browser",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792852052370,
+      "tag": "0016_add_extension_announcement",
+      "breakpoints": true
     }
   ]
 }

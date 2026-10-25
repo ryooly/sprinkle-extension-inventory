@@ -73,6 +73,7 @@ export async function insertExtensionsFromGithub(
     const lastCommitDate = await ext.getLastCommitDate(owner, repoName);
     const repoMetrics = await ext.getRepositoryMetrics(owner, repoName);
     const repoFiles = await ext.getRepoFiles(owner, repoName);
+    const readme = await ext.getReadmeContent(owner, repoName);
 
     const defaultBranch = ext.parseZipUrl(
       normalized.downloadUrl,
@@ -147,6 +148,7 @@ export async function insertExtensionsFromGithub(
         repoFiles:
           repoFiles.length > 0 ? repoFiles : (normalized.repoFiles ?? null),
         apiEndpoints: apiEndpoints.length > 0 ? apiEndpoints : null,
+        announcement: readme ?? normalized.description,
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
         licenseDescription: license?.description ?? null,
@@ -212,6 +214,7 @@ export async function insertExtensionFromUpload(
       local.backendLanguages.length > 0 ? local.backendLanguages : null,
     repoFiles: local.repoFiles.length > 0 ? local.repoFiles : null,
     apiEndpoints: local.apiEndpoints.length > 0 ? local.apiEndpoints : null,
+    announcement: local.readme ?? data.description,
   });
 
   if (!result) {

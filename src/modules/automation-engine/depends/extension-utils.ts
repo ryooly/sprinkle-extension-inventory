@@ -99,6 +99,30 @@ const BROWSER_MANIFEST_PATHS: { browser: Browser; path: string }[] = [
   { browser: "safari", path: "safari/manifest.json" },
 ];
 
+const README_PATHS = [
+  "README.md",
+  "README.markdown",
+  "README.rst",
+  "README.txt",
+  "README",
+  "readme.md",
+  "Readme.md",
+];
+
+const MAX_README_CHARS = 100_000;
+
+export function formatReadmeContent(raw: string): string {
+  const normalized = raw
+    .replace(/\r\n?/g, "\n")
+    .replace(/\0/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return normalized.length > MAX_README_CHARS
+    ? normalized.slice(0, MAX_README_CHARS).trimEnd()
+    : normalized;
+}
+
 async function readManifestFile(
   octokit: Octokit,
   owner: string,
@@ -910,6 +934,32 @@ export class ExtensionUtils {
     }
   }
 
+  async getReadmeContent(owner: string, repo: string): Promise<string | null> {
+    const trimmedOwner = owner?.trim();
+    const trimmedRepo = repo?.trim();
+
+    if (!trimmedOwner || !trimmedRepo) return null;
+
+    try {
+      const { data } = await this.octokit.rest.repos.getReadme({
+        owner: trimmedOwner,
+        repo: trimmedRepo,
+      });
+
+      if (!data || Array.isArray(data) || data.type !== "file") return null;
+
+      const content = (data as { content?: string }).content;
+      if (typeof content !== "string") return null;
+
+      const decoded = Buffer.from(content, "base64").toString("utf-8");
+      const formatted = formatReadmeContent(decoded);
+
+      return formatted.length > 0 ? formatted : null;
+    } catch {
+      return null;
+    }
+  }
+
   // Gathers every rating input from the GitHub REST API. repos.get yields stars,
   // forks, pushed_at and open_issues; the search API yields the closed-issue
   // count. GitHub does not expose other repos' security alerts to the automation
@@ -1236,6 +1286,7 @@ export interface LocalPackageResult {
   backendLanguages: string[];
   repoFiles: string[];
   apiEndpoints: string[];
+  readme: string | null;
   manifest: Record<string, unknown> | null;
 }
 
@@ -1307,6 +1358,19 @@ function scanLocalApiEndpoints(entries: Record<string, Uint8Array>): string[] {
   return [...found];
 }
 
+function readReadmeFromEntries(
+  entries: Record<string, Uint8Array>,
+): string | null {
+  for (const rp of README_PATHS) {
+    const data = resolveInZip(entries, rp);
+    if (!data) continue;
+    const formatted = formatReadmeContent(new TextDecoder().decode(data));
+    if (formatted.length > 0) return formatted;
+  }
+
+  return null;
+}
+
 export function processLocalPackage(bytes: Uint8Array): LocalPackageResult {
   const entries = unzipSync(bytes, {
     filter: (file) =>
@@ -1363,6 +1427,8 @@ export function processLocalPackage(bytes: Uint8Array): LocalPackageResult {
 
   const apiEndpoints = scanLocalApiEndpoints(entries);
 
+  const readme = readReadmeFromEntries(entries);
+
   return {
     supportedBrowsers,
     permissions,
@@ -1370,6 +1436,7 @@ export function processLocalPackage(bytes: Uint8Array): LocalPackageResult {
     backendLanguages,
     repoFiles,
     apiEndpoints,
+    readme,
     manifest,
   };
 }
