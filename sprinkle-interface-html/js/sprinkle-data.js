@@ -606,23 +606,6 @@ window.SPRINKLE = (function () {
     ],
   };
 
-  var AVATAR_COLORS = [
-    "#4f46e5",
-    "#0284c7",
-    "#059669",
-    "#d97706",
-    "#dc2626",
-    "#7c3aed",
-    "#0891b2",
-    "#15803d",
-  ];
-
-  function avatarColor(user) {
-    return (
-      AVATAR_COLORS[user.charCodeAt(0) % AVATAR_COLORS.length] || "#4f46e5"
-    );
-  }
-
   function formatClaps(n) {
     return n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
   }
@@ -699,6 +682,73 @@ window.SPRINKLE = (function () {
       ["path", { d: "M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" }],
     ],
   };
+
+
+  // Bigger, deliberately different marks for card tiles: a medal, a bolt,
+  // an atom, a sticky note, a shape trio, a terminal and a serif T.
+  var GENRE_MARKS = {
+    Recommendation: [
+      ["circle", { cx: "12", cy: "9", r: "5.5" }],
+      ["path", { d: "M8.6 13.4 7 21l5-2.6L17 21l-1.6-7.6" }],
+    ],
+    Productivity: [
+      ["path", { d: "M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z" }],
+    ],
+    AI: [
+      ["circle", { cx: "12", cy: "12", r: "2.4" }],
+      ["ellipse", { cx: "12", cy: "12", rx: "9.5", ry: "4", transform: "rotate(45 12 12)" }],
+      ["ellipse", { cx: "12", cy: "12", rx: "9.5", ry: "4", transform: "rotate(-45 12 12)" }],
+    ],
+    Notes: [
+      ["path", { d: "M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8l-6 6H6a2 2 0 0 1-2-2z" }],
+      ["path", { d: "M20 14h-4a2 2 0 0 0-2 2v4" }],
+    ],
+    Design: [
+      ["path", { d: "M9 3.5 14 12H4Z" }],
+      ["rect", { x: "3", y: "14", width: "7", height: "7", rx: "1.5" }],
+      ["circle", { cx: "17", cy: "17.5", r: "3.8" }],
+    ],
+    Developer: [
+      ["rect", { x: "2.5", y: "4", width: "19", height: "16", rx: "2.5" }],
+      ["path", { d: "m7 10 3 3-3 3" }],
+      ["path", { d: "M13 16h4" }],
+    ],
+    Writing: [
+      ["path", { d: "M4.5 7V4.5h15V7" }],
+      ["path", { d: "M12 4.5v15" }],
+      ["path", { d: "M8.5 19.5h7" }],
+    ],
+  };
+
+  function genreSlug(genre) {
+    return String(genre || "developer")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-");
+  }
+
+  function strokeNodes(nodes) {
+    return nodes
+      .map(function (node) {
+        var attrs = Object.keys(node[1])
+          .map(function (k) {
+            return k + '="' + node[1][k] + '"';
+          })
+          .join(" ");
+        return "<" + node[0] + " " + attrs + "/>";
+      })
+      .join("");
+  }
+
+  function strokeIcon(nodes, cls) {
+    return (
+      '<svg class="' +
+      cls +
+      '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      strokeNodes(nodes) +
+      "</svg>"
+    );
+  }
 
   var icons = {
     menu: function (cls) {
@@ -801,6 +851,14 @@ window.SPRINKLE = (function () {
         settings:
           '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/>',
         "arrow-left": '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+        compass:
+          '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/>',
+        puzzle:
+          '<path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.073.84-.503 1.02-.967a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/>',
+        users:
+          '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        folder:
+          '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
         download:
           '<path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/>',
         "git-pull-request":
@@ -832,25 +890,10 @@ window.SPRINKLE = (function () {
     },
 
     genre: function (genre, cls) {
-      var nodes = GENRE_ICONS[genre] || GENRE_ICONS.Developer;
-      var inner = nodes
-        .map(function (node) {
-          var attrs = Object.keys(node[1])
-            .map(function (k) {
-              return k + '="' + node[1][k] + '"';
-            })
-            .join(" ");
-          return "<" + node[0] + " " + attrs + "/>";
-        })
-        .join("");
-      return (
-        '<svg class="' +
-        cls +
-        '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-        inner +
-        "</svg>"
-      );
+      return strokeIcon(GENRE_ICONS[genre] || GENRE_ICONS.Developer, cls);
+    },
+    genreMark: function (genre, cls) {
+      return strokeIcon(GENRE_MARKS[genre] || GENRE_MARKS.Developer, cls);
     },
     eye: function (cls) {
       return svg(
@@ -885,9 +928,7 @@ window.SPRINKLE = (function () {
     });
   }
 
-  function cardHtml(card, hideAvatar) {
-    var color = avatarColor(card.user);
-    var initials = card.user.slice(0, 2).toUpperCase();
+  function cardHtml(card, compact) {
     var href =
       "extensions.html?slug=" +
       encodeURIComponent(card.repo) +
@@ -914,16 +955,16 @@ window.SPRINKLE = (function () {
       formatClaps(card.claps) +
       "</span>";
 
-    var metaWrap = hideAvatar
+    var metaWrap = compact
       ? '<span class="card-meta grid2">' + meta + "</span>"
       : '<span class="card-meta row">' + meta + "</span>";
 
-    var avatar = hideAvatar
+    var mark = compact
       ? ""
-      : '<span class="card-avatar" style="background:' +
-        color +
+      : '<span class="card-mark mark-' +
+        genreSlug(card.genre) +
         '" aria-hidden="true">' +
-        initials +
+        icons.genreMark(card.genre, "") +
         "</span>";
 
     var saveBtn =
@@ -934,7 +975,7 @@ window.SPRINKLE = (function () {
 
     return (
       '<a class="app-card ' +
-      (hideAvatar ? "fading" : "solid") +
+      (compact ? "fading" : "solid") +
       '" href="' +
       href +
       '" data-card-id="' +
@@ -944,7 +985,7 @@ window.SPRINKLE = (function () {
       '" title="' +
       formatClaps(card.claps) +
       ' claps — like on the extension page">' +
-      avatar +
+      mark +
       '<span class="card-body">' +
       '<span class="card-title">' +
       '<span class="user">' +
@@ -1031,9 +1072,20 @@ window.SPRINKLE = (function () {
 
     var avatarBtn = document.getElementById("profile-btn");
     var menu = document.getElementById("profile-menu");
+    var mainBtn = document.getElementById("main-menu-btn");
+    var mainMenu = document.getElementById("main-menu");
+
+    function setMainMenu(open) {
+      if (!mainBtn || !mainMenu) return;
+      mainMenu.classList.toggle("open", open);
+      mainBtn.classList.toggle("open", open);
+      mainBtn.setAttribute("aria-expanded", String(open));
+    }
+
     if (avatarBtn && menu) {
       avatarBtn.addEventListener("click", function (event) {
         event.stopPropagation();
+        setMainMenu(false);
         var open = menu.classList.toggle("open");
         avatarBtn.classList.toggle("open", open);
         avatarBtn.setAttribute("aria-expanded", String(open));
@@ -1042,6 +1094,34 @@ window.SPRINKLE = (function () {
         menu.classList.remove("open");
         avatarBtn.classList.remove("open");
         avatarBtn.setAttribute("aria-expanded", "false");
+      });
+    }
+
+
+    if (mainBtn && mainMenu) {
+      mainBtn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        var open = !mainMenu.classList.contains("open");
+        if (avatarBtn && menu) {
+          menu.classList.remove("open");
+          avatarBtn.classList.remove("open");
+          avatarBtn.setAttribute("aria-expanded", "false");
+        }
+        setMainMenu(open);
+      });
+
+      document.addEventListener("click", function (event) {
+        if (event.target.closest && event.target.closest("#main-menu")) return;
+        setMainMenu(false);
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") setMainMenu(false);
+      });
+
+      mainMenu.addEventListener("click", function (event) {
+        if (event.target.closest(".dropdown-item, .menu-close"))
+          setMainMenu(false);
       });
     }
 
@@ -1085,7 +1165,27 @@ window.SPRINKLE = (function () {
   var HEADER_HTML = [
     '<header class="site-header">',
     '  <div class="header-left">',
-    '    <button type="button" aria-label="Open menu" class="icon-btn" data-icon="menu"></button>',
+    '    <div class="dropdown">',
+    '      <button type="button" id="main-menu-btn" aria-label="Open menu" aria-haspopup="true" aria-expanded="false" class="icon-btn" data-icon="menu"></button>',
+    '      <nav id="main-menu" class="menu-panel" aria-label="Main menu">',
+    '        <div class="menu-panel-head">',
+    '          <span class="menu-panel-title">Menu</span>',
+    '          <button type="button" class="icon-btn menu-close" aria-label="Close menu" data-icon="close"></button>',
+    "        </div>",
+    '        <div class="menu-label">Browse</div>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Explore — coming soon"><span data-icon="compass"></span><span>Explore</span></button>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Extensions — coming soon"><span data-icon="puzzle"></span><span>Extensions</span></button>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Community — coming soon"><span data-icon="users"></span><span>Community</span></button>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Files — coming soon"><span data-icon="folder"></span><span>Files</span></button>',
+    '        <div class="menu-label">Library</div>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Inventory — coming soon"><span data-icon="package"></span><span>Inventory</span></button>',
+    '        <a href="saved.html" class="dropdown-item"><span data-icon="bookmark"></span><span>Saved</span></a>',
+    '        <a href="history.html" class="dropdown-item"><span data-icon="history"></span><span>History</span></a>',
+    '        <div class="dropdown-sep"></div>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Docs &amp; help — coming soon"><span data-icon="book-open"></span><span>Docs &amp; help</span></button>',
+    '        <button type="button" class="dropdown-item" data-demo-toast="Settings — coming soon"><span data-icon="settings"></span><span>Settings</span></button>',
+    "      </nav>",
+    "    </div>",
     '    <a href="index.html" aria-label="Sprinkle home" class="logo-link" data-icon="logo"></a>',
     "  </div>",
     '  <div class="search-wrap" id="search-wrap">',
@@ -1103,9 +1203,8 @@ window.SPRINKLE = (function () {
     '      <div id="profile-menu" class="dropdown-menu">',
     '        <a href="profile.html?user=sprinkle-labs&me=1" class="dropdown-user" aria-label="View your profile"><span class="dropdown-avatar" aria-hidden="true">SL</span><span class="dropdown-user-meta"><span class="name">Sprinkle Labs</span><span class="handle">@sprinkle-labs</span></span><svg class="dropdown-user-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></a>',
     '        <div class="dropdown-sep"></div>',
+    '        <a href="create-extension.html" class="dropdown-item"><span data-icon="plus"></span><span>Create Extension</span></a>',
     '        <a href="inventory.html" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></a>',
-    '        <a href="saved.html" class="dropdown-item"><span data-icon="bookmark"></span><span>Saved</span></a>',
-    '        <a href="history.html" class="dropdown-item"><span data-icon="history"></span><span>History</span></a>',
     '        <button type="button" class="dropdown-item"><span data-icon="settings"></span><span>Settings</span></button>',
     "      </div>",
     "    </div>",
@@ -1154,6 +1253,24 @@ window.SPRINKLE = (function () {
     },
     settings: function (el) {
       el.innerHTML = icons.lucide("settings", "icon-sm");
+    },
+    compass: function (el) {
+      el.innerHTML = icons.lucide("compass", "icon-sm");
+    },
+    puzzle: function (el) {
+      el.innerHTML = icons.lucide("puzzle", "icon-sm");
+    },
+    users: function (el) {
+      el.innerHTML = icons.lucide("users", "icon-sm");
+    },
+    folder: function (el) {
+      el.innerHTML = icons.lucide("folder", "icon-sm");
+    },
+    "book-open": function (el) {
+      el.innerHTML = icons.lucide("book-open", "icon-sm");
+    },
+    close: function (el) {
+      el.innerHTML = icons.lucide("x", "icon-sm");
     },
   };
 

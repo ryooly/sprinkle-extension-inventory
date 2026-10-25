@@ -2,12 +2,86 @@
 <header class="site-header">
 
   <div class="header-left">
-    <button
-      type="button"
-      aria-label="Open menu"
-      class="icon-btn"
-      data-icon="menu"
-    ></button>
+    <div class="dropdown">
+      <button
+        type="button"
+        id="main-menu-btn"
+        aria-label="Open menu"
+        aria-haspopup="true"
+        aria-expanded="false"
+        class="icon-btn"
+        data-icon="menu"
+      ></button>
+      <nav id="main-menu" class="menu-panel" aria-label="Main menu">
+        <div class="menu-panel-head">
+          <span class="menu-panel-title">Menu</span>
+          <button
+            type="button"
+            class="icon-btn menu-close"
+            aria-label="Close menu"
+            data-icon="close"
+          ></button>
+        </div>
+        <div class="menu-label">Browse</div>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Explore — coming soon"
+        >
+          <span data-icon="compass"></span><span>Explore</span>
+        </button>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Extensions — coming soon"
+        >
+          <span data-icon="puzzle"></span><span>Extensions</span>
+        </button>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Community — coming soon"
+        >
+          <span data-icon="users"></span><span>Community</span>
+        </button>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Files — coming soon"
+        >
+          <span data-icon="folder"></span><span>Files</span>
+        </button>
+        <div class="menu-label">Library</div>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Inventory — coming soon"
+        >
+          <span data-icon="package"></span><span>Inventory</span>
+        </button>
+        <a href="saved.html" class="dropdown-item">
+          <span data-icon="bookmark"></span><span>Saved</span>
+        </a>
+        <a href="history.html" class="dropdown-item">
+          <span data-icon="history"></span><span>History</span>
+        </a>
+        <div class="dropdown-sep"></div>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Docs &amp; help — coming soon"
+        >
+          <span data-icon="book-open"></span><span>Docs &amp; help</span>
+        </button>
+        <button
+          type="button"
+          class="dropdown-item"
+          data-demo-toast="Settings — coming soon"
+        >
+          <span data-icon="settings"></span><span>Settings</span>
+        </button>
+      </nav>
+    </div>
     <a
       href="index.html"
       aria-label="Sprinkle home"
@@ -77,14 +151,11 @@
           </svg>
         </a>
         <div class="dropdown-sep"></div>
+        <a href="create-extension.html" class="dropdown-item">
+          <span data-icon="plus"></span><span>Create Extension</span>
+        </a>
         <a href="inventory.html" class="dropdown-item">
           <span data-icon="package"></span><span>Inventory</span>
-        </a>
-        <a href="saved.html" class="dropdown-item">
-          <span data-icon="bookmark"></span><span>Saved</span>
-        </a>
-        <a href="history.html" class="dropdown-item">
-          <span data-icon="history"></span><span>History</span>
         </a>
         <button type="button" class="dropdown-item">
           <span data-icon="settings"></span><span>Settings</span>

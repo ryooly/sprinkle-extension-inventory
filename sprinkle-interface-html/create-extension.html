@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create extension — Sprinkle</title>
+    <meta
+      name="description"
+      content="Publish a new extension to Sprinkle: name, description, developer, package file, categories and supported browsers."
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script>
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.classList.toggle("dark", t === "dark");
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+
+    <div data-header></div>
+
+    <main class="create-layout">
+      <form class="panel-card section-panel create-card" id="create-form" novalidate>
+        <div class="panel-head">
+          <span class="section-title">
+            <span data-icon="puzzle"></span>
+            <span>Create extension</span>
+          </span>
+          <span class="create-state" id="create-state">Draft</span>
+        </div>
+
+        <div class="create-body">
+          <p class="create-lede">
+            Name, description, developer and the package file are required.
+            Everything else is optional, and the bundle is scanned before your
+            extension goes live.
+          </p>
+
+          <div class="field" data-field="name">
+            <label class="field-label" for="ce-name">Extension name</label>
+            <input
+              class="text-input"
+              id="ce-name"
+              name="name"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="sprinkle-notes"
+              aria-describedby="ce-name-help"
+            />
+            <span class="field-help" id="ce-name-help"
+              >Shown on cards, search results and its page.</span
+            >
+            <span class="field-error" data-error-for="name" hidden></span>
+          </div>
+
+          <div class="field" data-field="developer">
+            <label class="field-label" for="ce-developer">Developer</label>
+            <input
+              class="text-input"
+              id="ce-developer"
+              name="developer"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="sprinkle-labs"
+              aria-describedby="ce-developer-help"
+            />
+            <span class="field-help" id="ce-developer-help"
+              >The account or team credited as the author.</span
+            >
+            <span class="field-error" data-error-for="developer" hidden></span>
+          </div>
+
+          <div class="field" data-field="description">
+            <div class="field-label-row">
+              <label class="field-label" for="ce-description">Description</label>
+              <span class="field-count" id="ce-desc-count">0 / 280</span>
+            </div>
+            <textarea
+              class="text-input text-area"
+              id="ce-description"
+              name="description"
+              rows="5"
+              maxlength="280"
+              placeholder="What does your extension do, and who is it for?"
+            ></textarea>
+            <span class="field-error" data-error-for="description" hidden></span>
+          </div>
+
+          <div class="field" data-field="file">
+            <span class="field-label">Package file</span>
+            <input
+              class="file-input"
+              id="ce-file"
+              name="file"
+              type="file"
+              accept=".zip,.crx,application/zip"
+              aria-describedby="ce-file-help"
+            />
+            <label class="drop-zone" id="ce-drop" for="ce-file">
+              <svg
+                class="drop-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="22"
+                height="22"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12" />
+                <path d="m7 8 5-5 5 5" />
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              </svg>
+              <span class="drop-title"
+                >Drop your bundle here or
+                <span class="drop-link">browse</span></span
+              >
+              <span class="drop-hint" id="ce-file-help"
+                >ZIP or CRX · up to 25 MB</span
+              >
+            </label>
+            <span class="drop-file" id="ce-file-name"></span>
+            <span class="field-error" data-error-for="file" hidden></span>
+          </div>
+
+          <div class="field" data-field="source">
+            <div class="field-label-row">
+              <label class="field-label" for="ce-source">Source repository</label>
+              <span class="optional-tag">Optional</span>
+            </div>
+            <input
+              class="text-input"
+              id="ce-source"
+              name="source"
+              type="url"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="https://github.com/you/sprinkle-notes"
+            />
+            <span class="field-error" data-error-for="source" hidden></span>
+          </div>
+
+          <div class="field" data-field="categories">
+            <span class="field-label" id="ce-categories-label">Categories</span>
+            <div
+              class="chip-select"
+              id="ce-categories"
+              role="group"
+              aria-labelledby="ce-categories-label"
+            ></div>
+            <span class="field-help">Pick every category that fits.</span>
+          </div>
+
+          <div class="field" data-field="supportedBrowsers">
+            <span class="field-label" id="ce-browsers-label"
+              >Supported browsers</span
+            >
+            <div
+              class="chip-select"
+              id="ce-browsers"
+              role="group"
+              aria-labelledby="ce-browsers-label"
+            >
+              <button
+                type="button"
+                class="pick-chip active"
+                data-browser="chrome"
+                aria-pressed="true"
+              >
+                <svg
+                  class="brand brand-chrome"
+                  viewBox="0 0 496 512"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M131.5 217.5L55.1 100.1c47.6-59.2 119-91.8 192-92.1 42.3-.3 85.5 10.5 124.8 33.2 43.4 25.2 76.4 61.4 97.4 103L264 133.4c-58.1-3.4-113.4 29.3-132.5 84.1zm32.9 38.5c0 46.2 37.4 83.6 83.6 83.6s83.6-37.4 83.6-83.6-37.4-83.6-83.6-83.6-83.6 37.3-83.6 83.6zm314.9-89.2L339.6 174c37.9 44.3 38.5 108.2 6.6 157.2L234.1 503.6c46.5 2.5 94.4-7.7 137.8-32.9 107.4-62 150.9-192 107.4-303.9zM133.7 303.6L40.4 120.1C14.9 159.1 0 205.9 0 256c0 124 90.8 226.7 209.5 244.9l63.7-124.8c-57.6 10.8-113.2-20.8-139.5-72.5z"
+                  />
+                </svg>
+                Chrome
+              </button>
+              <button
+                type="button"
+                class="pick-chip"
+                data-browser="edge"
+                aria-pressed="false"
+              >
+                <svg
+                  class="brand brand-edge"
+                  viewBox="0 0 512 512"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M481.92,134.48C440.87,54.18,352.26,8,255.91,8,137.05,8,37.51,91.68,13.47,203.66c26-46.49,86.22-79.14,149.46-79.14,79.27,0,121.09,48.93,122.25,50.18,22,23.8,33,50.39,33,83.1,0,10.4-5.31,25.82-15.11,38.57-1.57,2-6.39,4.84-6.39,11,0,5.06,3.29,9.92,9.14,14,27.86,19.37,80.37,16.81,80.51,16.81A115.39,115.39,0,0,0,444.94,322a118.92,118.92,0,0,0,58.95-102.44C504.39,176.13,488.39,147.26,481.92,134.48ZM212.77,475.67a154.88,154.88,0,0,1-46.64-45c-32.94-47.42-34.24-95.6-20.1-136A155.5,155.5,0,0,1,203,215.75c59-45.2,94.84-5.65,99.06-1a80,80,0,0,0-4.89-10.14c-9.24-15.93-24-36.41-56.56-53.51-33.72-17.69-70.59-18.59-77.64-18.59-38.71,0-77.9,13-107.53,35.69C35.68,183.3,12.77,208.72,8.6,243c-1.08,12.31-2.75,62.8,23,118.27a248,248,0,0,0,248.3,141.61C241.78,496.26,214.05,476.24,212.77,475.67Zm250.72-98.33a7.76,7.76,0,0,0-7.92-.23,181.66,181.66,0,0,1-20.41,9.12,197.54,197.54,0,0,1-69.55,12.52c-91.67,0-171.52-63.06-171.52-144A61.12,61.12,0,0,1,200.61,228,168.72,168.72,0,0,0,161.85,278c-14.92,29.37-33,88.13,13.33,151.66,6.51,8.91,23,30,56,47.67,23.57,12.65,49,19.61,71.7,19.61,35.14,0,115.43-33.44,163-108.87A7.75,7.75,0,0,0,463.49,377.34Z"
+                  />
+                </svg>
+                Edge
+              </button>
+              <button
+                type="button"
+                class="pick-chip"
+                data-browser="firefox"
+                aria-pressed="false"
+              >
+                <svg
+                  class="brand brand-firefox"
+                  viewBox="0 0 512 512"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M503.52,241.48c-.12-1.56-.24-3.12-.24-4.68v-.12l-.36-4.68v-.12a245.86,245.86,0,0,0-7.32-41.15c0-.12,0-.12-.12-.24l-1.08-4c-.12-.24-.12-.48-.24-.6-.36-1.2-.72-2.52-1.08-3.72-.12-.24-.12-.6-.24-.84-.36-1.2-.72-2.4-1.08-3.48-.12-.36-.24-.6-.36-1-.36-1.2-.72-2.28-1.2-3.48l-.36-1.08c-.36-1.08-.84-2.28-1.2-3.36a8.27,8.27,0,0,0-.36-1c-.48-1.08-.84-2.28-1.32-3.36-.12-.24-.24-.6-.36-.84-.48-1.2-1-2.28-1.44-3.48,0-.12-.12-.24-.12-.36-1.56-3.84-3.24-7.68-5-11.4l-.36-.72c-.48-1-.84-1.8-1.32-2.64-.24-.48-.48-1.08-.72-1.56-.36-.84-.84-1.56-1.2-2.4-.36-.6-.6-1.2-1-1.8s-.84-1.44-1.2-2.28c-.36-.6-.72-1.32-1.08-1.92s-.84-1.44-1.2-2.16a18.07,18.07,0,0,0-1.2-2c-.36-.72-.84-1.32-1.2-2s-.84-1.32-1.2-2-.84-1.32-1.2-1.92-.84-1.44-1.32-2.16a15.63,15.63,0,0,0-1.2-1.8L463.2,119a15.63,15.63,0,0,0-1.2-1.8c-.48-.72-1.08-1.56-1.56-2.28-.36-.48-.72-1.08-1.08-1.56l-1.8-2.52c-.36-.48-.6-.84-1-1.32-1-1.32-1.8-2.52-2.76-3.72a248.76,248.76,0,0,0-23.51-26.64A186.82,186.82,0,0,0,412,62.46c-4-3.48-8.16-6.72-12.48-9.84a162.49,162.49,0,0,0-24.6-15.12c-2.4-1.32-4.8-2.52-7.2-3.72a254,254,0,0,0-55.43-19.56c-1.92-.36-3.84-.84-5.64-1.2h-.12c-1-.12-1.8-.36-2.76-.48a236.35,236.35,0,0,0-38-4H255.14a234.62,234.62,0,0,0-45.48,5c-33.59,7.08-63.23,21.24-82.91,39-1.08,1-1.92,1.68-2.4,2.16l-.48.48H124l-.12.12.12-.12a.12.12,0,0,0,.12-.12l-.12.12a.42.42,0,0,1,.24-.12c14.64-8.76,34.92-16,49.44-19.56l5.88-1.44c.36-.12.84-.12,1.2-.24,1.68-.36,3.36-.72,5.16-1.08.24,0,.6-.12.84-.12C250.94,20.94,319.34,40.14,367,85.61a171.49,171.49,0,0,1,26.88,32.76c30.36,49.2,27.48,111.11,3.84,147.59-34.44,53-111.35,71.27-159,24.84a84.19,84.19,0,0,1-25.56-59,74.05,74.05,0,0,1,6.24-31c1.68-3.84,13.08-25.67,18.24-24.59-13.08-2.76-37.55,2.64-54.71,28.19-15.36,22.92-14.52,58.2-5,83.28a132.85,132.85,0,0,1-12.12-39.24c-12.24-82.55,43.31-153,94.31-170.51-27.48-24-96.47-22.31-147.71,15.36-29.88,22-51.23,53.16-62.51,90.36,1.68-20.88,9.6-52.08,25.8-83.88-17.16,8.88-39,37-49.8,62.88-15.6,37.43-21,82.19-16.08,124.79.36,3.24.72,6.36,1.08,9.6,19.92,117.11,122,206.38,244.78,206.38C392.77,503.42,504,392.19,504,255,503.88,250.48,503.76,245.92,503.52,241.48Z"
+                  />
+                </svg>
+                Firefox
+              </button>
+              <button
+                type="button"
+                class="pick-chip"
+                data-browser="safari"
+                aria-pressed="false"
+              >
+                <svg
+                  class="brand brand-safari"
+                  viewBox="0 0 512 512"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M274.69,274.69l-37.38-37.38L166,346ZM256,8C119,8,8,119,8,256S119,504,256,504,504,393,504,256,393,8,256,8ZM411.85,182.79l14.78-6.13A8,8,0,0,1,437.08,181h0a8,8,0,0,1-4.33,10.46L418,197.57a8,8,0,0,1-10.45-4.33h0A8,8,0,0,1,411.85,182.79ZM314.43,94l6.12-14.78A8,8,0,0,1,331,74.92h0a8,8,0,0,1,4.33,10.45l-6.13,14.78a8,8,0,0,1-10.45,4.33h0A8,8,0,0,1,314.43,94ZM256,60h0a8,8,0,0,1,8,8V84a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V68A8,8,0,0,1,256,60ZM181,74.92a8,8,0,0,1,10.46,4.33L197.57,94a8,8,0,1,1-14.78,6.12l-6.13-14.78A8,8,0,0,1,181,74.92Zm-63.58,42.49h0a8,8,0,0,1,11.31,0L140,128.72A8,8,0,0,1,140,140h0a8,8,0,0,1-11.31,0l-11.31-11.31A8,8,0,0,1,117.41,117.41ZM60,256h0a8,8,0,0,1,8-8H84a8,8,0,0,1,8,8h0a8,8,0,0,1-8,8H68A8,8,0,0,1,60,256Zm40.15,73.21-14.78,6.13A8,8,0,0,1,74.92,331h0a8,8,0,0,1,4.33-10.46L94,314.43a8,8,0,0,1,10.45,4.33h0A8,8,0,0,1,100.15,329.21Zm4.33-136h0A8,8,0,0,1,94,197.57l-14.78-6.12A8,8,0,0,1,74.92,181h0a8,8,0,0,1,10.45-4.33l14.78,6.13A8,8,0,0,1,104.48,193.24ZM197.57,418l-6.12,14.78a8,8,0,0,1-14.79-6.12l6.13-14.78A8,8,0,1,1,197.57,418ZM264,444a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V428a8,8,0,0,1,8-8h0a8,8,0,0,1,8,8Zm67-6.92h0a8,8,0,0,1-10.46-4.33L314.43,418a8,8,0,0,1,4.33-10.45h0a8,8,0,0,1,10.45,4.33l6.13,14.78A8,8,0,0,1,331,437.08Zm63.58-42.49h0a8,8,0,0,1-11.31,0L372,383.28A8,8,0,0,1,372,372h0a8,8,0,0,1,11.31,0l11.31,11.31A8,8,0,0,1,394.59,394.59ZM286.25,286.25,110.34,401.66,225.75,225.75,401.66,110.34ZM437.08,331h0a8,8,0,0,1-10.45,4.33l-14.78-6.13a8,8,0,0,1-4.33-10.45h0A8,8,0,0,1,418,314.43l14.78,6.12A8,8,0,0,1,437.08,331ZM444,264H428a8,8,0,0,1-8-8h0a8,8,0,0,1,8-8h16a8,8,0,0,1,8,8h0A8,8,0,0,1,444,264Z"
+                  />
+                </svg>
+                Safari
+              </button>
+              <button
+                type="button"
+                class="pick-chip"
+                data-browser="opera"
+                aria-pressed="false"
+              >
+                <svg
+                  class="brand brand-opera"
+                  viewBox="0 0 496 512"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M313.9 32.7c-170.2 0-252.6 223.8-147.5 355.1 36.5 45.4 88.6 75.6 147.5 75.6 36.3 0 70.3-11.1 99.4-30.4-43.8 39.2-101.9 63-165.3 63-3.9 0-8 0-11.9-.3C104.6 489.6 0 381.1 0 248 0 111 111 0 248 0h.8c63.1.3 120.7 24.1 164.4 63.1-29-19.4-63.1-30.4-99.3-30.4zm101.8 397.7c-40.9 24.7-90.7 23.6-132-5.8 56.2-20.5 97.7-91.6 97.7-176.6 0-84.7-41.2-155.8-97.4-176.6 41.8-29.2 91.2-30.3 132.9-5 105.9 98.7 105.5 265.7-1.2 364z"
+                  />
+                </svg>
+                Opera
+              </button>
+            </div>
+            <span class="field-help"
+              >Chrome is selected by default; add every browser you support.</span
+            >
+          </div>
+        </div>
+
+        <div class="create-actions">
+          <span class="create-note"
+            >You can edit everything after publishing.</span
+          >
+          <div class="create-btns">
+            <a class="action-btn" href="index.html">Cancel</a>
+            <button type="submit" class="download-btn" id="create-submit">
+              <span class="shine" aria-hidden="true"></span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="14"
+                height="14"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              <span class="submit-label">Publish extension</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <aside class="create-side">
+        <section class="panel-card side-card">
+          <div class="panel-head">
+            <span class="section-title">Before you publish</span>
+          </div>
+          <div class="side-body">
+            <ul class="check-list">
+              <li>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span>A package file that installs without warnings.</span>
+              </li>
+              <li>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span>A description that says who it is for.</span>
+              </li>
+              <li>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span>Categories that match the listing.</span>
+              </li>
+              <li>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span>Only the browsers you actually tested.</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="panel-card side-card">
+          <div class="panel-head">
+            <span class="section-title">What happens next</span>
+          </div>
+          <div class="side-body">
+            <ol class="step-list">
+              <li>
+                <span class="step-num">1</span>
+                <span>Your bundle is scanned for permissions and malware.</span>
+              </li>
+              <li>
+                <span class="step-num">2</span>
+                <span>Sprinkle Labs reviews the listing, usually within a day.</span>
+              </li>
+              <li>
+                <span class="step-num">3</span>
+                <span>The extension appears in Browse and lands in your inventory.</span>
+              </li>
+            </ol>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="js/vendor/lucide.min.js"></script>
+    <script src="js/sprinkle-data.js"></script>
+    <script src="js/interactions.js"></script>
+    <script src="js/create-extension.js"></script>
+  </body>
+</html>
