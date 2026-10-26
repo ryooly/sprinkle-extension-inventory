@@ -731,6 +731,210 @@ export function rateRepository(input: RepoRatingInput): RepoRating {
   return { totalScore, grade: toRepoGrade(totalScore), breakdown };
 }
 
+export type SecurityRisk =
+  | "flagged-endpoint"
+  | "unverified-endpoint"
+  | "insecure-endpoint"
+  | "sensitive-permission";
+
+export interface SecurityScoreEndpoint {
+  type: ApiEndpointType;
+  path: string;
+  security: ApiEndpointSecurity;
+}
+
+export interface SecurityScoreInput {
+  endpoints?: Array<SecurityScoreEndpoint | string>;
+  permissions?: BrowserPermission[];
+}
+
+export interface SecurityScoreBreakdown {
+  endpointThreats: number;
+  verificationConfidence: number;
+  transportHygiene: number;
+  permissionExposure: number;
+}
+
+export interface ExtensionSecurityScore {
+  score: number;
+  breakdown: SecurityScoreBreakdown;
+  risks: SecurityRisk[];
+}
+
+const MAX_SECURITY_SCORE = 100;
+const FLAGGED_ENDPOINT_SCORE_CAP = 25;
+
+const PERMISSION_SENSITIVITY: Record<BrowserPermission, number> = {
+  accessAllWebsites: 8,
+  readCookies: 7,
+  clipboardRead: 6,
+  readBrowsingHistory: 6,
+  readOpenTabs: 4,
+  readWebsiteData: 4,
+  manageDownloads: 3,
+  accessCurrentWebsite: 2,
+  backgroundExecution: 2,
+  clipboardWrite: 2,
+  manageBookmarks: 2,
+  showNotifications: 1,
+};
+
+const SUSPICIOUS_HOST_SUFFIXES = [
+  "bit.ly",
+  "buff.ly",
+  "cutt.ly",
+  "goo.gl",
+  "is.gd",
+  "ow.ly",
+  "rb.gy",
+  "rebrand.ly",
+  "t.co",
+  "tinyurl.com",
+];
+
+const IPV4_HOST_REGEX = /^\d{1,3}(\.\d{1,3}){3}$/;
+const PUNYCODE_HOST_REGEX = /(^|\.)xn--/i;
+const STANDARD_PORTS = new Set(["80", "443"]);
+const LOCAL_ENDPOINT_REGEX = /^(internal|external):([A-Z]+)\s+(.+)$/;
+
+function isSuspiciousEndpoint(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    const host = parsed.hostname.toLowerCase();
+
+    if (parsed.protocol !== "https:") return true;
+    if (IPV4_HOST_REGEX.test(host)) return true;
+    if (PUNYCODE_HOST_REGEX.test(host)) return true;
+    if (parsed.port.length > 0 && !STANDARD_PORTS.has(parsed.port)) return true;
+    if (host.split(".").length > 4) return true;
+
+    return SUSPICIOUS_HOST_SUFFIXES.some(
+      (suffix) => host === suffix || host.endsWith(`.${suffix}`),
+    );
+  } catch {
+    return true;
+  }
+}
+
+function toScoredEndpoint(
+  entry: SecurityScoreEndpoint | string,
+): SecurityScoreEndpoint | null {
+  if (typeof entry !== "string") return entry;
+
+  const match = LOCAL_ENDPOINT_REGEX.exec(entry.trim());
+  if (!match) return null;
+
+  const type = match[1] as ApiEndpointType;
+
+  return {
+    type,
+    path: match[3].trim(),
+    security: {
+      safe: true,
+      threats: [],
+      checkedAt: new Date().toISOString(),
+      skippedOnError: type === "external",
+    },
+  };
+}
+
+function scoreEndpointThreats(flagged: number): number {
+  if (flagged === 0) return 40;
+  if (flagged === 1) return 10;
+  return 0;
+}
+
+function scoreVerificationConfidence(
+  unverified: number,
+  total: number,
+): number {
+  if (total === 0 || unverified === 0) return 20;
+
+  const ratio = unverified / total;
+
+  if (ratio <= 0.25) return 15;
+  if (ratio <= 0.5) return 10;
+  if (ratio <= 0.75) return 5;
+  return 0;
+}
+
+function scoreTransportHygiene(suspicious: number, total: number): number {
+  if (total === 0 || suspicious === 0) return 15;
+
+  const ratio = suspicious / total;
+
+  if (ratio <= 0.25) return 11;
+  if (ratio <= 0.5) return 7;
+  if (ratio <= 0.75) return 3;
+  return 0;
+}
+
+function permissionRiskWeight(permissions: BrowserPermission[]): number {
+  return permissions.reduce(
+    (total, permission) => total + PERMISSION_SENSITIVITY[permission],
+    0,
+  );
+}
+
+function scorePermissionExposure(weight: number): number {
+  if (weight === 0) return 25;
+  if (weight <= 4) return 21;
+  if (weight <= 9) return 16;
+  if (weight <= 16) return 10;
+  if (weight <= 24) return 5;
+  return 0;
+}
+
+export function computeSecurityScore(
+  input: SecurityScoreInput,
+): ExtensionSecurityScore {
+  const permissions = [...new Set(input.permissions ?? [])];
+
+  const externalEndpoints = (input.endpoints ?? [])
+    .map(toScoredEndpoint)
+    .filter((endpoint): endpoint is SecurityScoreEndpoint => endpoint !== null)
+    .filter((endpoint) => endpoint.type === "external");
+
+  const total = externalEndpoints.length;
+  const flagged = externalEndpoints.filter(
+    (endpoint) => !endpoint.security.safe,
+  ).length;
+  const unverified = externalEndpoints.filter(
+    (endpoint) => endpoint.security.skippedOnError,
+  ).length;
+  const suspicious = externalEndpoints.filter((endpoint) =>
+    isSuspiciousEndpoint(endpoint.path),
+  ).length;
+  const weight = permissionRiskWeight(permissions);
+
+  const breakdown: SecurityScoreBreakdown = {
+    endpointThreats: scoreEndpointThreats(flagged),
+    verificationConfidence: scoreVerificationConfidence(unverified, total),
+    transportHygiene: scoreTransportHygiene(suspicious, total),
+    permissionExposure: scorePermissionExposure(weight),
+  };
+
+  const risks: SecurityRisk[] = [];
+
+  if (flagged > 0) risks.push("flagged-endpoint");
+  if (unverified > 0) risks.push("unverified-endpoint");
+  if (suspicious > 0) risks.push("insecure-endpoint");
+  if (weight > 4) risks.push("sensitive-permission");
+
+  const rawScore =
+    breakdown.endpointThreats +
+    breakdown.verificationConfidence +
+    breakdown.transportHygiene +
+    breakdown.permissionExposure;
+
+  const cappedScore =
+    flagged > 0 ? Math.min(rawScore, FLAGGED_ENDPOINT_SCORE_CAP) : rawScore;
+
+  const score = Math.max(0, Math.min(MAX_SECURITY_SCORE, cappedScore));
+
+  return { score, breakdown, risks };
+}
+
 async function countClosedIssues(
   octokit: Octokit,
   owner: string,
@@ -1031,6 +1235,10 @@ export class ExtensionUtils {
 
   rateRepository(input: RepoRatingInput): RepoRating {
     return rateRepository(input);
+  }
+
+  computeSecurityScore(input: SecurityScoreInput): ExtensionSecurityScore {
+    return computeSecurityScore(input);
   }
 }
 

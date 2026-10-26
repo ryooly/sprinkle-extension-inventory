@@ -120,6 +120,13 @@
       "when": 1792852052370,
       "tag": "0016_add_extension_announcement",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792988563799,
+      "tag": "0017_add_extension_security_score",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { AppError } from "@/errorhandler";
 import { logger } from "@/logger";
 import {
   ExtensionUtils,
+  computeSecurityScore,
   processLocalPackage,
   type ExtensionUploadData,
 } from "../../depends/extension-utils";
@@ -83,6 +84,16 @@ export async function insertExtensionsFromGithub(
       (e) => `${e.type}:${e.method} ${e.path}`,
     );
 
+    const effectivePermissions =
+      manifestPermissions.length > 0
+        ? manifestPermissions
+        : normalized.permissions;
+
+    const security = ext.computeSecurityScore({
+      endpoints,
+      permissions: effectivePermissions,
+    });
+
     const repoRating = ext.rateRepository(repoMetrics);
     logger.info(
       {
@@ -92,6 +103,15 @@ export async function insertExtensionsFromGithub(
         breakdown: repoRating.breakdown,
       },
       "repository trust rating computed",
+    );
+    logger.info(
+      {
+        name: normalized.name,
+        securityScore: security.score,
+        breakdown: security.breakdown,
+        risks: security.risks,
+      },
+      "extension security score computed",
     );
 
     try {
@@ -130,10 +150,7 @@ export async function insertExtensionsFromGithub(
         source: "github",
         categories: normalized.category,
         extensionStatus: normalized.extensionStatus ?? "basic",
-        permissions:
-          manifestPermissions.length > 0
-            ? manifestPermissions
-            : normalized.permissions,
+        permissions: effectivePermissions,
         supportedBrowsers,
         frontendLanguages:
           frontendLanguages.length > 0
@@ -148,6 +165,7 @@ export async function insertExtensionsFromGithub(
         repoFiles:
           repoFiles.length > 0 ? repoFiles : (normalized.repoFiles ?? null),
         apiEndpoints: apiEndpoints.length > 0 ? apiEndpoints : null,
+        securityScore: security.score,
         announcement: readme ?? normalized.description,
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
@@ -196,6 +214,11 @@ export async function insertExtensionFromUpload(
 
   const local = processLocalPackage(bytes);
 
+  const security = computeSecurityScore({
+    endpoints: local.apiEndpoints,
+    permissions: local.permissions,
+  });
+
   const result = await createExtension({
     name: data.name,
     description: data.description,
@@ -214,6 +237,7 @@ export async function insertExtensionFromUpload(
       local.backendLanguages.length > 0 ? local.backendLanguages : null,
     repoFiles: local.repoFiles.length > 0 ? local.repoFiles : null,
     apiEndpoints: local.apiEndpoints.length > 0 ? local.apiEndpoints : null,
+    securityScore: security.score,
     announcement: local.readme ?? data.description,
   });
 
@@ -226,6 +250,9 @@ export async function insertExtensionFromUpload(
       name: data.name,
       files: local.repoFiles.length,
       endpoints: local.apiEndpoints.length,
+      securityScore: security.score,
+      breakdown: security.breakdown,
+      risks: security.risks,
     },
     "user extension created from upload",
   );

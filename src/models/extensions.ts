@@ -61,6 +61,7 @@ export const extensions = pgTable(
     stars: integer("stars"),
     repoFiles: text("repo_files").array(),
     apiEndpoints: text("api_endpoints").array(),
+    securityScore: integer("security_score"),
     announcement: text("announcement"),
     extensionStatus: extensionStatusEnum("extension_status")
       .notNull()

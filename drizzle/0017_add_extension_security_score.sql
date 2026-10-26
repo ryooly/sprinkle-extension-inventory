@@ -1,0 +1,1 @@
+ALTER TABLE "extensions" ADD COLUMN "security_score" integer;
