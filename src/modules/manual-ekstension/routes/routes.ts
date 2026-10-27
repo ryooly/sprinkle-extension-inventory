@@ -11,6 +11,7 @@ import {
   handleRemoveExtension,
   handleSearchExtensionsByName,
   handleSearchExtensionsByCategory,
+  handleSearchExtensionsByHashtag,
   handleSearchExtensionsByBrowser,
   handleOpenExtensionFile,
 } from "../controller/controller";
@@ -32,11 +33,12 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
   .patch(
     "/:id",
     async ({ params, body }) => {
-      const { categories, ...data } = body;
+      const { categories, hashtags, ...data } = body;
       const result = await handleEditExtension({
         id: params.id,
         data,
         categories,
+        hashtags,
       });
       return result;
     },
@@ -81,6 +83,19 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
     {
       body: t.Object({
         category: categorySchema,
+      }),
+    },
+  )
+
+  .post(
+    "/search/by-hashtag",
+    async ({ body }) => {
+      const result = await handleSearchExtensionsByHashtag(body.hashtag);
+      return result;
+    },
+    {
+      body: t.Object({
+        hashtag: t.String({ minLength: 1, maxLength: 50 }),
       }),
     },
   )

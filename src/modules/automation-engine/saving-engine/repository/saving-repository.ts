@@ -2,13 +2,16 @@ import { db } from "@/db/client";
 import {
   extensions,
   extensionCategories,
+  extensionHashtags,
   extensionPermissions,
   fetchedRepos,
+  hashtags,
 } from "@/models";
-import { and, arrayContains, eq, ilike } from "drizzle-orm";
+import { and, arrayContains, eq, ilike, inArray } from "drizzle-orm";
 import type {
   NewExtension,
   NewExtensionCategory,
+  NewExtensionHashtag,
   Category,
   Browser,
   BrowserPermission,
@@ -17,19 +20,44 @@ import { AppError } from "@/errorhandler";
 import { escapeLikePattern } from "../../depends/sanitize";
 import type { Extension } from "@/models";
 
+type DbExecutor = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function ensureHashtags(
+  executor: DbExecutor,
+  names: string[],
+): Promise<string[]> {
+  const unique = [...new Set(names)].filter((name) => name.length > 0);
+
+  if (unique.length === 0) return [];
+
+  await executor
+    .insert(hashtags)
+    .values(unique.map((name) => ({ name })))
+    .onConflictDoNothing({ target: hashtags.name });
+
+  const rows = await executor
+    .select({ id: hashtags.id })
+    .from(hashtags)
+    .where(inArray(hashtags.name, unique));
+
+  return rows.map((row) => row.id);
+}
+
 export interface CreateExtensionPayload extends NewExtension {
   categories: Category[];
   permissions?: BrowserPermission[];
+  hashtags?: string[];
 }
 
 export interface UpdateExtensionPayload {
   id: string;
   data: Partial<Omit<NewExtension, "id" | "createdAt" | "updatedAt">>;
   categories?: Category[];
+  hashtags?: string[];
 }
 
 export async function createExtension(payload: CreateExtensionPayload) {
-  const { categories, permissions, ...extensionData } = payload;
+  const { categories, permissions, hashtags, ...extensionData } = payload;
 
   return await db.transaction(async (tx) => {
     const [extension] = await tx
@@ -48,6 +76,19 @@ export async function createExtension(payload: CreateExtensionPayload) {
       await tx.insert(extensionCategories).values(categoryRows);
     }
 
+    if (hashtags && hashtags.length > 0) {
+      const hashtagIds = await ensureHashtags(tx, hashtags);
+
+      const hashtagRows: NewExtensionHashtag[] = hashtagIds.map(
+        (hashtagId) => ({
+          extensionId: extension.id,
+          hashtagId,
+        }),
+      );
+
+      await tx.insert(extensionHashtags).values(hashtagRows);
+    }
+
     if (permissions && permissions.length > 0) {
       const uniquePermissions = [...new Set(permissions)];
 
@@ -64,7 +105,7 @@ export async function createExtension(payload: CreateExtensionPayload) {
 }
 
 export async function updateExtension(payload: UpdateExtensionPayload) {
-  const { id, data, categories } = payload;
+  const { id, data, categories, hashtags } = payload;
 
   return await db.transaction(async (tx) => {
     const [updated] = await tx
@@ -89,6 +130,25 @@ export async function updateExtension(payload: UpdateExtensionPayload) {
       );
 
       await tx.insert(extensionCategories).values(categoryRows);
+    }
+
+    if (hashtags) {
+      await tx
+        .delete(extensionHashtags)
+        .where(eq(extensionHashtags.extensionId, id));
+
+      if (hashtags.length > 0) {
+        const hashtagIds = await ensureHashtags(tx, hashtags);
+
+        const hashtagRows: NewExtensionHashtag[] = hashtagIds.map(
+          (hashtagId) => ({
+            extensionId: id,
+            hashtagId,
+          }),
+        );
+
+        await tx.insert(extensionHashtags).values(hashtagRows);
+      }
     }
 
     return updated;
@@ -174,6 +234,34 @@ export async function findExtensionsByCategory(
     .where(eq(extensionCategories.category, category));
 
   return rows.map((row) => row.extension);
+}
+
+export async function findExtensionsByHashtag(
+  hashtag: string,
+): Promise<Extension[]> {
+  const rows = await db
+    .select({ extension: extensions })
+    .from(extensions)
+    .innerJoin(
+      extensionHashtags,
+      eq(extensionHashtags.extensionId, extensions.id),
+    )
+    .innerJoin(hashtags, eq(extensionHashtags.hashtagId, hashtags.id))
+    .where(eq(hashtags.name, hashtag));
+
+  return rows.map((row) => row.extension);
+}
+
+export async function getHashtagsForExtension(
+  extensionId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ name: hashtags.name })
+    .from(extensionHashtags)
+    .innerJoin(hashtags, eq(hashtags.id, extensionHashtags.hashtagId))
+    .where(eq(extensionHashtags.extensionId, extensionId));
+
+  return rows.map((row) => row.name);
 }
 
 export async function findExtensionByRepoFullName(fullName: string) {

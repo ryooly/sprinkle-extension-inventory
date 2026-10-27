@@ -168,6 +168,46 @@ export const extensionCategories = pgTable(
   }),
 );
 
+export const hashtags = pgTable(
+  "hashtags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    uniqueName: uniqueIndex("hashtags_name_uidx").on(table.name),
+  }),
+);
+
+export const extensionHashtags = pgTable(
+  "extension_hashtags",
+  {
+    extensionId: uuid("extension_id")
+      .notNull()
+      .references(() => extensions.id, { onDelete: "cascade" }),
+    hashtagId: uuid("hashtag_id")
+      .notNull()
+      .references(() => hashtags.id, { onDelete: "cascade" }),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.extensionId, table.hashtagId] }),
+    hashtagIdIdx: index("extension_hashtags_hashtag_id_idx").on(
+      table.hashtagId,
+    ),
+    extensionIdIdx: index("extension_hashtags_extension_id_idx").on(
+      table.extensionId,
+    ),
+  }),
+);
+
 export const fetchedRepos = pgTable("fetched_repos", {
   id: serial("id").primaryKey(),
   repoName: text("repo_name").notNull().unique(),
@@ -175,6 +215,7 @@ export const fetchedRepos = pgTable("fetched_repos", {
 
 export const extensionsRelations = relations(extensions, ({ many }) => ({
   categories: many(extensionCategories),
+  hashtags: many(extensionHashtags),
 }));
 
 export const extensionCategoriesRelations = relations(
@@ -187,11 +228,35 @@ export const extensionCategoriesRelations = relations(
   }),
 );
 
+export const hashtagsRelations = relations(hashtags, ({ many }) => ({
+  extensions: many(extensionHashtags),
+}));
+
+export const extensionHashtagsRelations = relations(
+  extensionHashtags,
+  ({ one }) => ({
+    extension: one(extensions, {
+      fields: [extensionHashtags.extensionId],
+      references: [extensions.id],
+    }),
+    hashtag: one(hashtags, {
+      fields: [extensionHashtags.hashtagId],
+      references: [hashtags.id],
+    }),
+  }),
+);
+
 export type Extension = typeof extensions.$inferSelect;
 export type NewExtension = typeof extensions.$inferInsert;
 
 export type ExtensionCategory = typeof extensionCategories.$inferSelect;
 export type NewExtensionCategory = typeof extensionCategories.$inferInsert;
+
+export type Hashtag = typeof hashtags.$inferSelect;
+export type NewHashtag = typeof hashtags.$inferInsert;
+
+export type ExtensionHashtag = typeof extensionHashtags.$inferSelect;
+export type NewExtensionHashtag = typeof extensionHashtags.$inferInsert;
 
 export type VerificationStatus =
   (typeof verificationStatusEnum.enumValues)[number];

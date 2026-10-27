@@ -127,6 +127,13 @@
       "when": 1792988563799,
       "tag": "0017_add_extension_security_score",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793073426948,
+      "tag": "0018_add_hashtag_registry",
+      "breakpoints": true
     }
   ]
 }

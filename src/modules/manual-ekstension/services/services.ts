@@ -3,6 +3,7 @@ import {
   parseGithubZipUrl,
   fetchRepoFile,
   validateExtensionUpload,
+  toHashtagToken,
 } from "../../automation-engine/depends/extension-utils";
 import { insertExtensionFromUpload } from "../../automation-engine/saving-engine/saving-engine/save-service";
 import { AppError } from "@/errorhandler";
@@ -67,6 +68,7 @@ export async function editExtension(
       description: payload.data.description,
     },
     categories: payload.categories,
+    hashtags: normalizeHashtags(payload.hashtags),
   });
 
   if (!result) {
@@ -74,6 +76,18 @@ export async function editExtension(
   }
 
   return result;
+}
+
+export function normalizeHashtag(raw: string): string {
+  return toHashtagToken(raw);
+}
+
+export function normalizeHashtags(raws?: string[]): string[] | undefined {
+  if (!raws) return undefined;
+
+  return [
+    ...new Set(raws.map(normalizeHashtag).filter((tag) => tag.length > 0)),
+  ];
 }
 
 export async function removeExtension(id: string): Promise<Extension> {
@@ -111,6 +125,24 @@ export async function searchExtensionsByCategory(
 
   if (!result.length) {
     throw new AppError(`No extensions found with category "${category}"`, 404);
+  }
+
+  return result;
+}
+
+export async function searchExtensionsByHashtag(
+  hashtag: string,
+): Promise<Extension[]> {
+  const normalized = normalizeHashtag(hashtag);
+
+  if (normalized.length === 0) {
+    throw new AppError("Hashtag must not be empty", 400);
+  }
+
+  const result = await repo.findExtensionsByHashtag(normalized);
+
+  if (!result.length) {
+    throw new AppError(`No extensions found with hashtag "${normalized}"`, 404);
   }
 
   return result;

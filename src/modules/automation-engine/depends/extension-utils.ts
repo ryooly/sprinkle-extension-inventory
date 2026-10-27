@@ -415,6 +415,48 @@ export function sanitizeCategories(categories: unknown): Category[] {
   return valid.length > 0 ? [...new Set(valid)] : ["other"];
 }
 
+export function toHashtagToken(value: string): string {
+  return value
+    .trim()
+    .replace(/^#+/, "")
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]+/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export function processUserHashtags(rawTags: unknown): string[] {
+  if (!Array.isArray(rawTags)) return [];
+
+  const tokens = new Set<string>();
+
+  for (const entry of rawTags) {
+    if (typeof entry !== "string") continue;
+
+    const token = toHashtagToken(entry);
+
+    if (token.length > 0) tokens.add(token);
+  }
+
+  return [...tokens];
+}
+
+export interface AutomationHashtagInput {
+  categories: readonly string[];
+  languages: readonly string[];
+}
+
+export function generateAutomationHashtags(
+  input: AutomationHashtagInput,
+): string[] {
+  const derived = [...input.categories, ...input.languages]
+    .map(toHashtagToken)
+    .filter((token) => token.length > 0);
+
+  return [...new Set(derived)];
+}
+
 export function validateExtensionRepo(
   repo: ExtensionRepo,
 ): { valid: true; data: ExtensionRepo } | { valid: false; reason: string } {
@@ -1269,6 +1311,7 @@ export const extensionUploadSchema = z.object({
     .array(browserSchema)
     .min(1, "at least one supported browser is required")
     .default(["chrome"]),
+  hashtags: z.array(z.string().trim().min(1).max(50)).max(10).default([]),
 });
 
 export type ExtensionUploadData = {
@@ -1277,6 +1320,7 @@ export type ExtensionUploadData = {
   developer: string;
   categories: CategoryInput[];
   supportedBrowsers: BrowserInput[];
+  hashtags: string[];
 };
 
 const PACKAGE_BLOCKED_PATH_REGEX =
@@ -1482,6 +1526,7 @@ export async function validateExtensionUpload(
       developer: parsed.data.developer,
       categories: parsed.data.categories as CategoryInput[],
       supportedBrowsers: parsed.data.supportedBrowsers as BrowserInput[],
+      hashtags: parsed.data.hashtags,
     },
     packageInfo: scan.info,
   };

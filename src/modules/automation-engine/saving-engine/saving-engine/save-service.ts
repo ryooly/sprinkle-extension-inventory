@@ -11,6 +11,8 @@ import {
   ExtensionUtils,
   computeSecurityScore,
   processLocalPackage,
+  generateAutomationHashtags,
+  processUserHashtags,
   type ExtensionUploadData,
 } from "../../depends/extension-utils";
 
@@ -149,6 +151,10 @@ export async function insertExtensionsFromGithub(
         extensionLink: normalized.downloadUrl,
         source: "github",
         categories: normalized.category,
+        hashtags: generateAutomationHashtags({
+          categories: normalized.category,
+          languages: [...frontendLanguages, ...backendLanguages],
+        }),
         extensionStatus: normalized.extensionStatus ?? "basic",
         permissions: effectivePermissions,
         supportedBrowsers,
@@ -226,6 +232,7 @@ export async function insertExtensionFromUpload(
     extensionLink,
     publishedBy: "user",
     categories: data.categories as Category[],
+    hashtags: processUserHashtags(data.hashtags),
     supportedBrowsers:
       local.supportedBrowsers.length > 0
         ? local.supportedBrowsers

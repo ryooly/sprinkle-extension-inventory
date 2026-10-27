@@ -90,6 +90,25 @@ export async function handleSearchExtensionsByCategory(
   }
 }
 
+export async function handleSearchExtensionsByHashtag(
+  hashtag: string,
+): Promise<ControllerResult<Extension[]>> {
+  try {
+    const result = await service.searchExtensionsByHashtag(hashtag);
+
+    return { success: true, data: result };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      `Failed to search extensions by hashtag "${hashtag}"`,
+      500,
+      {
+        cause: err,
+      },
+    );
+  }
+}
+
 export async function handleSearchExtensionsByBrowser(
   browser: BrowserInput,
 ): Promise<ControllerResult<Extension[]>> {

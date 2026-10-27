@@ -41,6 +41,7 @@ export const createExtensionUserSchema = t.Object({
   source: t.Optional(sourceSchema),
   categories: t.Array(categorySchema),
   supportedBrowsers: t.Array(browserSchema),
+  hashtags: t.Optional(t.Array(t.String({ minLength: 1, maxLength: 50 }))),
 });
 
 export const createExtensionAutomationSchema = t.Object({
@@ -57,4 +58,5 @@ export const updateExtensionSchema = t.Object({
   name: t.Optional(t.String()),
   description: t.Optional(t.String()),
   categories: t.Optional(t.Array(categorySchema)),
+  hashtags: t.Optional(t.Array(t.String({ minLength: 1, maxLength: 50 }))),
 });

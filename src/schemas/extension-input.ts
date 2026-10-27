@@ -36,6 +36,7 @@ export const createExtensionUserSchema = z.object({
   source: sourceSchema.optional(),
   categories: z.array(categorySchema),
   supportedBrowsers: z.array(browserSchema).default(["chrome"]),
+  hashtags: z.array(z.string().min(1).max(50)).optional(),
 });
 
 export type CreateExtensionUserPayload = z.infer<
@@ -65,6 +66,7 @@ export const updateExtensionSchema = z.object({
   id: z.string().uuid(),
   data: updateExtensionDataSchema,
   categories: z.array(categorySchema).optional(),
+  hashtags: z.array(z.string().min(1).max(50)).optional(),
 });
 
 export type UpdateExtensionPayload = z.infer<typeof updateExtensionSchema>;
