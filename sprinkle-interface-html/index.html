@@ -3,105 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GitHub Clone — Dashboard</title>
-    <meta
-      name="description"
-      content="A GitHub-style dashboard with Top Repositories and Home sections."
-    />
-    <meta property="og:title" content="GitHub Clone — Dashboard" />
-    <meta
-      property="og:description"
-      content="A GitHub-style dashboard with Top Repositories and Home sections."
-    />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <meta http-equiv="refresh" content="0; url=pages/index.html" />
+    <title>Sprinkle</title>
     <script>
-      try {
-        var t = localStorage.getItem("theme");
-        if (t === "light" || t === "dark") {
-          document.documentElement.classList.toggle("dark", t === "dark");
-        }
-      } catch (e) {}
+      location.replace("pages/index.html");
     </script>
   </head>
-  <body>
-    <div data-header></div>
-
-    <main class="main-layout">
-      <aside class="repo-sidebar" id="repo-sidebar" style="width: 288px">
-        <div class="sidebar-head">
-          <h2 class="truncate">Top repositories</h2>
-          <button
-            type="button"
-            aria-label="+ Premium"
-            class="premium-btn"
-            id="premium-btn"
-          >
-            <span class="shine"></span>
-            <span data-icon="plus" style="display: inline-flex"></span>
-            <span>Premium</span>
-          </button>
-        </div>
-
-        <div>
-          <label for="repo-search" class="sr-only">Find a repository</label>
-          <div class="repo-search">
-            <span data-icon="search-side" style="display: inline-flex"></span>
-            <input
-              id="repo-search"
-              type="text"
-              placeholder="Find a repository..."
-            />
-          </div>
-        </div>
-
-        <div class="sidebar-list" id="sidebar-list"></div>
-
-        <button type="button" class="show-more" id="show-more">
-          Show more
-        </button>
-      </aside>
-
-      <div
-        role="separator"
-        aria-label="Resize repository column"
-        aria-orientation="vertical"
-        aria-valuemin="224"
-        aria-valuemax="480"
-        aria-valuenow="288"
-        tabindex="0"
-        class="resize-handle"
-        id="resize-handle"
-      >
-        <span class="line"></span>
-        <span class="grip" data-icon="grip"></span>
-      </div>
-
-      <section class="home-section">
-        <div class="home-head">
-          <h2>Home</h2>
-        </div>
-
-        <div class="genre-bar" id="genre-bar">
-          <button
-            type="button"
-            aria-label="Filter genres"
-            class="filter-btn"
-            id="filter-btn"
-          >
-            <span data-icon="filter" style="display: inline-flex"></span>
-            <span>Filter</span>
-          </button>
-        </div>
-
-        <div class="card-grid" id="card-grid"></div>
-      </section>
-    </main>
-
-    <script src="js/vendor/lucide.min.js"></script>
-    <script src="js/sprinkle-data.js"></script>
-    <script src="js/interactions.js"></script>
-    <script src="js/dashboard.js"></script>
-  </body>
+  <body></body>
 </html>

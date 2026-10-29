@@ -3,23 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>History — Sprinkle</title>
+    <title>Inventory — Sprinkle</title>
     <meta
       name="description"
-      content="Extensions you recently visited. Search only within your history."
+      content="Extensions in your Sprinkle inventory. Search only within your inventory."
     />
-    <link rel="stylesheet" href="css/styles.css" />
-
-    <script>
-      try {
-        var t = localStorage.getItem("theme");
-        if (t === "light" || t === "dark") {
-          document.documentElement.classList.toggle("dark", t === "dark");
-        }
-      } catch (e) {}
-    </script>
+    <link rel="stylesheet" href="../css/pages/sections.css" />
+    <link rel="stylesheet" href="../css/base.css" />
   </head>
-  <body data-section="history">
+  <body data-section="inventory">
 
     <div data-header></div>
 
@@ -27,8 +19,8 @@
       <section class="panel-card section-panel">
         <div class="panel-head">
           <span class="section-title">
-            <span data-icon="history"></span>
-            <span>History</span>
+            <span data-icon="package"></span>
+            <span>Inventory</span>
           </span>
           <span class="path" id="section-count"></span>
         </div>
@@ -39,8 +31,8 @@
             <input
               id="section-search"
               type="text"
-              placeholder="Search your history..."
-              aria-label="Search history"
+              placeholder="Search your inventory..."
+              aria-label="Search inventory"
             />
           </div>
         </div>
@@ -51,9 +43,11 @@
       </section>
     </main>
 
-    <script src="js/vendor/lucide.min.js"></script>
-    <script src="js/sprinkle-data.js"></script>
-    <script src="js/interactions.js"></script>
-    <script src="js/sections.js"></script>
+    <script src="../js/vendor/lucide.min.js"></script>
+    <script src="../js/sprinkle-data.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/interactions.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/sections.js"></script>
   </body>
 </html>

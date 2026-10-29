@@ -42,18 +42,6 @@ export async function askPassword(question: string): Promise<string> {
   });
 }
 
-/** Yes/no confirmation. Defaults to `false` when the user just presses enter. */
-export async function confirm(
-  question: string,
-  defaultValue = false,
-): Promise<boolean> {
-  const hint = defaultValue ? "Y/n" : "y/N";
-  const answer = await ask(`${question} ${dim(`[${hint}]`)}`);
-  const v = answer.trim().toLowerCase();
-  if (v === "") return defaultValue;
-  return v === "y" || v === "yes";
-}
-
 function question_(rl: readline.Interface, q: string): Promise<string> {
   return new Promise((resolve) => rl.question(q, resolve));
 }

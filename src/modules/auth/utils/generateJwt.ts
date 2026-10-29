@@ -9,7 +9,7 @@ export const token = {
     });
   },
 
-  generateRefreshToken(userId: string) {
+  generateRefreshToken() {
     return randomUUID();
   },
 };

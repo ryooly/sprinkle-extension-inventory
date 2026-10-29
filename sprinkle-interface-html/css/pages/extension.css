@@ -1,0 +1,508 @@
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.font-mono {
+  font-family:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+}
+
+
+.ext-title svg.icon-16 {
+  width: 1rem;
+  height: 1rem;
+}
+.icon-14 {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+
+
+.detail-header {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--sidebar);
+}
+.detail-header-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem;
+}
+
+.ext-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.ext-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.ext-title svg.pkg {
+  color: var(--muted-foreground);
+}
+.ext-title .owner {
+  color: var(--muted-foreground);
+}
+.ext-title .slash {
+  color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+}
+.ext-title .name {
+  color: var(--foreground);
+}
+
+.copy-btn {
+  display: inline-flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.copy-btn:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+html.dark .copy-btn:hover {
+  background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+
+.ext-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+
+.license-chip {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  height: 1.625rem;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--pill-active-bg) 90%, var(--card)),
+    var(--card) 62%
+  );
+  padding: 0 0.5625rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 1px 2px rgb(0 0 0 / 0.05);
+}
+html.dark .license-chip {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--pill-active-bg) 80%, transparent),
+    color-mix(in oklab, var(--card) 60%, transparent) 62%
+  );
+}
+.license-chip .chip-key {
+  opacity: 0.75;
+}
+.license-chip .chip-val {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+}
+.license-chip .chip-chevron {
+  margin-left: 0.125rem;
+  opacity: 0.55;
+}
+
+
+.lic-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.ext-tabs-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.ext-tabs {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.875rem;
+}
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0.375rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+.tab-btn:hover {
+  color: var(--foreground);
+}
+.tab-btn.active {
+  border-bottom-color: var(--foreground);
+  color: var(--foreground);
+}
+.tab-kbd {
+  border-radius: 0.25rem;
+  background-color: var(--muted);
+  padding: 0.125rem 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+html.dark .tab-kbd {
+  background-color: var(--card);
+}
+
+.ext-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.square-btn {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--muted-foreground);
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+html.dark .square-btn {
+  background-color: color-mix(in oklab, var(--card) 60%, transparent);
+}
+.square-btn:hover {
+  color: var(--foreground);
+}
+
+.ext-title a.owner:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+
+.copy-btn.copied {
+  color: var(--emerald);
+}
+
+
+
+.license-chip {
+  transition:
+    border-color 150ms,
+    color 150ms,
+    transform 150ms,
+    box-shadow 150ms;
+}
+.license-chip:hover,
+.license-chip.open {
+  border-color: var(--pill-active-border);
+  color: var(--pill-active-color);
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 10px -2px rgb(0 0 0 / 0.25),
+    var(--pill-active-shadow);
+}
+.license-chip:hover .chip-val,
+.license-chip.open .chip-val {
+  color: var(--pill-active-color);
+}
+.license-chip:hover .lic-scale {
+  transform: rotate(-6deg);
+}
+.license-chip svg {
+  transition: transform 200ms ease-out;
+}
+.license-chip.open .chip-chevron {
+  transform: rotate(180deg);
+}
+
+
+
+.license-pop {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 60;
+  width: min(22rem, calc(100vw - 2.5rem));
+  padding: 0.875rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border);
+  background-color: var(--popover);
+  box-shadow:
+    0 16px 40px -16px rgb(0 0 0 / 0.4),
+    0 0 0 1px color-mix(in oklab, var(--ring) 10%, transparent);
+  color: var(--foreground);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 140ms ease-out,
+    transform 140ms ease-out,
+    visibility 140ms;
+}
+.license-pop.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.lic-pop-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lic-pop-icon {
+  display: inline-flex;
+  height: 1.875rem;
+  width: 1.875rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--primary) 22%, transparent),
+    color-mix(in oklab, var(--pill-active-color) 16%, transparent)
+  );
+  color: var(--primary);
+}
+.lic-pop-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.lic-pop-sub {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.lic-pop-close {
+  margin-left: auto;
+  display: inline-flex;
+  height: 1.375rem;
+  width: 1.375rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  color: var(--muted-foreground);
+  transition:
+    background-color 150ms,
+    color 150ms;
+}
+.lic-pop-close:hover {
+  background-color: var(--accent);
+  color: var(--foreground);
+}
+.lic-pop-summary {
+  margin-top: 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.lic-table {
+  width: 100%;
+  margin-top: 0.75rem;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+.lic-table th,
+.lic-table td {
+  padding: 0.3125rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+.lic-table th {
+  border-bottom: 1px solid var(--border);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lic-table th svg {
+  vertical-align: -2px;
+  margin-right: 0.1875rem;
+}
+.lic-table tbody td {
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  color: var(--foreground);
+}
+.lic-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.lic-table td.empty {
+  color: var(--muted-foreground);
+  opacity: 0.4;
+}
+.lic-table .col-allowed {
+  background-color: color-mix(in oklab, var(--emerald) 7%, transparent);
+}
+.lic-table th.col-allowed {
+  color: var(--emerald);
+  background-color: color-mix(in oklab, var(--emerald) 12%, transparent);
+}
+.lic-table .col-warn {
+  background-color: color-mix(in oklab, var(--lic-warn) 8%, transparent);
+}
+.lic-table th.col-warn {
+  color: var(--lic-warn);
+  background-color: color-mix(in oklab, var(--lic-warn) 13%, transparent);
+}
+.lic-table .col-denied {
+  background-color: color-mix(in oklab, var(--lic-denied) 8%, transparent);
+}
+.lic-table th.col-denied {
+  color: var(--lic-denied);
+  background-color: color-mix(in oklab, var(--lic-denied) 13%, transparent);
+}
+.lic-pop-foot {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8125rem;
+}
+.lic-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  padding: 0.3125rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    border-color 150ms,
+    background-color 150ms,
+    color 150ms;
+}
+.lic-btn:hover {
+  border-color: var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+}
+
+
+
+.square-btn.open {
+  border-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  color: var(--foreground);
+  background-color: var(--accent);
+}
+.ext-more-menu {
+  width: 13.5rem;
+}
+.ext-more-menu .dropdown-item svg {
+  color: var(--muted-foreground);
+  transition: color 150ms;
+}
+.ext-more-menu .dropdown-item:hover svg {
+  color: var(--foreground);
+}
+.ext-more-menu .dropdown-item.danger:hover {
+  background-color: color-mix(in oklab, #f43f5e 12%, transparent);
+  color: #f43f5e;
+}
+.ext-more-menu .dropdown-item.danger:hover svg {
+  color: #f43f5e;
+}
+
+a.license-chip {
+  text-decoration: none;
+}
+
+.ext-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  line-height: 1.65;
+}
+.ext-notes p {
+  margin: 0;
+}
+.ext-notes ul,
+.ext-notes ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.ext-notes ol {
+  list-style: decimal;
+}
+.ext-notes h3,
+.ext-notes h4,
+.ext-notes h5,
+.ext-notes h6 {
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.ext-notes code {
+  border-radius: 0.25rem;
+  background-color: var(--muted);
+  padding: 0.1rem 0.3rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+}
+.ext-notes .notes-code {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--muted);
+  padding: 0.75rem;
+}
+.ext-notes .notes-code code {
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+.ext-notes .notes-quote {
+  margin: 0;
+  border-left: 3px solid var(--border);
+  padding-left: 0.75rem;
+  color: var(--muted-foreground);
+}
+.ext-notes hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+}

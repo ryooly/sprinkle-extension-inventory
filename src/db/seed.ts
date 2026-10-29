@@ -23,7 +23,7 @@ const PLAN_SEEDS: Array<{
   { name: "premium", price: "99000.00", durationInDays: "premium" },
 ];
 
-async function seed(): Promise<void> {
+export async function seed(): Promise<void> {
   const url = config.dbUrl;
   if (!url) throw new Error("DATABASE_URL is not defined");
 
@@ -130,10 +130,12 @@ async function seed(): Promise<void> {
   }
 }
 
-seed().catch((err) => {
-  logger.error(
-    "\nSeed failed. Is the database migrated (`bun run migrate`) and reachable?",
-  );
-  logger.error(String(err));
-  process.exit(1);
-});
+if (import.meta.main) {
+  seed().catch((err) => {
+    logger.error(
+      "\nSeed failed. Is the database migrated (`bun run migrate`) and reachable?",
+    );
+    logger.error(String(err));
+    process.exit(1);
+  });
+}

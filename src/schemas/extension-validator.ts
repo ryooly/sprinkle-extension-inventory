@@ -44,16 +44,6 @@ export const createExtensionUserSchema = t.Object({
   hashtags: t.Optional(t.Array(t.String({ minLength: 1, maxLength: 50 }))),
 });
 
-export const createExtensionAutomationSchema = t.Object({
-  name: t.String(),
-  description: t.String(),
-  developer: t.String(),
-  extensionLink: t.String({ format: "uri", pattern: "\\.zip$" }),
-  source: t.Optional(sourceSchema),
-  categories: t.Array(categorySchema),
-  supportedBrowsers: t.Array(browserSchema),
-});
-
 export const updateExtensionSchema = t.Object({
   name: t.Optional(t.String()),
   description: t.Optional(t.String()),

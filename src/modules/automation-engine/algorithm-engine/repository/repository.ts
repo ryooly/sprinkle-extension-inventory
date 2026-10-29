@@ -1,23 +1,12 @@
 import { db } from "@/db/client";
 import { extensions, savedExtensions } from "@/models";
-import { and, eq, sql, inArray, desc } from "drizzle-orm";
+import { and, eq, sql, desc } from "drizzle-orm";
 import { AppError } from "@/errorhandler";
 
 export async function findExtensions() {
   return await db.query.extensions.findMany({
     limit: 25,
     orderBy: [desc(extensions.createdAt)],
-    with: {
-      categories: true,
-    },
-  });
-}
-
-export async function findUserExtensions() {
-  return await db.query.extensions.findMany({
-    where: eq(extensions.publishedBy, "user"),
-    limit: 10,
-    orderBy: [sql`${extensions.views} + ${extensions.downloads} DESC`],
     with: {
       categories: true,
     },

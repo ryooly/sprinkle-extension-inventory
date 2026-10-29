@@ -134,6 +134,13 @@
       "when": 1793073426948,
       "tag": "0018_add_hashtag_registry",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793259842296,
+      "tag": "0019_drop_premium_extensions",
+      "breakpoints": true
     }
   ]
 }

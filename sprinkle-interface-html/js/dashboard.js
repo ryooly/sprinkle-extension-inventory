@@ -1,9 +1,11 @@
-
-
 (function () {
   "use strict";
 
   var S = window.SPRINKLE;
+  var CARD_LIMIT = 60;
+  var SHOWCASE_IN_GRID = 6;
+  var GENRE_ORDER = ["Productivity", "Notes", "Design", "Developer", "Writing"];
+
   var activeGenre = "Recommendation";
   var activeQuery = "";
   var sidebarExpanded = false;
@@ -11,9 +13,16 @@
   var isResizing = false;
   var resizeStart = { pointerX: 0, width: 288 };
 
+  var state = {
+    loading: true,
+    error: "",
+    cards: [],
+    showcaseCards: [],
+    showcaseDate: "",
+  };
+
   document.addEventListener("DOMContentLoaded", function () {
     S.injectHeader(function () {
-      S.initTheme();
       S.initHeader();
 
       if (S.hydrateIcons) S.hydrateIcons(document.body);
@@ -22,34 +31,113 @@
       initSearch();
       initSidebar();
       initResize();
+      loadCatalog();
     });
   });
 
+  function showcaseOrder(a, b) {
+    function rank(card) {
+      if (card.publishedBy === "user" && card.status === "premium") return 0;
+      if (card.publishedBy === "automation") return 1;
+      return 2;
+    }
 
+    return rank(a) - rank(b);
+  }
+
+  function loadCatalog() {
+    state.loading = true;
+    state.error = "";
+    renderGrid();
+    renderSidebar(sidebarQuery());
+
+    Promise.all([
+      S.api.listExtensions({ limit: CARD_LIMIT }),
+      S.api.dailyShowcase(),
+    ]).then(function (results) {
+      var listRes = results[0];
+      var showRes = results[1];
+
+      state.loading = false;
+
+      if (!listRes.ok) {
+        state.error =
+          listRes.message || "Unable to load the extension catalog.";
+        renderGrid();
+        renderSidebar(sidebarQuery());
+        return;
+      }
+
+      var items = (listRes.data && listRes.data.items) || [];
+      var byId = {};
+      items.forEach(function (item) {
+        byId[item.id] = item;
+      });
+
+      var showcase =
+        (showRes.ok && showRes.data && showRes.data.extensions) || [];
+      state.showcaseDate =
+        (showRes.ok && showRes.data && showRes.data.date) || "";
+      state.showcaseCards = S.cardsFrom(
+        showcase.map(function (extension) {
+          return byId[extension.id] || extension;
+        }),
+      ).sort(showcaseOrder);
+      state.cards = S.cardsFrom(items);
+
+      renderShowcaseMeta();
+      renderPills();
+      renderGrid();
+      renderSidebar(sidebarQuery());
+    });
+  }
+
+  function renderShowcaseMeta() {
+    var el = document.getElementById("showcase-meta");
+    if (!el) return;
+    var label = state.showcaseDate
+      ? "Updated " + S.formatDate(state.showcaseDate)
+      : "Updated daily";
+    el.textContent = label + " · refreshes every 24 hours";
+  }
 
   function initGenres() {
+    var filterBtn = document.getElementById("filter-btn");
+    if (S.hydrateIcons && filterBtn) S.hydrateIcons(filterBtn);
+    renderPills();
+  }
+
+  function renderPills() {
     var bar = document.getElementById("genre-bar");
     var filterBtn = document.getElementById("filter-btn");
+    if (!bar || !filterBtn) return;
 
+    bar.querySelectorAll(".pill").forEach(function (pill) {
+      pill.remove();
+    });
 
-    if (S.hydrateIcons && filterBtn) S.hydrateIcons(filterBtn);
+    var labels = [];
+    state.cards.forEach(function (card) {
+      if (labels.indexOf(card.genreLabel) === -1) labels.push(card.genreLabel);
+    });
+    labels.sort(function (a, b) {
+      var ai = GENRE_ORDER.indexOf(a);
+      var bi = GENRE_ORDER.indexOf(b);
+      if (ai === -1) ai = GENRE_ORDER.length;
+      if (bi === -1) bi = GENRE_ORDER.length;
+      return ai - bi || a.localeCompare(b);
+    });
 
-
-    var genres = S.GENRES.slice().reverse();
-    var recIdx = genres.indexOf("Recommendation");
-    if (recIdx > -1) {
-      genres.splice(recIdx, 1);
-      genres.unshift("Recommendation");
-    }
+    var genres = ["Recommendation"].concat(labels);
+    if (genres.indexOf(activeGenre) === -1) activeGenre = "Recommendation";
 
     genres.forEach(function (genre) {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "pill";
       btn.dataset.genre = genre;
-      btn.setAttribute("aria-pressed", String(genre === activeGenre));
+      btn.setAttribute("aria-pressed", "false");
       if (genre === "Recommendation") {
-
         btn.classList.add("pill-recommend");
       }
       btn.textContent = genre;
@@ -73,21 +161,45 @@
     });
   }
 
-
-
   function initGrid() {
     renderGrid();
   }
 
   function renderGrid() {
     var grid = document.getElementById("card-grid");
-    var query = activeQuery;
+    if (!grid) return;
 
-    var cards = query
-      ? S.flattenCards().filter(function (card) {
-          return S.cardMatchesQuery(card, query);
-        })
-      : (S.CARDS[activeGenre] || []).slice(0, 6);
+    if (state.loading) {
+      grid.innerHTML = '<div class="grid-empty">Loading extensions…</div>';
+      updateBanner("", 0);
+      return;
+    }
+
+    if (state.error) {
+      grid.innerHTML =
+        '<div class="grid-empty">' +
+        escapeText(state.error) +
+        ' <button type="button" class="search-banner-clear" id="grid-retry">Retry</button></div>';
+      var retry = document.getElementById("grid-retry");
+      if (retry) retry.addEventListener("click", loadCatalog);
+      updateBanner("", 0);
+      return;
+    }
+
+    var cards;
+    if (activeQuery) {
+      cards = state.cards.filter(function (card) {
+        return S.cardMatches(card, activeQuery);
+      });
+    } else if (activeGenre === "Recommendation") {
+      cards = state.showcaseCards.length
+        ? state.showcaseCards.slice(0, SHOWCASE_IN_GRID)
+        : state.cards.slice(0, SHOWCASE_IN_GRID);
+    } else {
+      cards = state.cards.filter(function (card) {
+        return card.genreLabel === activeGenre;
+      });
+    }
 
     grid.innerHTML = cards
       .map(function (card) {
@@ -97,16 +209,18 @@
 
     if (!cards.length) {
       grid.innerHTML =
-        '<div class="grid-empty">No extensions match <strong>#' +
-        escapeText(query) +
-        "</strong>.</div>";
+        '<div class="grid-empty">' +
+        (activeQuery
+          ? "No extensions match <strong>#" +
+            escapeText(activeQuery) +
+            "</strong>."
+          : "No extensions here yet.") +
+        "</div>";
     }
 
     if (S.applyCardStates) S.applyCardStates(grid);
-    updateBanner(query, cards.length);
+    updateBanner(activeQuery, cards.length);
   }
-
-
 
   function initSearch() {
     var input = document.getElementById("global-search");
@@ -116,7 +230,6 @@
       activeQuery = input.value.trim().toLowerCase();
       renderGrid();
     });
-
 
     var params = new URLSearchParams(location.search);
     var tag = params.get("search");
@@ -181,53 +294,75 @@
     });
   }
 
-
+  function sidebarQuery() {
+    var input = document.getElementById("repo-search");
+    return input ? input.value.trim().toLowerCase() : "";
+  }
 
   function initSidebar() {
     renderSidebar("");
 
-    document
-      .getElementById("repo-search")
-      .addEventListener("input", function (event) {
+    var search = document.getElementById("repo-search");
+    if (search) {
+      search.addEventListener("input", function (event) {
         renderSidebar(event.target.value.trim().toLowerCase());
       });
+    }
 
-    document.getElementById("show-more").addEventListener("click", function () {
-      sidebarExpanded = !sidebarExpanded;
-      this.textContent = sidebarExpanded ? "Show less" : "Show more";
-      renderSidebar(
-        document.getElementById("repo-search").value.trim().toLowerCase(),
-      );
-    });
+    var showMore = document.getElementById("show-more");
+    if (showMore) {
+      showMore.addEventListener("click", function () {
+        sidebarExpanded = !sidebarExpanded;
+        this.textContent = sidebarExpanded ? "Show less" : "Show more";
+        renderSidebar(sidebarQuery());
+      });
+    }
   }
 
   function renderSidebar(query) {
     var list = document.getElementById("sidebar-list");
-    var repos = S.TOP_REPOS.filter(function (card) {
-      if (!query) return true;
-      return (
-        card.user.toLowerCase().indexOf(query) !== -1 ||
-        card.repo.toLowerCase().indexOf(query) !== -1
-      );
+    var showMore = document.getElementById("show-more");
+    if (!list) return;
+
+    if (state.loading) {
+      list.innerHTML =
+        '<div class="text-xs muted-fg" style="padding:0.5rem 0">Loading showcase…</div>';
+      if (showMore) showMore.hidden = true;
+      return;
+    }
+
+    if (state.error) {
+      list.innerHTML =
+        '<div class="text-xs muted-fg" style="padding:0.5rem 0">Showcase unavailable.</div>';
+      if (showMore) showMore.hidden = true;
+      return;
+    }
+
+    var cards = state.showcaseCards.filter(function (card) {
+      return !query || S.cardMatches(card, query);
     });
-    var limit = sidebarExpanded ? repos.length : Math.min(4, repos.length);
-    list.innerHTML = repos
+
+    if (!cards.length) {
+      list.innerHTML =
+        '<div class="text-xs muted-fg" style="padding:0.5rem 0">No extensions match.</div>';
+      if (showMore) showMore.hidden = true;
+      return;
+    }
+
+    var limit = sidebarExpanded ? cards.length : Math.min(4, cards.length);
+    list.innerHTML = cards
       .slice(0, limit)
       .map(function (card) {
         return S.cardHtml(card, true);
       })
       .join("");
     if (S.applyCardStates) S.applyCardStates(list);
-    if (!repos.length) {
-      list.innerHTML =
-        '<div class="text-xs muted-fg" style="padding:0.5rem 0">No repositories match.</div>';
-    }
+    if (showMore) showMore.hidden = cards.length <= 4;
   }
-
-
 
   function initResize() {
     var handle = document.getElementById("resize-handle");
+    if (!handle) return;
 
     handle.addEventListener("pointerdown", function (event) {
       resizeStart = { pointerX: event.clientX, width: repositoryWidth };

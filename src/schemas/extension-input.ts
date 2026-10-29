@@ -43,20 +43,6 @@ export type CreateExtensionUserPayload = z.infer<
   typeof createExtensionUserSchema
 >;
 
-export const createExtensionAutomationSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  developer: z.string(),
-  extensionLink: z.string().url(),
-  source: sourceSchema.optional(),
-  categories: z.array(categorySchema),
-  supportedBrowsers: z.array(browserSchema).default(["chrome"]),
-});
-
-export type CreateExtensionAutomationPayload = z.infer<
-  typeof createExtensionAutomationSchema
->;
-
 export const updateExtensionDataSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),

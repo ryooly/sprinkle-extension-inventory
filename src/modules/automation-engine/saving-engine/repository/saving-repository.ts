@@ -252,18 +252,6 @@ export async function findExtensionsByHashtag(
   return rows.map((row) => row.extension);
 }
 
-export async function getHashtagsForExtension(
-  extensionId: string,
-): Promise<string[]> {
-  const rows = await db
-    .select({ name: hashtags.name })
-    .from(extensionHashtags)
-    .innerJoin(hashtags, eq(hashtags.id, extensionHashtags.hashtagId))
-    .where(eq(extensionHashtags.extensionId, extensionId));
-
-  return rows.map((row) => row.name);
-}
-
 export async function findExtensionByRepoFullName(fullName: string) {
   const [extension] = await db
     .select()

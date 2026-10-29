@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { plans, subscriptions, payments, accounts } from "@/models";
 
@@ -39,17 +39,6 @@ export async function updateSubscriptionStatus(
   return subscription;
 }
 
-export async function getUserSubscription(userId: string) {
-  const [subscription] = await db
-    .select()
-    .from(subscriptions)
-    .where(
-      and(eq(subscriptions.userId, userId), eq(subscriptions.status, "active")),
-    );
-
-  return subscription ?? null;
-}
-
 export async function insertPayment(data: {
   subscriptionId: string;
   transactionId: string;
@@ -57,14 +46,6 @@ export async function insertPayment(data: {
   status: "pending" | "success" | "failed" | "refunded";
 }) {
   const [payment] = await db.insert(payments).values(data).returning();
-  return payment;
-}
-
-export async function getPaymentById(paymentId: number) {
-  const [payment] = await db
-    .select()
-    .from(payments)
-    .where(eq(payments.id, paymentId));
   return payment;
 }
 

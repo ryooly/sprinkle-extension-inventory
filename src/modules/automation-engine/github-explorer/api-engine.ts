@@ -82,12 +82,6 @@ interface ServiceResult<TData = unknown> {
   };
 }
 
-export interface ExtensionImportResult {
-  insertResult: InsertGithubResult;
-
-  data: ExtensionRepo[];
-}
-
 function inferCategoriesFromTopics(topics: string[]): Category[] {
   const categories = new Set<Category>();
 

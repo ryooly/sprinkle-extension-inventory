@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeAll } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { apiRequest, unique } from "./helpers";
 
 const testUser = {
@@ -7,7 +7,6 @@ const testUser = {
   password: "securepassword123",
 };
 
-let accountCookies: Record<string, string> = {};
 let accountId: string = "";
 
 describe("POST /user/register", () => {
@@ -27,8 +26,6 @@ describe("POST /user/register", () => {
 
     expect(res.cookies["auth"]).toBeDefined();
     expect(res.cookies["accountId"]).toBeDefined();
-
-    accountCookies = res.cookies;
   });
 
   test("should reject duplicate username", async () => {
@@ -106,6 +103,79 @@ describe("POST /user/login", () => {
     });
 
     expect(res.ok).toBe(false);
+  });
+});
+
+describe("POST /user/login-email", () => {
+  const emailUser = {
+    username: unique("emailuser"),
+    email: unique("emailuser") + "@test.com",
+    password: "securepassword123",
+  };
+
+  test("should create the account on first use and return cookies", async () => {
+    const res = await apiRequest<{
+      success: boolean;
+      data: { id: string; username: string; password?: string };
+    }>("POST", "/user/login-email", emailUser);
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(res.data.success).toBe(true);
+    expect(res.data.data.username).toBe(emailUser.username);
+    expect(res.data.data.password).toBeUndefined();
+
+    expect(res.cookies["auth"]).toBeDefined();
+    expect(res.cookies["accountId"]).toBeDefined();
+    expect(res.cookies["refreshToken"]).toBeDefined();
+  });
+
+  test("should log in an existing email and ignore the supplied username", async () => {
+    const res = await apiRequest<{
+      success: boolean;
+      data: { username: string };
+    }>("POST", "/user/login-email", {
+      ...emailUser,
+      username: unique("ignored"),
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.data.data.username).toBe(emailUser.username);
+  });
+
+  test("should reject wrong password", async () => {
+    const res = await apiRequest("POST", "/user/login-email", {
+      ...emailUser,
+      password: "wrongpassword123",
+    });
+
+    expect(res.ok).toBe(false);
+    expect(res.status).toBe(400);
+  });
+
+  test("should authenticate a protected route with the issued cookies", async () => {
+    const login = await apiRequest("POST", "/user/login-email", emailUser);
+
+    const res = await apiRequest(
+      "GET",
+      "/saved-extensions/",
+      undefined,
+      login.cookies,
+    );
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+  });
+
+  test("should reject a taken username when registering by email", async () => {
+    const res = await apiRequest("POST", "/user/login-email", {
+      username: emailUser.username,
+      email: unique("brandnew") + "@test.com",
+      password: "securepassword123",
+    });
+
+    expect(res.ok).toBe(false);
+    expect(res.status).toBe(409);
   });
 });
 

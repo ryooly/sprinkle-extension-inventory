@@ -8,23 +8,18 @@
       name="description"
       content="Publish a new extension to Sprinkle: name, description, developer, package file, categories and supported browsers."
     />
-    <link rel="stylesheet" href="css/styles.css" />
-
-    <script>
-      try {
-        var t = localStorage.getItem("theme");
-        if (t === "light" || t === "dark") {
-          document.documentElement.classList.toggle("dark", t === "dark");
-        }
-      } catch (e) {}
-    </script>
+    <link rel="stylesheet" href="../css/pages/create-extension.css" />
+    <link rel="stylesheet" href="../css/base.css" />
   </head>
   <body>
-
     <div data-header></div>
 
     <main class="create-layout">
-      <form class="panel-card section-panel create-card" id="create-form" novalidate>
+      <form
+        class="panel-card section-panel create-card"
+        id="create-form"
+        novalidate
+      >
         <div class="panel-head">
           <span class="section-title">
             <span data-icon="puzzle"></span>
@@ -78,7 +73,9 @@
 
           <div class="field" data-field="description">
             <div class="field-label-row">
-              <label class="field-label" for="ce-description">Description</label>
+              <label class="field-label" for="ce-description"
+                >Description</label
+              >
               <span class="field-count" id="ce-desc-count">0 / 280</span>
             </div>
             <textarea
@@ -89,7 +86,11 @@
               maxlength="280"
               placeholder="What does your extension do, and who is it for?"
             ></textarea>
-            <span class="field-error" data-error-for="description" hidden></span>
+            <span
+              class="field-error"
+              data-error-for="description"
+              hidden
+            ></span>
           </div>
 
           <div class="field" data-field="file">
@@ -99,7 +100,7 @@
               id="ce-file"
               name="file"
               type="file"
-              accept=".zip,.crx,application/zip"
+              accept=".zip,application/zip"
               aria-describedby="ce-file-help"
             />
             <label class="drop-zone" id="ce-drop" for="ce-file">
@@ -123,9 +124,7 @@
                 >Drop your bundle here or
                 <span class="drop-link">browse</span></span
               >
-              <span class="drop-hint" id="ce-file-help"
-                >ZIP or CRX · up to 25 MB</span
-              >
+              <span class="drop-hint" id="ce-file-help">ZIP · up to 25 MB</span>
             </label>
             <span class="drop-file" id="ce-file-name"></span>
             <span class="field-error" data-error-for="file" hidden></span>
@@ -133,7 +132,9 @@
 
           <div class="field" data-field="source">
             <div class="field-label-row">
-              <label class="field-label" for="ce-source">Source repository</label>
+              <label class="field-label" for="ce-source"
+                >Source repository</label
+              >
               <span class="optional-tag">Optional</span>
             </div>
             <input
@@ -156,6 +157,7 @@
               role="group"
               aria-labelledby="ce-categories-label"
             ></div>
+            <span class="field-error" data-error-for="categories" hidden></span>
             <span class="field-help">Pick every category that fits.</span>
           </div>
 
@@ -261,7 +263,8 @@
               </button>
             </div>
             <span class="field-help"
-              >Chrome is selected by default; add every browser you support.</span
+              >Chrome is selected by default; add every browser you
+              support.</span
             >
           </div>
         </div>
@@ -373,11 +376,17 @@
               </li>
               <li>
                 <span class="step-num">2</span>
-                <span>Sprinkle Labs reviews the listing, usually within a day.</span>
+                <span
+                  >Sprinkle Labs reviews the listing, usually within a
+                  day.</span
+                >
               </li>
               <li>
                 <span class="step-num">3</span>
-                <span>The extension appears in Browse and lands in your inventory.</span>
+                <span
+                  >The extension appears in Browse and lands in your
+                  inventory.</span
+                >
               </li>
             </ol>
           </div>
@@ -385,9 +394,11 @@
       </aside>
     </main>
 
-    <script src="js/vendor/lucide.min.js"></script>
-    <script src="js/sprinkle-data.js"></script>
-    <script src="js/interactions.js"></script>
-    <script src="js/create-extension.js"></script>
+    <script src="../js/vendor/lucide.min.js"></script>
+    <script src="../js/sprinkle-data.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/interactions.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/create-extension.js"></script>
   </body>
 </html>

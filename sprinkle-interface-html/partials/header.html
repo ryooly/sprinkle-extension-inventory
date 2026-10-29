@@ -107,59 +107,85 @@
 
 
   <div class="header-right">
-    <button
-      type="button"
-      id="theme-toggle"
-      class="icon-btn"
-      aria-label="Switch to light theme"
-    ></button>
-
     <div class="dropdown">
       <button
         type="button"
         id="profile-btn"
-        aria-label="Open user menu"
+        aria-label="Log in or sign up"
         aria-haspopup="true"
         aria-expanded="false"
         class="avatar-btn"
-        data-icon="profile"
-      ></button>
+      >
+        <span class="avatar-icon" data-icon="profile"></span>
+        <span class="avatar-initials" hidden></span>
+      </button>
       <div id="profile-menu" class="dropdown-menu">
-        <a
-          href="profile.html?user=sprinkle-labs&me=1"
-          class="dropdown-user"
-          aria-label="View your profile"
-        >
-          <span class="dropdown-avatar" aria-hidden="true">SL</span>
-          <span class="dropdown-user-meta">
-            <span class="name">Sprinkle Labs</span>
-            <span class="handle">@sprinkle-labs</span>
-          </span>
-          <svg
-            class="dropdown-user-go"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            width="15"
-            height="15"
-            aria-hidden="true"
+        <div class="auth-guest" data-auth-guest>
+          <button
+            type="button"
+            class="dropdown-item"
+            data-auth-open="login"
           >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </a>
-        <div class="dropdown-sep"></div>
-        <a href="create-extension.html" class="dropdown-item">
-          <span data-icon="plus"></span><span>Create Extension</span>
-        </a>
-        <a href="inventory.html" class="dropdown-item">
-          <span data-icon="package"></span><span>Inventory</span>
-        </a>
-        <button type="button" class="dropdown-item">
-          <span data-icon="settings"></span><span>Settings</span>
-        </button>
+            <span data-icon="log-in"></span><span>Log in</span>
+          </button>
+          <button
+            type="button"
+            class="dropdown-item"
+            data-auth-open="register"
+          >
+            <span data-icon="user-plus"></span><span>Sign up</span>
+          </button>
+          <p class="auth-guest-hint">
+            Browse the catalog freely — an account unlocks saving and
+            publishing.
+          </p>
+        </div>
+        <div class="auth-user" data-auth-user hidden>
+          <a
+            href="profile.html?user=sprinkle-labs&me=1"
+            class="dropdown-user"
+            aria-label="View your profile"
+            data-auth-profile-link
+          >
+            <span class="dropdown-avatar" aria-hidden="true">SL</span>
+            <span class="dropdown-user-meta">
+              <span class="name" data-auth-name>Sprinkle Labs</span>
+              <span class="handle" data-auth-handle>@sprinkle-labs</span>
+            </span>
+            <svg
+              class="dropdown-user-go"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              width="15"
+              height="15"
+              aria-hidden="true"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </a>
+          <div class="auth-user-meta">
+            <span class="auth-user-mail" data-auth-email hidden></span>
+            <span class="auth-user-role" data-auth-role hidden></span>
+          </div>
+          <div class="dropdown-sep"></div>
+          <a href="create-extension.html" class="dropdown-item">
+            <span data-icon="plus"></span><span>Create Extension</span>
+          </a>
+          <a href="inventory.html" class="dropdown-item">
+            <span data-icon="package"></span><span>Inventory</span>
+          </a>
+          <button type="button" class="dropdown-item">
+            <span data-icon="settings"></span><span>Settings</span>
+          </button>
+          <div class="dropdown-sep"></div>
+          <button type="button" class="dropdown-item" data-auth-logout>
+            <span data-icon="log-out"></span><span>Log out</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

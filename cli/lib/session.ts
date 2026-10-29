@@ -59,11 +59,6 @@ export function clearSession(): boolean {
   }
 }
 
-export function hasSession(): boolean {
-  const s = loadSession();
-  return Boolean(s && (s.auth || s.refreshToken) && s.accountId);
-}
-
 export function cookieHeader(s: SessionData | null): string | undefined {
   if (!s) return undefined;
   const parts: string[] = [];

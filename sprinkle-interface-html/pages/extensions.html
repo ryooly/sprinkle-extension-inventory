@@ -4,16 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Extension — Sprinkle</title>
-    <link rel="stylesheet" href="css/styles.css" />
-
-    <script>
-      try {
-        var t = localStorage.getItem("theme");
-        if (t === "light" || t === "dark") {
-          document.documentElement.classList.toggle("dark", t === "dark");
-        }
-      } catch (e) {}
-    </script>
+    <link rel="stylesheet" href="../css/pages/extension.css" />
+    <link rel="stylesheet" href="../css/pages/extensions.css" />
+    <link rel="stylesheet" href="../css/base.css" />
   </head>
   <body>
 
@@ -158,84 +151,7 @@
         </div>
 
 
-        <div class="ext-tags-row">
-          <button
-            type="button"
-            class="hashtag"
-            data-tag="speech-recognition"
-            aria-label="Search extensions tagged speech-recognition"
-          >
-            [#speech-recognition]
-          </button>
-          <button
-            type="button"
-            class="hashtag"
-            data-tag="streaming"
-            aria-label="Search extensions tagged streaming"
-          >
-            [#streaming]
-          </button>
-          <button
-            type="button"
-            class="hashtag"
-            data-tag="audio"
-            aria-label="Search extensions tagged audio"
-          >
-            [#audio]
-          </button>
-          <button
-            type="button"
-            class="hashtag"
-            data-tag="realtime"
-            aria-label="Search extensions tagged realtime"
-          >
-            [#realtime]
-          </button>
-          <button
-            type="button"
-            class="hashtag"
-            data-tag="ai"
-            aria-label="Search extensions tagged ai"
-          >
-            [#ai]
-          </button>
-          <button type="button" class="license-chip" data-license="apache-2.0">
-            <svg
-              class="lic-scale"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              width="12"
-              height="12"
-              aria-hidden="true"
-            >
-              <path d="M12 3v18" />
-              <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" />
-              <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" />
-              <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" />
-              <path d="M7 21h10" />
-            </svg>
-            <span class="chip-key">License:</span>
-            <span class="chip-val">apache-2.0</span>
-            <svg
-              class="chip-chevron"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              width="11"
-              height="11"
-              aria-hidden="true"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
-        </div>
+        <div class="ext-tags-row" id="ext-tags"></div>
 
 
         <div class="ext-tabs-row">
@@ -375,47 +291,15 @@
 
 
         <div class="badge-strip">
-          <span class="badge muted">HUGGING FACE</span>
-          <span class="badge yellow" id="badge-name">AUDIO8-ASR-INFINITE</span>
-          <span class="badge inverse">GITHUB</span>
-          <span class="badge muted">ARXIV</span>
-          <span class="badge rose">COMING SOON</span>
-          <span class="badge sky">LICENSE APACHE 2.0</span>
+          <span class="badge muted" id="badge-source">GITHUB</span>
+          <span class="badge yellow" id="badge-name">EXTENSION</span>
+          <span class="badge inverse" id="badge-status">BASIC</span>
+          <span class="badge sky" id="badge-license">NO LICENSE</span>
         </div>
 
-        <p>
-          <strong id="ext-strong">Audio8-ASR-Infinite</strong> is a native
-          streaming speech recognition model built to be as responsive as
-          possible. It offers a selectable audio clock (80/120/160 ms) and a
-          transcription delay (240–560 ms). With our adapted vLLM build it
-          transcribes unlimited-length audio <strong>24/7</strong> without
-          drifting.
-        </p>
-
-        <h3>Highlights</h3>
-        <ul>
-          <li>
-            <strong>Super responsive</strong> — the native streaming
-            architecture decodes 12.5 times per second.
-          </li>
-          <li>
-            <strong>Unlimited-length transcription</strong> — a rolling KV Cache
-            keeps both memory and latency constant, even in 24/7 operation.
-          </li>
-          <li>
-            <strong>Selectable streaming clock</strong> — one text token per
-            clock step (12.5 / 8.3 / 6.25 decisions per second), balancing
-            perception granularity and resource cost.
-          </li>
-          <li>
-            <strong>Configurable transcription delay</strong> — set how much
-            delay to trade for accuracy.
-          </li>
-          <li>
-            <strong>Semantic VAD</strong> — distinguishes thinking pauses,
-            stuttering and real end of turn.
-          </li>
-        </ul>
+        <div class="ext-notes" id="ext-notes">
+          <p>Loading extension notes…</p>
+        </div>
 
         <h3>License</h3>
         <p class="license-line">
@@ -438,14 +322,16 @@
               <path d="M7 21h10" />
             </svg>
           </span>
-          <span class="lic-text">
-            <span class="lic-strong">Apache-2.0</span>
+          <span class="lic-text" id="ext-license-text">
+            <span class="lic-strong">Not specified</span>
           </span>
           <a
             class="lic-details"
-            href="https://www.apache.org/licenses/LICENSE-2.0"
+            id="ext-license-link"
+            href="#"
             target="_blank"
             rel="noopener noreferrer"
+            hidden
           >
             View license
             <svg
@@ -643,7 +529,7 @@
                 </svg>
                 Downloads last month
               </div>
-              <div class="value">20,0k</div>
+              <div class="value" id="stat-downloads">0</div>
             </div>
             <svg
               class="sparkline"
@@ -679,7 +565,7 @@
               </svg>
               Total views
             </h4>
-            <div class="duo-value">128,4k</div>
+            <div class="duo-value" id="stat-views">0</div>
           </div>
           <div class="stat-card">
             <h4>
@@ -694,18 +580,18 @@
                 height="16"
                 aria-hidden="true"
               >
-                <path d="M12 15V3" />
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <path d="m7 10 5 5 5-5" />
+                <path
+                  d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"
+                />
               </svg>
-              Total downloads
+              Repository stars
             </h4>
-            <div class="duo-value">342,1k</div>
+            <div class="duo-value" id="stat-stars">0</div>
           </div>
         </div>
 
 
-        <div class="stat-card">
+        <div class="stat-card" id="browser-card">
           <h4 style="margin-bottom: 0.75rem">
             <svg
               viewBox="0 0 24 24"
@@ -741,7 +627,7 @@
             </svg>
           </h4>
           <div class="chip-row">
-            <span class="chip">
+            <span class="chip" data-browser="chrome">
               <svg
                 class="brand brand-chrome"
                 viewBox="0 0 496 512"
@@ -754,7 +640,7 @@
               </svg>
               Chrome
             </span>
-            <span class="chip">
+            <span class="chip" data-browser="edge">
               <svg
                 class="brand brand-edge"
                 viewBox="0 0 512 512"
@@ -767,7 +653,7 @@
               </svg>
               Edge
             </span>
-            <span class="chip">
+            <span class="chip" data-browser="firefox">
               <svg
                 class="brand brand-firefox"
                 viewBox="0 0 512 512"
@@ -780,7 +666,7 @@
               </svg>
               Firefox
             </span>
-            <span class="chip">
+            <span class="chip" data-browser="opera">
               <svg
                 class="brand brand-opera"
                 viewBox="0 0 496 512"
@@ -793,7 +679,7 @@
               </svg>
               Opera Mini
             </span>
-            <span class="chip">
+            <span class="chip" data-browser="safari">
               <svg
                 class="brand brand-safari"
                 viewBox="0 0 512 512"
@@ -853,7 +739,7 @@
                 <span class="sec-pill-dot" aria-hidden="true"></span>
                 <span class="sec-score-tier">Low risk</span>
               </span>
-              <div class="sec-score-note">Updated Sep 28, 2026</div>
+              <div class="sec-score-note" id="sec-updated">—</div>
             </div>
           </div>
           <div class="inference-sub">
@@ -871,7 +757,7 @@
               <circle cx="12" cy="12" r="10" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            Latest scan clean — 34 files checked, 0 threats
+            <span id="sec-sub">Security score generated by the Sprinkling scan.</span>
           </div>
           <button
             type="button"
@@ -1511,11 +1397,7 @@
                   ><span class="lg-line front" aria-hidden="true"></span
                   >Frontend</span
                 >
-                <span class="lg-chips">
-                  <span class="lg-chip" style="--c: #3178c6">TS</span>
-                  <span class="lg-chip" style="--c: #e34f26">HTML</span>
-                  <span class="lg-chip" style="--c: #1572b4">CSS</span>
-                </span>
+                <span class="lg-chips" id="stack-frontend"></span>
               </div>
               <div class="lg-divider" role="presentation"></div>
               <div class="lg-row">
@@ -1523,10 +1405,7 @@
                   ><span class="lg-line back" aria-hidden="true"></span
                   >Backend</span
                 >
-                <span class="lg-chips">
-                  <span class="lg-chip" style="--c: #f7df1e">JS</span>
-                  <span class="lg-chip" style="--c: #3178c6">TS</span>
-                </span>
+                <span class="lg-chips" id="stack-backend"></span>
               </div>
             </div>
           </div>
@@ -1534,9 +1413,11 @@
       </aside>
     </main>
 
-    <script src="js/vendor/lucide.min.js"></script>
-    <script src="js/sprinkle-data.js"></script>
-    <script src="js/interactions.js"></script>
-    <script src="js/extension.js"></script>
+    <script src="../js/vendor/lucide.min.js"></script>
+    <script src="../js/sprinkle-data.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/interactions.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/extension.js"></script>
   </body>
 </html>

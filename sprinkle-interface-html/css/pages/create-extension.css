@@ -1,0 +1,327 @@
+.create-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  gap: 1.25rem;
+  align-items: start;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+@media (max-width: 60rem) {
+  .create-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.create-state {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  padding: 0.0625rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+.create-state.submitted {
+  border-color: color-mix(in oklab, var(--emerald) 42%, transparent);
+  background-color: color-mix(in oklab, var(--emerald) 14%, transparent);
+  color: var(--emerald);
+}
+
+.create-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  padding: 1rem;
+}
+.create-lede {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.field-help {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.field-count {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.field-error {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--lic-denied);
+}
+.optional-tag {
+  border-radius: 9999px;
+  border: 1px dashed var(--border);
+  padding: 0 0.4375rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+.text-input {
+  width: 100%;
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  padding: 0 0.625rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.text-input::placeholder {
+  color: var(--muted-foreground);
+}
+.text-input:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+.text-area {
+  height: auto;
+  min-height: 7rem;
+  padding: 0.5rem 0.625rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.field.invalid .text-input,
+.field.invalid .drop-zone {
+  border-color: var(--lic-denied);
+}
+.field.invalid .text-input:focus {
+  box-shadow: 0 0 0 1px var(--lic-denied);
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  border: 1px dashed var(--border);
+  background-color: var(--background);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 150ms,
+    background-color 150ms;
+}
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--ring);
+  background-color: color-mix(in oklab, var(--ring) 8%, var(--background));
+}
+.file-input:focus-visible + .drop-zone {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+}
+.drop-zone.filled {
+  border-style: solid;
+  border-color: color-mix(in oklab, var(--emerald) 45%, var(--border));
+}
+.drop-icon {
+  color: var(--muted-foreground);
+}
+.drop-zone.filled .drop-icon {
+  color: var(--emerald);
+}
+.drop-title {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+.drop-link {
+  color: var(--hover-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.drop-hint {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+.drop-file {
+  display: none;
+  align-items: center;
+  gap: 0.375rem;
+  align-self: flex-start;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0.125rem 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  color: var(--foreground);
+}
+.drop-file.show {
+  display: inline-flex;
+}
+
+.chip-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pick-chip {
+  display: inline-flex;
+  height: 1.875rem;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition:
+    border-color 150ms,
+    background-color 150ms,
+    color 150ms;
+}
+html.dark .pick-chip {
+  background-color: color-mix(in oklab, var(--card) 60%, transparent);
+}
+.pick-chip:hover {
+  border-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+  color: var(--foreground);
+}
+.pick-chip.active {
+  border-color: var(--pill-active-border);
+  background-color: var(--pill-active-bg);
+  color: var(--pill-active-color);
+  box-shadow: var(--pill-active-shadow);
+}
+.pick-chip:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.create-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding: 0.875rem 1rem;
+}
+.create-note {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.create-btns {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+.create-btns .download-btn {
+  height: 2.25rem;
+  font-size: 0.8125rem;
+}
+.create-btns .action-btn {
+  height: 2.25rem;
+  font-size: 0.8125rem;
+}
+#create-submit[disabled] {
+  opacity: 0.7;
+  pointer-events: none;
+}
+@media (max-width: 40rem) {
+  .create-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .create-btns {
+    justify-content: flex-end;
+  }
+}
+
+.create-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.side-card .section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.side-body {
+  padding: 0.875rem 1rem 1rem;
+}
+.check-list,
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.check-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.check-list svg {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-top: 0.1875rem;
+  color: var(--emerald);
+}
+.step-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.step-num {
+  display: inline-flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.0625rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--foreground);
+}

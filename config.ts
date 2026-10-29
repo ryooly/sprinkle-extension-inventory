@@ -10,7 +10,9 @@ export const config = {
   apiBaseUrl: process.env.API_BASE_URL ?? "http://localhost:3000",
   uploadDir: process.env.UPLOAD_DIR ?? "uploads/extensions",
 
-  corsOrigin: (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+  corsOrigin: (
+    process.env.CORS_ORIGIN ?? "http://localhost:5173,http://127.0.0.1:5173"
+  )
     .split(",")
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0),

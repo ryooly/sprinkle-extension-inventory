@@ -7,7 +7,6 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     S.injectHeader(function () {
-      S.initTheme();
       S.initHeader();
       if (S.hydrateIcons) S.hydrateIcons(document.body);
       initProfile();
@@ -103,19 +102,21 @@
     }
 
 
-    var items = S.flattenCards().filter(function (card) {
-      return card.user === owner;
-    });
+    var items = [];
 
 
-    var chipsEl = document.getElementById("profile-chips");
-    if (chipsEl) {
+    function renderChips() {
+      var chipsEl = document.getElementById("profile-chips");
+      if (!chipsEl) return;
+
       var freq = {};
       items.forEach(function (card) {
-        (S.cardTags ? S.cardTags(card) : [card.genre]).forEach(function (t) {
-          if (!t) return;
-          freq[t] = (freq[t] || 0) + 1;
-        });
+        (card.categories || [])
+          .concat(card.hashtags || [])
+          .forEach(function (tag) {
+            if (!tag) return;
+            freq[tag] = (freq[tag] || 0) + 1;
+          });
       });
       var chips = Object.keys(freq)
         .sort(function (a, b) {
@@ -124,8 +125,8 @@
         .slice(0, 12);
       if (chips.length) {
         chipsEl.innerHTML = chips
-          .map(function (t) {
-            return '<span class="fchip">#' + escapeText(t) + "</span>";
+          .map(function (tag) {
+            return '<span class="fchip">#' + escapeText(tag) + "</span>";
           })
           .join("");
       }
@@ -138,7 +139,7 @@
 
     function render(query) {
       var matched = items.filter(function (card) {
-        return S.cardMatchesQuery(card, query);
+        return S.cardMatches(card, query);
       });
 
       if (grid) {
@@ -165,6 +166,15 @@
     }
 
     render("");
+
+    S.api
+      .listExtensions({ developer: owner, limit: 60 })
+      .then(function (res) {
+        items = res.ok && res.data ? S.cardsFrom(res.data.items || []) : [];
+        renderChips();
+        render("");
+      });
+
     if (search) {
       search.addEventListener("input", function () {
         render(search.value.trim().toLowerCase());

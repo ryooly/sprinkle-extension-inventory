@@ -97,4 +97,23 @@ export const UserRepository = {
 
     return updatedToken;
   },
+
+  replaceToken: async (
+    accountId: string,
+    newToken: string,
+    expiresAt: Date,
+  ) => {
+    return await db.transaction(async (tx) => {
+      await tx
+        .delete(refreshTokens)
+        .where(eq(refreshTokens.accountId, accountId));
+
+      const [createdToken] = await tx
+        .insert(refreshTokens)
+        .values({ accountId, token: newToken, expiresAt })
+        .returning();
+
+      return createdToken;
+    });
+  },
 };

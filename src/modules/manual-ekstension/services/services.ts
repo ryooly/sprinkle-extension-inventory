@@ -7,9 +7,10 @@ import {
 } from "../../automation-engine/depends/extension-utils";
 import { insertExtensionFromUpload } from "../../automation-engine/saving-engine/saving-engine/save-service";
 import { AppError } from "@/errorhandler";
-import { mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { randomUUID } from "crypto";
+import { existsSync, mkdirSync } from "node:fs";
+import { isAbsolute, join, relative, resolve } from "node:path";
+import { createHash, randomUUID } from "crypto";
+import { unzipSync } from "fflate";
 import { config } from "config";
 import type {
   CreateExtensionUserPayload,
@@ -172,6 +173,78 @@ export interface RepoFileResult {
   ref: string;
 }
 
+function resolvePackageEntry(
+  entries: Record<string, Uint8Array>,
+  path: string,
+): string | null {
+  if (entries[path]) return path;
+
+  const suffix = `/${path}`;
+
+  return Object.keys(entries).find((name) => name.endsWith(suffix)) ?? null;
+}
+
+// Extensions published by builders keep their package inside the upload
+// directory instead of a GitHub archive, so mirrors the repository reader for
+// the files tab without leaving the local disk.
+async function readStoredPackageFile(
+  extension: Extension,
+  path: string,
+): Promise<RepoFileResult> {
+  const uploadRoot = resolve(config.uploadDir);
+  const storedPath = resolve(extension.extensionLink);
+  const inside = relative(uploadRoot, storedPath);
+  const isStoredPackage =
+    inside.length > 0 &&
+    !inside.startsWith("..") &&
+    !isAbsolute(inside) &&
+    existsSync(storedPath);
+
+  if (!isStoredPackage) {
+    throw new AppError(
+      `Extension "${extension.name}" has no readable package on disk`,
+      400,
+    );
+  }
+
+  const bytes = new Uint8Array(await Bun.file(storedPath).arrayBuffer());
+  const entries = unzipSync(bytes, {
+    filter: (file) => !file.name.endsWith("/"),
+  });
+
+  const entryName = resolvePackageEntry(entries, path);
+
+  if (!entryName) {
+    throw new AppError(
+      `File "${path}" not found in the package uploaded for "${extension.name}"`,
+      404,
+    );
+  }
+
+  const data = entries[entryName];
+
+  if (data.byteLength > MAX_FILE_CONTENT_BYTES) {
+    throw new AppError(
+      `File "${entryName}" is too large to open (${data.byteLength} bytes)`,
+      413,
+    );
+  }
+
+  const decoded = new TextDecoder().decode(data);
+  const isBinary = decoded.includes("\uFFFD");
+  const segments = entryName.split("/");
+
+  return {
+    name: segments[segments.length - 1] ?? entryName,
+    path: entryName,
+    sha: createHash("sha1").update(data).digest("hex"),
+    size: data.byteLength,
+    encoding: isBinary ? "base64" : "utf8",
+    content: isBinary ? Buffer.from(data).toString("base64") : decoded,
+    ref: "local-package",
+  };
+}
+
 export async function openExtensionRepoFile( /// open content of a file in a repository
   id: string,
   path: string,
@@ -195,10 +268,7 @@ export async function openExtensionRepoFile( /// open content of a file in a rep
   const parsed = parseGithubZipUrl(extension.extensionLink);
 
   if (!parsed) {
-    throw new AppError(
-      `Extension "${extension.name}" is not linked to a GitHub repository`,
-      400,
-    );
+    return await readStoredPackageFile(extension, trimmedPath);
   }
 
   const [, , , ownerSegment = "", repoSegment = ""] = parsed.repoUrl.split("/");

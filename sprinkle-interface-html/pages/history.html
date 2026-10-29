@@ -3,23 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Saved — Sprinkle</title>
+    <title>History — Sprinkle</title>
     <meta
       name="description"
-      content="Extensions you've saved in Sprinkle. Search only within your saved items."
+      content="Extensions you recently visited. Search only within your history."
     />
-    <link rel="stylesheet" href="css/styles.css" />
-
-    <script>
-      try {
-        var t = localStorage.getItem("theme");
-        if (t === "light" || t === "dark") {
-          document.documentElement.classList.toggle("dark", t === "dark");
-        }
-      } catch (e) {}
-    </script>
+    <link rel="stylesheet" href="../css/pages/sections.css" />
+    <link rel="stylesheet" href="../css/pages/history.css" />
+    <link rel="stylesheet" href="../css/base.css" />
   </head>
-  <body data-section="saved">
+  <body data-section="history">
 
     <div data-header></div>
 
@@ -27,8 +20,8 @@
       <section class="panel-card section-panel">
         <div class="panel-head">
           <span class="section-title">
-            <span data-icon="bookmark"></span>
-            <span>Saved</span>
+            <span data-icon="history"></span>
+            <span>History</span>
           </span>
           <span class="path" id="section-count"></span>
         </div>
@@ -39,8 +32,8 @@
             <input
               id="section-search"
               type="text"
-              placeholder="Search your saved items..."
-              aria-label="Search saved"
+              placeholder="Search your history..."
+              aria-label="Search history"
             />
           </div>
         </div>
@@ -51,9 +44,11 @@
       </section>
     </main>
 
-    <script src="js/vendor/lucide.min.js"></script>
-    <script src="js/sprinkle-data.js"></script>
-    <script src="js/interactions.js"></script>
-    <script src="js/sections.js"></script>
+    <script src="../js/vendor/lucide.min.js"></script>
+    <script src="../js/sprinkle-data.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/interactions.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/sections.js"></script>
   </body>
 </html>

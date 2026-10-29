@@ -14,6 +14,12 @@ import type {
   DailyJobResult,
 } from "./automation-type";
 
+function envInt(name: string, fallback: number): number {
+  const parsed = Number.parseInt(process.env[name] ?? "", 10);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 export class TwentyFourHourAutomation {
   private hourlyCron: { stop: () => void } | null = null;
   private dailyCron: { stop: () => void } | null = null;
@@ -21,7 +27,11 @@ export class TwentyFourHourAutomation {
   private async insertExtensions(): Promise<InsertionResult> {
     const token = process.env.GITHUB_TOKEN;
 
-    const result = await fetchBasicExtensions({ token });
+    const result = await fetchBasicExtensions({
+      token,
+      perPage: envInt("AUTOMATION_PER_PAGE", 5),
+      minStars: envInt("AUTOMATION_MIN_STARS", 10),
+    });
 
     const insertResult = result.data.insertResult;
 
@@ -88,7 +98,10 @@ export class TwentyFourHourAutomation {
   }
 
   startCronJobs() {
-    this.hourlyCron = Bun.cron("0 * * * *", async () => {
+    const hourlyExpression = process.env.HOURLY_CRON ?? "0 * * * *";
+    const dailyExpression = process.env.DAILY_CRON ?? "0 0 * * *";
+
+    this.hourlyCron = Bun.cron(hourlyExpression, async () => {
       const started = Date.now();
       logger.info(
         `[hourly] Extension automation started at ${new Date().toISOString()}`,
@@ -110,7 +123,7 @@ export class TwentyFourHourAutomation {
       );
     });
 
-    this.dailyCron = Bun.cron("0 0 * * *", async () => {
+    this.dailyCron = Bun.cron(dailyExpression, async () => {
       const started = Date.now();
       logger.info(
         `[daily] Extension export started at ${new Date().toISOString()}`,
@@ -131,7 +144,7 @@ export class TwentyFourHourAutomation {
     });
 
     logger.info(
-      "[cron] Scheduled hourly (0 * * * *) basic generation + cleanup and daily (0 0 * * *) showcase export (global generator, no user context)",
+      `[cron] Scheduled hourly (${hourlyExpression}) basic generation + cleanup and daily (${dailyExpression}) showcase export (global generator, no user context)`,
     );
   }
 

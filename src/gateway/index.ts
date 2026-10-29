@@ -6,13 +6,14 @@ import { AppError } from "@/errorhandler";
 import type { ErrorResponse } from "@/types/error-response";
 import { userRoutes } from "@/modules/auth";
 import { extensionRoutes } from "@/modules/manual-ekstension";
+import { catalogRoutes } from "@/modules/catalog";
 import { paymentRoutes } from "@/modules/payment-gateway";
 import { extensionMetricsRoutes } from "@/modules/automation-engine";
 import { dailyShowcaseRoutes } from "@/modules/dailyShowcase";
 import { commentRoutes } from "@/modules/comments";
 import { savedExtensionRoutes } from "@/modules/automation-engine/algorithm-engine/routes/saved-extensions.route";
 
-const app = new Elysia()
+new Elysia()
   .use(buildCorsPlugin())
 
   .onError(({ code, error, set }) => {
@@ -48,6 +49,7 @@ const app = new Elysia()
   })
   .use(userRoutes)
   .use(extensionRoutes)
+  .use(catalogRoutes)
   .use(paymentRoutes)
   .use(extensionMetricsRoutes)
   .use(dailyShowcaseRoutes)

@@ -782,24 +782,6 @@ window.SPRINKLE = (function () {
         "</svg>"
       );
     },
-    sun: function (cls) {
-      return svg(
-        '<path d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.773-1.591 1.591M5.25 12H3m4.707-7.05-1.591 1.591M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/>',
-        "0 0 24 24",
-        cls,
-        "none",
-        "currentColor",
-      );
-    },
-    moon: function (cls) {
-      return svg(
-        '<path d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/>',
-        "0 0 24 24",
-        cls,
-        "none",
-        "currentColor",
-      );
-    },
     profile: function (cls) {
       return svg(
         '<path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0Zm0 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 7c2.145 0 4.057.74 5.5 1.982-.79 1.786-2.653 3.268-5.5 3.268-2.847 0-4.71-1.482-5.5-3.268C3.943 11.24 5.855 10.5 8 10.5Z"/>',
@@ -876,6 +858,12 @@ window.SPRINKLE = (function () {
         "external-link":
           '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
         copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+        "log-in":
+          '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>',
+        "log-out":
+          '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+        "user-plus":
+          '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>',
         scale:
           '<path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/>',
       }[name];
@@ -903,7 +891,7 @@ window.SPRINKLE = (function () {
       );
     },
     status: function (status, cls) {
-      if (status === "active") {
+      if (status === "active" || status === "basic") {
         return svg('<circle cx="8" cy="8" r="5"/>', "0 0 16 16", cls);
       }
       return svg(
@@ -928,32 +916,53 @@ window.SPRINKLE = (function () {
     });
   }
 
+  var STATUS_LABELS = {
+    active: "Active",
+    archived: "Archived",
+    premium: "Premium",
+    basic: "Basic",
+  };
+
   function cardHtml(card, compact) {
     var href =
+      card.href ||
       "extensions.html?slug=" +
-      encodeURIComponent(card.repo) +
-      "&user=" +
-      encodeURIComponent(card.user);
+        encodeURIComponent(card.repo) +
+        "&user=" +
+        encodeURIComponent(card.user);
+
+    var genreLabel = card.genreLabel || card.genre;
+    var status = card.status || "active";
+    var statusLabel = card.statusLabel || STATUS_LABELS[status] || "Basic";
+    var views = card.viewsLabel !== undefined ? card.viewsLabel : card.views;
+
+    var metric =
+      card.downloadsLabel !== undefined
+        ? '<span class="meta-item">' +
+          icons.lucide("download", "") +
+          escapeHtml(card.downloadsLabel) +
+          "</span>"
+        : '<span class="meta-item">' +
+          icons.thumbsUp("") +
+          formatClaps(card.claps) +
+          "</span>";
 
     var meta =
       '<span class="meta-item">' +
       icons.genre(card.genre, "") +
-      escapeHtml(card.genre) +
+      escapeHtml(genreLabel) +
       "</span>" +
       '<span class="meta-item">' +
       icons.eye("") +
-      escapeHtml(card.views) +
+      escapeHtml(views) +
       "</span>" +
       '<span class="meta-item status-' +
-      card.status +
+      escapeHtml(status) +
       '">' +
-      icons.status(card.status, "") +
-      (card.status === "active" ? "Active" : "Archived") +
+      icons.status(status, "") +
+      escapeHtml(statusLabel) +
       "</span>" +
-      '<span class="meta-item">' +
-      icons.thumbsUp("") +
-      formatClaps(card.claps) +
-      "</span>";
+      metric;
 
     var metaWrap = compact
       ? '<span class="card-meta grid2">' + meta + "</span>"
@@ -973,18 +982,22 @@ window.SPRINKLE = (function () {
       icons.lucide("bookmark", "") +
       "</span>";
 
+    var title =
+      card.claps !== undefined
+        ? formatClaps(card.claps) + " claps — like on the extension page"
+        : "Open extension";
+
     return (
       '<a class="app-card ' +
       (compact ? "fading" : "solid") +
       '" href="' +
       href +
       '" data-card-id="' +
-      escapeHtml(card.user + "/" + card.repo) +
-      '" data-claps="' +
-      card.claps +
+      escapeHtml(card.id || card.user + "/" + card.repo) +
+      (card.id ? '" data-extension-id="' + escapeHtml(card.id) : "") +
       '" title="' +
-      formatClaps(card.claps) +
-      ' claps — like on the extension page">' +
+      escapeHtml(title) +
+      '">' +
       mark +
       '<span class="card-body">' +
       '<span class="card-title">' +
@@ -1004,35 +1017,6 @@ window.SPRINKLE = (function () {
   }
 
 
-
-  function initTheme() {
-    var stored = localStorage.getItem("theme");
-    var theme = stored === "light" || stored === "dark" ? stored : "dark";
-    applyTheme(theme);
-
-    var btn = document.getElementById("theme-toggle");
-    if (btn) {
-      btn.addEventListener("click", function () {
-        theme = document.documentElement.classList.contains("dark")
-          ? "light"
-          : "dark";
-        applyTheme(theme);
-        localStorage.setItem("theme", theme);
-      });
-    }
-
-    function applyTheme(next) {
-      document.documentElement.classList.toggle("dark", next === "dark");
-      var toggle = document.getElementById("theme-toggle");
-      if (toggle) {
-        toggle.setAttribute(
-          "aria-label",
-          next === "dark" ? "Switch to light theme" : "Switch to dark theme",
-        );
-        toggle.innerHTML = next === "dark" ? icons.sun("") : icons.moon("");
-      }
-    }
-  }
 
   function initHeader() {
 
@@ -1158,6 +1142,8 @@ window.SPRINKLE = (function () {
         title.insertBefore(backBtn, title.firstChild);
       }
     }
+
+    if (window.SPRINKLE.auth) window.SPRINKLE.auth.mount();
   }
 
 
@@ -1197,15 +1183,24 @@ window.SPRINKLE = (function () {
     "    </div>",
     "  </div>",
     '  <div class="header-right">',
-    '    <button type="button" id="theme-toggle" class="icon-btn" aria-label="Switch to light theme"></button>',
     '    <div class="dropdown">',
-    '      <button type="button" id="profile-btn" aria-label="Open user menu" aria-haspopup="true" aria-expanded="false" class="avatar-btn" data-icon="profile"></button>',
+    '      <button type="button" id="profile-btn" aria-label="Log in or sign up" aria-haspopup="true" aria-expanded="false" class="avatar-btn"><span class="avatar-icon" data-icon="profile"></span><span class="avatar-initials" hidden></span></button>',
     '      <div id="profile-menu" class="dropdown-menu">',
-    '        <a href="profile.html?user=sprinkle-labs&me=1" class="dropdown-user" aria-label="View your profile"><span class="dropdown-avatar" aria-hidden="true">SL</span><span class="dropdown-user-meta"><span class="name">Sprinkle Labs</span><span class="handle">@sprinkle-labs</span></span><svg class="dropdown-user-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></a>',
-    '        <div class="dropdown-sep"></div>',
-    '        <a href="create-extension.html" class="dropdown-item"><span data-icon="plus"></span><span>Create Extension</span></a>',
-    '        <a href="inventory.html" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></a>',
-    '        <button type="button" class="dropdown-item"><span data-icon="settings"></span><span>Settings</span></button>',
+    '        <div class="auth-guest" data-auth-guest>',
+    '          <button type="button" class="dropdown-item" data-auth-open="login"><span data-icon="log-in"></span><span>Log in</span></button>',
+    '          <button type="button" class="dropdown-item" data-auth-open="register"><span data-icon="user-plus"></span><span>Sign up</span></button>',
+    '          <p class="auth-guest-hint">Browse the catalog freely &mdash; an account unlocks saving and publishing.</p>',
+    "        </div>",
+    '        <div class="auth-user" data-auth-user hidden>',
+    '          <a href="profile.html?user=sprinkle-labs&me=1" class="dropdown-user" aria-label="View your profile" data-auth-profile-link><span class="dropdown-avatar" aria-hidden="true">SL</span><span class="dropdown-user-meta"><span class="name" data-auth-name>Sprinkle Labs</span><span class="handle" data-auth-handle>@sprinkle-labs</span></span><svg class="dropdown-user-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></a>',
+    '          <div class="auth-user-meta"><span class="auth-user-mail" data-auth-email hidden></span><span class="auth-user-role" data-auth-role hidden></span></div>',
+    '          <div class="dropdown-sep"></div>',
+    '          <a href="create-extension.html" class="dropdown-item"><span data-icon="plus"></span><span>Create Extension</span></a>',
+    '          <a href="inventory.html" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></a>',
+    '          <button type="button" class="dropdown-item"><span data-icon="settings"></span><span>Settings</span></button>',
+    '          <div class="dropdown-sep"></div>',
+    '          <button type="button" class="dropdown-item" data-auth-logout><span data-icon="log-out"></span><span>Log out</span></button>',
+    "        </div>",
     "      </div>",
     "    </div>",
     "  </div>",
@@ -1272,10 +1267,26 @@ window.SPRINKLE = (function () {
     close: function (el) {
       el.innerHTML = icons.lucide("x", "icon-sm");
     },
+    "log-in": function (el) {
+      el.innerHTML = icons.lucide("log-in", "icon-sm");
+    },
+    "log-out": function (el) {
+      el.innerHTML = icons.lucide("log-out", "icon-sm");
+    },
+    "user-plus": function (el) {
+      el.innerHTML = icons.lucide("user-plus", "icon-sm");
+    },
   };
 
   function hydrateIcons(root) {
-    (root || document).querySelectorAll("[data-icon]").forEach(function (el) {
+    var scope = root || document;
+    var nodes = Array.prototype.slice.call(
+      scope.querySelectorAll ? scope.querySelectorAll("[data-icon]") : [],
+    );
+    if (scope.getAttribute && scope.getAttribute("data-icon")) {
+      nodes.unshift(scope);
+    }
+    nodes.forEach(function (el) {
       var fn = ICON_SLOTS[el.getAttribute("data-icon")];
       if (fn) fn(el);
     });
@@ -1287,7 +1298,7 @@ window.SPRINKLE = (function () {
 
 
     if (location.protocol !== "file:") {
-      fetch("partials/header.html")
+      fetch("../partials/header.html")
         .then(function (res) {
           return res.text();
         })
@@ -1419,7 +1430,6 @@ window.SPRINKLE = (function () {
     flattenCards: flattenCards,
     cardTags: cardTags,
     cardMatchesQuery: cardMatchesQuery,
-    initTheme: initTheme,
     initHeader: initHeader,
     injectHeader: injectHeader,
     hydrateIcons: hydrateIcons,

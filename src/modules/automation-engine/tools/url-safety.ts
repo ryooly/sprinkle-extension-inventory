@@ -19,10 +19,6 @@ export type UrlSafetyCheckOptions = {
   timeoutMs?: number;
 };
 
-export type UrlSafetyBatchOptions = UrlSafetyCheckOptions & {
-  delayMs?: number;
-};
-
 export type UrlThreatMatch = {
   threatType: string;
   platformType: string;
@@ -47,10 +43,6 @@ function resolveKey(key?: string): string | undefined {
     key?.trim() || process.env.GOOGLE_SAFE_BROWSING_KEY?.trim() || "";
 
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function checkUrlSafety(
@@ -115,25 +107,3 @@ export async function checkUrlSafety(
     return { ...base, safe: true, threats: [], skippedOnError: true };
   }
 }
-
-export async function checkUrlsSafety(
-  urls: string[],
-  options: UrlSafetyBatchOptions = {},
-): Promise<UrlSafetyVerdict[]> {
-  const delayMs = options.delayMs ?? 1000;
-  const verdicts: UrlSafetyVerdict[] = [];
-
-  for (let i = 0; i < urls.length; i++) {
-    verdicts.push(
-      await checkUrlSafety(urls[i], {
-        key: options.key,
-        timeoutMs: options.timeoutMs,
-      }),
-    );
-
-    if (i < urls.length - 1 && delayMs > 0) await sleep(delayMs);
-  }
-
-  return verdicts;
-}
-

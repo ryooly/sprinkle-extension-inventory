@@ -5,10 +5,12 @@ import { token } from "@/modules/auth/utils/generateJwt";
 import {
   RegisterInput,
   LoginInput,
+  EmailLoginInput,
   BeBuilderInput,
   GetUserByUsernameInput,
 } from "@/schemas/auth";
 import { AppError } from "@/errorhandler";
+import type { Account } from "@/models";
 
 export class UserService {
   static async register(body: RegisterInput) {
@@ -27,7 +29,7 @@ export class UserService {
 
     const accessToken = token.generateAccessToken(account.id);
 
-    const refreshToken = token.generateRefreshToken(account.id);
+    const refreshToken = token.generateRefreshToken();
 
     await UserRepository.createNewToken({
       accountId: account.id,
@@ -61,7 +63,7 @@ export class UserService {
 
     const accessToken = token.generateAccessToken(existingAccount.id);
 
-    const refreshToken = token.generateRefreshToken(existingAccount.id);
+    const refreshToken = token.generateRefreshToken();
 
     await UserRepository.updateToken(
       existingAccount.id,
@@ -74,6 +76,63 @@ export class UserService {
       token: accessToken,
       refreshToken,
       data: existingAccount,
+    };
+  }
+
+  static async loginWithEmail(body: EmailLoginInput) {
+    const existingAccount = await UserRepository.login({
+      email: body.email,
+      password: body.password,
+    });
+
+    if (existingAccount) {
+      const isPasswordValid = await password.verify(
+        body.password,
+        existingAccount.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new AppError("Password doesn't match", 400);
+      }
+
+      return await UserService.issueSession(existingAccount);
+    }
+
+    const usernameTaken = await UserRepository.findByUsername({
+      username: body.username,
+    });
+
+    if (usernameTaken) {
+      throw new AppError("Username already taken", 409);
+    }
+
+    const account = await UserRepository.insertNewUser({
+      username: body.username,
+      email: body.email,
+      password: await password.hash(body.password),
+    });
+
+    return await UserService.issueSession(account);
+  }
+
+  private static async issueSession(account: Account) {
+    const accessToken = token.generateAccessToken(account.id);
+
+    const refreshToken = token.generateRefreshToken();
+
+    await UserRepository.replaceToken(
+      account.id,
+      refreshToken,
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    );
+
+    const { password: hashedPassword, ...data } = account;
+
+    return {
+      success: true,
+      token: accessToken,
+      refreshToken,
+      data,
     };
   }
 
@@ -90,7 +149,7 @@ export class UserService {
       throw new AppError("User is already a builder", 409);
     }
 
-    const updated = await UserRepository.upToBuilder(body);
+    await UserRepository.upToBuilder(body);
 
     return {
       success: true,

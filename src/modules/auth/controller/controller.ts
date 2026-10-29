@@ -1,6 +1,7 @@
 import type {
   RegisterInput,
   LoginInput,
+  EmailLoginInput,
   BeBuilderInput,
   GetUserByUsernameInput,
 } from "@/schemas/auth";
@@ -23,6 +24,17 @@ export class UserController {
     } catch (err) {
       if (err instanceof AppError) throw err;
       throw new AppError("Failed to login user", 500, { cause: err });
+    }
+  }
+
+  static async loginWithEmailHandle(body: EmailLoginInput) {
+    try {
+      return await UserService.loginWithEmail(body);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      throw new AppError("Failed to login user with email", 500, {
+        cause: err,
+      });
     }
   }
 

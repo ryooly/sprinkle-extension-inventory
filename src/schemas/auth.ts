@@ -11,6 +11,12 @@ export const loginSchema = z.object({
   password: z.string().min(8),
 });
 
+export const emailLoginSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
 export const beBuilderSchema = z.object({
   accountId: z.string().uuid(),
 });
@@ -25,6 +31,7 @@ export const getUserByIdSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type EmailLoginInput = z.infer<typeof emailLoginSchema>;
 export type BeBuilderInput = z.infer<typeof beBuilderSchema>;
 export type GetUserByUsernameInput = z.infer<typeof getUserByUsernameSchema>;
 export type GetUserByIdInput = z.infer<typeof getUserByIdSchema>;

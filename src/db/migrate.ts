@@ -1,7 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
-import * as dotenv from "dotenv";
 import path from "node:path";
 import { config } from "../../config";
 import { logger } from "@/logger";

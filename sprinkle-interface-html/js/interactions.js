@@ -149,7 +149,33 @@
         saved ? "Saved " + cardName(card) : "Unsaved " + cardName(card),
         saved ? "save" : "unsave",
       );
+      syncSavedExtension(card, id, saved);
     }
+  }
+
+  var UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  function syncSavedExtension(card, id, saved) {
+    if (!S.api) return;
+    var extensionId = card.getAttribute("data-extension-id") || id;
+    if (!UUID_RE.test(extensionId)) return;
+
+    var call = saved
+      ? S.api.saveExtension(extensionId)
+      : S.api.unsaveExtension(extensionId);
+
+    call.then(function (res) {
+      if (res.ok) return;
+      if (res.status === 401 || res.status === 403) return;
+      toggleIn(saves, id);
+      writeState("sprinkle:saves", saves);
+      syncSave(card);
+      S.showToast(
+        res.message || "Unable to update saved extensions",
+        "info",
+      );
+    });
   }
 
   document.addEventListener(
@@ -215,7 +241,13 @@
 
   document.addEventListener("click", function (event) {
     var premium = event.target.closest("#premium-btn");
-    if (premium) S.showToast("Sprinkle Premium — coming soon", "info");
+    if (!premium) return;
+    event.preventDefault();
+    if (S.openSubscription) {
+      S.openSubscription(premium);
+      return;
+    }
+    S.showToast("Sprinkle Premium — coming soon", "info");
   });
 
 
@@ -511,13 +543,13 @@
     });
 
 
-    document.querySelectorAll(".license-line").forEach(function (line) {
-      var lic = (S.LICENSES || {})["apache-2.0"];
+    document.querySelectorAll(".license-line[data-license]").forEach(function (line) {
+      var lic = (S.LICENSES || {})[line.getAttribute("data-license")];
       if (!lic) return;
       var trigger = document.createElement("button");
       trigger.type = "button";
       trigger.className = "lic-details";
-      trigger.setAttribute("data-license", "apache-2.0");
+      trigger.setAttribute("data-license", line.getAttribute("data-license"));
       trigger.innerHTML =
         "<span>License details</span>" +
         S.icons.lucide("chevron-down", "icon-sm chevron");

@@ -1,0 +1,12 @@
+.section-toolbar {
+  padding: 0.875rem 1rem 0;
+}
+.section-toolbar .repo-search {
+  margin-bottom: 0;
+}
+.section-body {
+  padding: 1rem;
+}
+.section-body .grid-empty {
+  align-self: stretch;
+}

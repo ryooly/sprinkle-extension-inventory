@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -6,14 +5,12 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     S.injectHeader(function () {
-      S.initTheme();
       S.initHeader();
 
       if (S.hydrateIcons) S.hydrateIcons(document.body);
       initCreateForm();
     });
   });
-
 
   function initCreateForm() {
     var form = document.getElementById("create-form");
@@ -31,28 +28,24 @@
     var submitBtn = document.getElementById("create-submit");
     var submitLabel = submitBtn.querySelector(".submit-label");
 
-    var REQUIRED = ["name", "developer", "description", "file"];
+    var REQUIRED = ["name", "developer", "description", "file", "categories"];
     var MAX_DESC = parseInt(descEl.getAttribute("maxlength"), 10) || 280;
 
-
     var catWrap = document.getElementById("ce-categories");
+    var CATEGORY_META = S.CATEGORY_META || {};
     if (catWrap) {
-      (S.GENRES || [])
-        .filter(function (genre) {
-          return genre !== "Recommendation";
-        })
-        .forEach(function (genre) {
-          var chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "pick-chip";
-          chip.setAttribute("data-category", genre);
-          chip.setAttribute("aria-pressed", "false");
-          chip.textContent = genre;
-          chip.addEventListener("click", function () {
-            setPressed(chip, !chip.classList.contains("active"));
-          });
-          catWrap.appendChild(chip);
+      Object.keys(CATEGORY_META).forEach(function (key) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "pick-chip";
+        chip.setAttribute("data-category", key);
+        chip.setAttribute("aria-pressed", "false");
+        chip.textContent = CATEGORY_META[key].label;
+        chip.addEventListener("click", function () {
+          setPressed(chip, !chip.classList.contains("active"));
         });
+        catWrap.appendChild(chip);
+      });
     }
 
     form.querySelectorAll("#ce-browsers .pick-chip").forEach(function (chip) {
@@ -66,7 +59,6 @@
       chip.classList.toggle("active", on);
       chip.setAttribute("aria-pressed", String(on));
     }
-
 
     function fieldEl(name) {
       return form.querySelector('[data-field="' + name + '"]');
@@ -108,13 +100,11 @@
       });
     });
 
-
     function syncDescCount() {
       descCount.textContent = descEl.value.length + " / " + MAX_DESC;
     }
     descEl.addEventListener("input", syncDescCount);
     syncDescCount();
-
 
     function formatSize(bytes) {
       if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + " MB";
@@ -161,7 +151,6 @@
       syncFile();
     });
 
-
     function isHttpUrl(value) {
       return /^https?:\/\/\S+$/i.test(value);
     }
@@ -173,10 +162,20 @@
         errors.push(["name", "Give your extension a name."]);
       if (!devEl.value.trim())
         errors.push(["developer", "Add the developer or team behind it."]);
-      if (!descEl.value.trim())
+
+      var description = descEl.value.trim();
+      if (!description)
         errors.push(["description", "Describe what the extension does."]);
+      else if (description.length < 10)
+        errors.push(["description", "Use at least 10 characters."]);
+
       if (!fileEl.files || !fileEl.files.length)
-        errors.push(["file", "Attach a .zip or .crx bundle."]);
+        errors.push(["file", "Attach a .zip bundle."]);
+      else if (!/\.zip$/i.test(fileEl.files[0].name))
+        errors.push(["file", "Packages must be a .zip bundle."]);
+
+      if (!picked("ce-categories", "data-category").length)
+        errors.push(["categories", "Pick at least one category."]);
 
       var source = sourceEl.value.trim();
       if (source && !isHttpUrl(source))
@@ -188,37 +187,58 @@
       return errors;
     }
 
+    function picked(wrapId, attribute) {
+      var keys = [];
+      form
+        .querySelectorAll("#" + wrapId + " .pick-chip.active")
+        .forEach(function (chip) {
+          keys.push(chip.getAttribute(attribute));
+        });
+      return keys;
+    }
+
+    function sourceKey(url) {
+      var host = "";
+      try {
+        host = new URL(url).hostname.toLowerCase();
+      } catch (e) {
+        return "other";
+      }
+      if (host.indexOf("github") !== -1) return "github";
+      if (host.indexOf("gitlab") !== -1) return "gitlab";
+      if (host.indexOf("bitbucket") !== -1) return "bitbucket";
+      return "other";
+    }
+
     function collect() {
-      var categories = [];
-      form
-        .querySelectorAll("#ce-categories .pick-chip.active")
-        .forEach(function (chip) {
-          categories.push(chip.getAttribute("data-category"));
-        });
+      var data = new FormData();
+      data.append("name", nameEl.value.trim());
+      data.append("description", descEl.value.trim());
+      data.append("developer", devEl.value.trim());
+      data.append("file", fileEl.files[0]);
 
-      var browsers = [];
-      form
-        .querySelectorAll("#ce-browsers .pick-chip.active")
-        .forEach(function (chip) {
-          browsers.push(chip.getAttribute("data-browser"));
-        });
+      picked("ce-categories", "data-category").forEach(function (key) {
+        data.append("categories", key);
+      });
 
-      return {
-        name: nameEl.value.trim(),
-        description: descEl.value.trim(),
-        developer: devEl.value.trim(),
-        file: fileEl.files[0],
-        source: sourceEl.value.trim() || undefined,
-        categories: categories,
-        supportedBrowsers: browsers.length ? browsers : ["chrome"],
-      };
+      var browsers = picked("ce-browsers", "data-browser");
+      (browsers.length ? browsers : ["chrome"]).forEach(function (key) {
+        data.append("supportedBrowsers", key);
+      });
+
+      var source = sourceEl.value.trim();
+      if (source) data.append("source", sourceKey(source));
+
+      return data;
     }
 
     function reset() {
       form.reset();
-      form.querySelectorAll("#ce-categories .pick-chip").forEach(function (chip) {
-        setPressed(chip, false);
-      });
+      form
+        .querySelectorAll("#ce-categories .pick-chip")
+        .forEach(function (chip) {
+          setPressed(chip, false);
+        });
       form.querySelectorAll("#ce-browsers .pick-chip").forEach(function (chip) {
         setPressed(chip, chip.getAttribute("data-browser") === "chrome");
       });
@@ -226,7 +246,6 @@
       syncDescCount();
       syncFile();
     }
-
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -244,18 +263,40 @@
       }
 
       var payload = collect();
+      var submittedName = nameEl.value.trim();
       submitBtn.disabled = true;
       submitLabel.textContent = "Publishing…";
+      stateEl.textContent = "";
+      stateEl.classList.remove("submitted");
 
-      setTimeout(function () {
+      S.api.createExtension(payload).then(function (res) {
         submitBtn.disabled = false;
         submitLabel.textContent = "Publish extension";
-        stateEl.textContent = "In review";
-        stateEl.classList.add("submitted");
-        if (S.showToast)
-          S.showToast("“" + payload.name + "” submitted for review", "save");
-        reset();
-      }, 700);
+
+        if (res.ok && res.data) {
+          var createdId = res.data.id;
+          stateEl.textContent = "Published";
+          stateEl.classList.add("submitted");
+          if (S.showToast)
+            S.showToast("“" + submittedName + "” published", "save");
+          reset();
+          if (createdId) {
+            window.setTimeout(function () {
+              location.href =
+                "extensions.html?id=" + encodeURIComponent(createdId);
+            }, 700);
+          }
+          return;
+        }
+
+        var message =
+          res.status === 401 || res.status === 403
+            ? "Sign in with a builder account to publish."
+            : res.message || "Unable to publish this extension.";
+        stateEl.textContent = "";
+        stateEl.classList.remove("submitted");
+        if (S.showToast) S.showToast(message, "info");
+      });
     });
   }
 })();

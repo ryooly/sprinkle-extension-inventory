@@ -1,13 +1,13 @@
-
-
 (function () {
   "use strict";
 
   var S = window.SPRINKLE;
+  var SAVES_KEY = "sprinkle:saves";
+  var HISTORY_KEY = "sprinkle:history";
+  var flags = { signedOut: false };
 
   document.addEventListener("DOMContentLoaded", function () {
     S.injectHeader(function () {
-      S.initTheme();
       S.initHeader();
 
       if (S.hydrateIcons) S.hydrateIcons(document.body);
@@ -15,187 +15,211 @@
     });
   });
 
-
-
-  var catalog = (function () {
-    var map = {};
-    S.flattenCards().forEach(function (card) {
-      map[card.user + "/" + card.repo] = card;
-    });
-    return map;
-  })();
-
-  function pick(keys) {
-    var out = [];
-    keys.forEach(function (key) {
-      if (catalog[key]) out.push(catalog[key]);
-    });
-    return out;
-  }
-
-
-
-
-  var INVENTORY_KEYS = [
-    "sprinkle-labs/sprinkle-notes",
-    "flowco/flow-board-lite",
-    "datalens-io/datalens-core",
-    "focusframe/focusframe-pro",
-    "inboxzero/inboxzero-engine",
-    "pixelcraft/pixelcraft-editor",
-    "codegarden/codegarden-sandbox",
-    "envsafe/envsafe-manager",
-  ];
-
-
-  var SAVED_SEED_KEYS = [
-    "podwave-hq/podwave-2.1",
-    "palette-ai/palette-colorgen-2.0",
-    "notesync/notesync-realtime",
-    "apiforge/apiforge-designer",
-  ];
-
-  function savedItems() {
-    var ids = {};
-    SAVED_SEED_KEYS.forEach(function (k) {
-      ids[k] = true;
-    });
-    try {
-      var live = JSON.parse(localStorage.getItem("sprinkle:saves")) || {};
-      Object.keys(live).forEach(function (k) {
-        if (live[k]) ids[k] = true;
-      });
-    } catch (e) {
-
-    }
-
-    var keys = SAVED_SEED_KEYS.slice();
-    Object.keys(ids).forEach(function (k) {
-      if (keys.indexOf(k) === -1) keys.push(k);
-    });
-    return pick(keys);
-  }
-
-
-  var HISTORY_ROWS = [
-    { key: "sprinkle-labs/sprinkle-notes", time: "2 hours ago" },
-    { key: "copyforge/copyforge-v3-instruct", time: "Yesterday" },
-    { key: "voiceclone-ai/voiceclone-7B", time: "2 days ago" },
-    { key: "pixelcraft/pixelcraft-editor", time: "4 days ago" },
-    { key: "habitloop/habitloop-tracker", time: "Last week" },
-    { key: "storyline-io/storyline-arc", time: "2 weeks ago" },
-  ];
-
-  function historyItems() {
-    var out = [];
-    HISTORY_ROWS.forEach(function (row) {
-      if (catalog[row.key])
-        out.push({ card: catalog[row.key], time: row.time });
-    });
-    return out;
-  }
-
-  var CONFIG = {
-    inventory: {
-      noun: "extensions",
-      render: "grid",
-      items: function () {
-        return pick(INVENTORY_KEYS);
-      },
-    },
-    saved: {
-      noun: "extensions",
-      render: "grid",
-      items: savedItems,
-    },
-    history: {
-      noun: "visits",
-      render: "history",
-      items: historyItems,
-    },
-  };
-
-
-
   function initSection() {
     var key = document.body.getAttribute("data-section");
-    var conf = CONFIG[key];
     var grid = document.getElementById("section-results");
     var search = document.getElementById("section-search");
     var countEl = document.getElementById("section-count");
-    if (!conf || !grid) return;
+    if (!grid) return;
 
-    var items = conf.items();
+    var noun = key === "history" ? "visits" : "extensions";
+    var items = [];
+    var loading = true;
+    var error = "";
 
-    function escapeText(s) {
-      return String(s).replace(/[&<>"']/g, function (c) {
-        return {
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#39;",
-        }[c];
-      });
-    }
-
-    function updateCount(noun, count) {
-      if (!countEl) return;
-      countEl.textContent = count + " " + noun;
+    function currentQuery() {
+      return search && search.value ? search.value.trim().toLowerCase() : "";
     }
 
     function render(query) {
-      var matched;
+      if (loading) {
+        grid.className = "card-grid";
+        grid.innerHTML = '<div class="grid-empty">Loading ' + noun + "…</div>";
+        return;
+      }
 
-      if (conf.render === "history") {
-        matched = items.filter(function (row) {
-          return S.cardMatchesQuery(row.card, query);
-        });
+      if (error) {
+        grid.className = "card-grid";
+        grid.innerHTML =
+          '<div class="grid-empty">' + escapeText(error) + "</div>";
+        return;
+      }
+
+      var matched = items.filter(function (entry) {
+        return S.cardMatches(entry.card || entry, query);
+      });
+
+      if (key === "history") {
         grid.className = "history-list";
         grid.innerHTML = matched
-          .map(function (row) {
+          .map(function (entry) {
             return (
               '<div class="history-row">' +
               '<span class="history-time">' +
-              escapeText(row.time) +
+              escapeText(entry.time) +
               "</span>" +
-              S.cardHtml(row.card, true) +
+              S.cardHtml(entry.card, true) +
               "</div>"
             );
           })
           .join("");
       } else {
-        matched = items.filter(function (card) {
-          return S.cardMatchesQuery(card, query);
-        });
         grid.className = "card-grid";
         grid.innerHTML = matched
-          .map(function (card) {
-            return S.cardHtml(card, false);
+          .map(function (entry) {
+            return S.cardHtml(entry.card || entry, false);
           })
           .join("");
       }
 
       if (!matched.length) {
         grid.innerHTML =
-          '<div class="grid-empty">No ' +
-          conf.noun +
-          (query
-            ? " match <strong>" + escapeText(query) + "</strong>."
-            : " yet.") +
-          "</div>";
+          '<div class="grid-empty">' + emptyHtml(query) + "</div>";
       }
 
       if (S.applyCardStates) S.applyCardStates(grid);
-      updateCount(query ? "matching" : conf.noun, matched.length);
+      if (countEl) {
+        countEl.textContent =
+          matched.length + " " + (query ? "matching" : noun);
+      }
+    }
+
+    function emptyHtml(query) {
+      if (query)
+        return (
+          "No " + noun + " match <strong>" + escapeText(query) + "</strong>."
+        );
+      if (key === "saved")
+        return flags.signedOut
+          ? "Sign in to sync the extensions you save."
+          : "No saved extensions yet.";
+      if (key === "inventory") return "No extensions published yet.";
+      if (key === "history")
+        return "No visits yet - open an extension to start your history.";
+      return "No extensions yet.";
     }
 
     render("");
 
+    loadItems(key).then(function (loaded) {
+      items = loaded;
+      loading = false;
+      render(currentQuery());
+    });
+
     if (search) {
       search.addEventListener("input", function () {
-        render(search.value.trim().toLowerCase());
+        render(currentQuery());
       });
     }
+  }
+
+  function loadItems(key) {
+    if (key === "saved") return loadSaved();
+    if (key === "inventory") return loadInventory();
+    if (key === "history") return loadHistory();
+    return Promise.resolve([]);
+  }
+
+  function loadSaved() {
+    return Promise.all([
+      S.api.listSaved(),
+      S.api.listExtensions({ limit: 60 }),
+    ]).then(function (results) {
+      var savedRes = results[0];
+      var byId = indexCatalog(results[1]);
+      flags.signedOut = savedRes.status === 401 || savedRes.status === 403;
+
+      if (savedRes.ok && Array.isArray(savedRes.data)) {
+        var savedById = {};
+        savedRes.data.forEach(function (item) {
+          if (item && item.id) savedById[item.id] = item;
+        });
+
+        return savedRes.data
+          .map(function (item) {
+            if (!item || !item.id) return null;
+            return S.toCard(byId[item.id] || savedById[item.id]);
+          })
+          .filter(isValidCard);
+      }
+
+      return localSavedIds()
+        .map(function (id) {
+          return byId[id] ? S.toCard(byId[id]) : null;
+        })
+        .filter(Boolean);
+    });
+  }
+
+  function loadInventory() {
+    return S.api
+      .listExtensions({ publisher: "user", limit: 60 })
+      .then(function (res) {
+        if (!res.ok || !res.data) return [];
+        return S.cardsFrom(res.data.items || []).filter(isValidCard);
+      });
+  }
+
+  function loadHistory() {
+    var rows = readHistory();
+    if (!rows.length) return Promise.resolve([]);
+
+    return S.api.listExtensions({ limit: 60 }).then(function (res) {
+      var byId = indexCatalog(res);
+      return rows
+        .map(function (row) {
+          var item = byId[row.id];
+          if (!item) return null;
+          return { card: S.toCard(item), time: S.timeAgo(row.at) };
+        })
+        .filter(Boolean);
+    });
+  }
+
+  function indexCatalog(res) {
+    var byId = {};
+    if (res && res.ok && res.data && res.data.items) {
+      res.data.items.forEach(function (item) {
+        byId[item.id] = item;
+      });
+    }
+    return byId;
+  }
+
+  function isValidCard(card) {
+    return !!card && card.repo !== "untitled";
+  }
+
+  function localSavedIds() {
+    try {
+      var map = JSON.parse(localStorage.getItem(SAVES_KEY) || "{}") || {};
+      return Object.keys(map).filter(function (id) {
+        return map[id];
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function readHistory() {
+    try {
+      var rows = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(rows) ? rows : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function escapeText(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[c];
+    });
   }
 })();
