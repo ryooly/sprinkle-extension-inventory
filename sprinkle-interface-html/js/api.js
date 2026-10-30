@@ -10,6 +10,27 @@ window.SPRINKLE = window.SPRINKLE || {};
 
   var S = window.SPRINKLE;
 
+  function loginDbg(event, data) {
+    if (window.SPRINKLE_LOGIN_DEBUG === false) return;
+    console.info(
+      "%c[login-dbg] " + event,
+      "color:#38bdf8;font-weight:bold",
+      data === undefined ? "" : data,
+    );
+  }
+
+  function debugBody(body) {
+    if (!body || typeof body !== "object") return String(body);
+    var copy = {};
+    Object.keys(body).forEach(function (key) {
+      copy[key] =
+        key === "password" ? String(body[key]).length + " chars" : body[key];
+    });
+    return copy;
+  }
+
+  S.loginDbg = loginDbg;
+
   var CATEGORY_META = {
     productivity: { label: "Productivity", genre: "Productivity" },
     developer_tools: { label: "Developer", genre: "Developer" },
@@ -75,7 +96,19 @@ window.SPRINKLE = window.SPRINKLE || {};
       init.body = JSON.stringify(opts.body);
     }
 
-    return fetch(apiBase() + path, init)
+    var debug = path.indexOf("/user/") === 0;
+    var url = apiBase() + path;
+
+    if (debug) {
+      loginDbg("api:request", {
+        method: init.method,
+        url: url,
+        pageOrigin: location.origin,
+        body: opts.body instanceof FormData ? "FormData" : debugBody(opts.body),
+      });
+    }
+
+    return fetch(url, init)
       .then(function (res) {
         return res.text().then(function (text) {
           var payload = null;
@@ -86,6 +119,18 @@ window.SPRINKLE = window.SPRINKLE || {};
               payload = null;
             }
           }
+
+          if (debug) {
+            loginDbg("api:response", {
+              url: url,
+              status: res.status,
+              ok: res.ok,
+              loginKind: payload ? payload.loginKind : null,
+              message: payload ? payload.message : null,
+              raw: text ? text.slice(0, 160) : "",
+            });
+          }
+
           return {
             ok: res.ok,
             status: res.status,
@@ -102,6 +147,14 @@ window.SPRINKLE = window.SPRINKLE || {};
         });
       })
       .catch(function (err) {
+        if (debug) {
+          loginDbg("api:network-error", {
+            url: url,
+            name: err && err.name,
+            message: (err && err.message) || "unknown",
+            hint: "fetch rejected before any response: gateway down, wrong apiBase, or CORS blocked",
+          });
+        }
         return {
           ok: false,
           status: 0,
@@ -191,6 +244,27 @@ window.SPRINKLE = window.SPRINKLE || {};
       });
     },
 
+    addReply: function (commentId, content) {
+      var path = "/comments/" + encodeURIComponent(commentId) + "/replies";
+      return request(path, { method: "POST", body: { content: content } });
+    },
+
+    deleteComment: function (commentId) {
+      return request("/comments/" + encodeURIComponent(commentId), {
+        method: "DELETE",
+      });
+    },
+
+    deleteReply: function (replyId) {
+      return request("/comments/replies/" + encodeURIComponent(replyId), {
+        method: "DELETE",
+      });
+    },
+
+    updateProfile: function (payload) {
+      return request("/user/profile", { method: "PATCH", body: payload });
+    },
+
     register: function (payload) {
       return request("/user/register", { method: "POST", body: payload });
     },
@@ -200,9 +274,26 @@ window.SPRINKLE = window.SPRINKLE || {};
     },
 
     getUserByUsername: function (username) {
-      return request(
-        "/user/getUserByUsername/" + encodeURIComponent(username),
-      );
+      return request("/user/getUserByUsername/" + encodeURIComponent(username));
+    },
+
+    listPlans: function () {
+      return request("/payment/plans");
+    },
+
+    subscription: function () {
+      return request("/payment/subscription");
+    },
+
+    selectPlan: function (planId) {
+      return request("/payment/create", {
+        method: "POST",
+        body: { planId: Number(planId) },
+      });
+    },
+
+    cancelSubscription: function () {
+      return request("/payment/cancel", { method: "POST", body: {} });
     },
   };
 
@@ -293,6 +384,26 @@ window.SPRINKLE = window.SPRINKLE || {};
     });
   }
 
+  function licenseSummary(extension) {
+    var raw =
+      extension.licenseDescription ||
+      (extension.licensePermissions || extension.licenseConditions
+        ? "License terms reported by the package manifest."
+        : "No license summary was published for this extension.");
+
+    var clean = String(raw).replace(/\s+/g, " ").trim();
+    var stop = clean.search(/[.!?](\s|$)/);
+    var first = stop > 0 ? clean.slice(0, stop + 1) : clean;
+
+    var max = 140;
+    if (first.length <= max) return first;
+
+    var cut = first.slice(0, max);
+    var space = cut.lastIndexOf(" ");
+    cut = space > 60 ? cut.slice(0, space) : cut;
+    return cut.replace(/[,.;:]+$/, "") + "…";
+  }
+
   function licenseOf(extension) {
     var permissions = extension.licensePermissions || [];
     var conditions = extension.licenseConditions || [];
@@ -312,12 +423,7 @@ window.SPRINKLE = window.SPRINKLE || {};
 
     var name =
       extension.licenseName || extension.licenseKey || "Custom license";
-    var summary =
-      extension.licenseDescription ||
-      (groups.length
-        ? "License terms reported by the package manifest."
-        : "No license summary was published for this extension.");
-
+    var summary = licenseSummary(extension);
     return {
       spdx: extension.licenseKey || extension.licenseName || "custom",
       name: name,
@@ -332,10 +438,13 @@ window.SPRINKLE = window.SPRINKLE || {};
 
   function extensionHref(extension) {
     if (extension && extension.id) {
-      return "extensions.html?id=" + encodeURIComponent(extension.id);
+      return (
+        "/sprinkle-interface-html/pages/extensions.html?id=" +
+        encodeURIComponent(extension.id)
+      );
     }
     return (
-      "extensions.html?slug=" +
+      "/sprinkle-interface-html/pages/extensions.html?slug=" +
       encodeURIComponent(extension.name || "") +
       "&user=" +
       encodeURIComponent(extension.developer || "")
@@ -396,6 +505,65 @@ window.SPRINKLE = window.SPRINKLE || {};
     return haystack.indexOf(String(query).toLowerCase()) !== -1;
   }
 
+  // Emoji / pictograph / dingbat / flag code points that GitHub draws as
+  // colorful icons and that read as "mysterious objects" in plain text.
+  var README_NOISE_CHARS =
+    /[\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{2122}\u{2139}]/gu;
+
+  // Turn a single prose line into clean, readable text: drop icons, unwrap
+  // links to their labels, remove images and strip raw HTML badge markup.
+  function cleanReadmeLine(line) {
+    var out = line.replace(README_NOISE_CHARS, "");
+
+    // :emoji: style shortcodes.
+    out = out.replace(/:[a-z0-9_+-]+:/gi, " ");
+
+    // Reference-style link/image definitions:  [id]: <url>  (whole line).
+    if (/^[ \t]*\[[^\]\n]+\]:[ \t]*\S+[ \t]*$/.test(out)) return "";
+
+    // Markdown images -> removed entirely (badges, screenshots).
+    out = out.replace(/!\[[^\]]*\]\([^)]*\)/g, "");
+    out = out.replace(/!\[[^\]]*\]\[[^\]]*\]/g, "");
+
+    // Markdown links -> keep the readable label, drop the target.
+    out = out.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+    out = out.replace(/\[([^\]]+)\]\[[^\]]*\]/g, "$1");
+
+    // Links left with no label (badge wrappers) -> removed.
+    out = out.replace(/\[\]\([^)]*\)/g, "");
+    out = out.replace(/\[\]\[[^\]]*\]/g, "");
+
+    // Autolinks <http://...> -> keep the plain URL text.
+    out = out.replace(/<((?:https?|ftp):\/\/[^>\s]+)>/gi, "$1");
+
+    // Residual raw HTML: drop script/style blocks, soft breaks, then tags.
+    out = out.replace(/<\s*(script|style)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, " ");
+    out = out.replace(/<br\s*\/?>/gi, " ");
+    out = out.replace(/<[^>]+>/g, "");
+
+    // Tidy whitespace left behind by the removed tokens.
+    out = out.replace(/[ \t]{2,}/g, " ");
+    out = out.replace(/[ \t]+(?=[.,;:!?])/g, "");
+    return out.replace(/[ \t]+$/, "").trim();
+  }
+
+  // Clean the announcement/README prose without touching fenced code blocks,
+  // so snippets stay literal while the surrounding text reads like GitHub.
+  function cleanReadme(markdown) {
+    var inCode = false;
+    return String(markdown || "")
+      .split("\n")
+      .map(function (rawLine) {
+        if (/^ {0,3}(```|~~~)/.test(rawLine)) {
+          inCode = !inCode;
+          return rawLine;
+        }
+        if (inCode) return rawLine;
+        return cleanReadmeLine(rawLine);
+      })
+      .join("\n");
+  }
+
   function inlineMarkdown(text) {
     var out = escapeHtml(text);
     out = out.replace(/`([^`]+)`/g, "<code>$1</code>");
@@ -413,9 +581,7 @@ window.SPRINKLE = window.SPRINKLE || {};
   }
 
   function renderMarkdown(markdown) {
-    var lines = String(markdown || "")
-      .replace(/\r\n/g, "\n")
-      .split("\n");
+    var lines = cleanReadme(markdown).replace(/\r\n?/g, "\n").split("\n");
 
     var html = [];
     var paragraph = [];
@@ -490,7 +656,7 @@ window.SPRINKLE = window.SPRINKLE || {};
       var heading = /^(#{1,6})\s+(.*)$/.exec(line);
       if (heading) {
         flushAll();
-        var level = Math.min(6, Math.max(3, heading[1].length + 1));
+        var level = Math.min(6, heading[1].length);
         html.push(
           "<h" +
             level +

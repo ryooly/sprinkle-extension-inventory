@@ -3,19 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/sprinkle-interface-html/favicon.svg"
+    />
     <title>Extension — Sprinkle</title>
-    <link rel="stylesheet" href="../css/pages/extension.css" />
-    <link rel="stylesheet" href="../css/pages/extensions.css" />
-    <link rel="stylesheet" href="../css/base.css" />
+    <link
+      rel="stylesheet"
+      href="/sprinkle-interface-html/css/pages/extension.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/sprinkle-interface-html/css/pages/extensions.css"
+    />
+    <link rel="stylesheet" href="/sprinkle-interface-html/css/base.css" />
   </head>
   <body>
-
     <div data-header></div>
-
 
     <header class="detail-header">
       <div class="detail-header-inner">
-
         <div class="ext-title-row">
           <h1 class="ext-title">
             <svg
@@ -49,7 +57,12 @@
               <path d="m12 8 4.74-2.85" />
               <path d="M12 13.5V8" />
             </svg>
-            <a class="owner" id="ext-owner" href="profile.html">Edge0</a>
+            <a
+              class="owner"
+              id="ext-owner"
+              href="/sprinkle-interface-html/pages/profile.html"
+              >Edge0</a
+            >
             <span class="slash">/</span>
             <span class="name" id="ext-name">Audio8-ASR-Infinite</span>
             <button
@@ -84,7 +97,6 @@
             id="like-btn"
             aria-pressed="false"
           >
-
             <svg
               class="icon-14"
               viewBox="0 0 24 24"
@@ -120,7 +132,7 @@
               <path d="M7 10v12" />
             </svg>
             <span class="btn-label">Like</span>
-            <span class="count" data-count="1320">1,32k</span>
+            <span class="count" data-count="0">0</span>
           </button>
           <button
             type="button"
@@ -146,24 +158,28 @@
               <line x1="22" x2="16" y1="11" y2="11" />
             </svg>
             <span class="btn-label">Follow</span>
-            <span class="count" data-count="1250">1,25k</span>
+            <span class="count" data-count="0">0</span>
           </button>
         </div>
 
-
         <div class="ext-tags-row" id="ext-tags"></div>
-
 
         <div class="ext-tabs-row">
           <nav class="ext-tabs">
-            <a class="tab-btn active" href="extensions.html" aria-current="page"
+            <a
+              class="tab-btn active"
+              href="/sprinkle-interface-html/pages/extensions.html"
+              aria-current="page"
               >Model card</a
             >
-            <a class="tab-btn" href="files.html">
+            <a class="tab-btn" href="/sprinkle-interface-html/pages/files.html">
               Files and versions
               <span class="tab-kbd">⌘ xet</span>
             </a>
-            <a class="tab-btn" href="community.html">
+            <a
+              class="tab-btn"
+              href="/sprinkle-interface-html/pages/community.html"
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -179,7 +195,8 @@
                   d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
                 />
               </svg>
-              Community <span class="font-mono text-xs">2</span>
+              Community
+              <span class="font-mono text-xs" id="community-count">0</span>
             </a>
           </nav>
 
@@ -262,9 +279,7 @@
       </div>
     </header>
 
-
     <main class="detail-main">
-
       <section class="desc-card">
         <div class="desc-head">
           <h2 id="ext-heading">Audio8-ASR-Infinite</h2>
@@ -289,13 +304,14 @@
           </button>
         </div>
 
-
         <div class="badge-strip">
           <span class="badge muted" id="badge-source">GITHUB</span>
           <span class="badge yellow" id="badge-name">EXTENSION</span>
           <span class="badge inverse" id="badge-status">BASIC</span>
           <span class="badge sky" id="badge-license">NO LICENSE</span>
         </div>
+
+        <dl class="ext-meta" id="ext-meta"></dl>
 
         <div class="ext-notes" id="ext-notes">
           <p>Loading extension notes…</p>
@@ -355,18 +371,18 @@
         </p>
       </section>
 
-
       <aside class="stats-aside">
-
         <div class="stat-card author-card">
           <div class="author-head">
-            <span class="author-avatar" id="author-avatar" aria-hidden="true">SL</span>
+            <span class="author-avatar" id="author-avatar" aria-hidden="true"
+              >SL</span
+            >
             <span class="author-id">
               <span class="author-name-row">
                 <a
                   class="author-name"
                   id="author-name"
-                  href="profile.html?user=sprinkle-labs"
+                  href="/sprinkle-interface-html/pages/profile.html?user=sprinkle-labs"
                   >sprinkle-labs</a
                 >
                 <svg
@@ -383,7 +399,9 @@
                   />
                 </svg>
               </span>
-              <span class="author-handle" id="author-handle">@sprinkle-labs</span>
+              <span class="author-handle" id="author-handle"
+                >@sprinkle-labs</span
+              >
             </span>
           </div>
 
@@ -408,7 +426,7 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </dt>
-              <dd id="author-followers" data-base="1250">1,250</dd>
+              <dd id="author-followers" data-base="0">0</dd>
             </div>
             <div class="author-stat">
               <dt>
@@ -429,7 +447,7 @@
                   />
                 </svg>
               </dt>
-              <dd id="author-repos">24</dd>
+              <dd id="author-repos">0</dd>
             </div>
             <div class="author-stat">
               <dt>
@@ -451,7 +469,7 @@
                   <path d="M7 10v12" />
                 </svg>
               </dt>
-              <dd id="author-stars">3.4k</dd>
+              <dd id="author-stars">0</dd>
             </div>
           </dl>
 
@@ -506,7 +524,6 @@
           </div>
         </div>
 
-
         <div class="stat-card">
           <div class="downloads-row">
             <div>
@@ -531,20 +548,8 @@
               </div>
               <div class="value" id="stat-downloads">0</div>
             </div>
-            <svg
-              class="sparkline"
-              viewBox="0 0 120 36"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              aria-hidden="true"
-            >
-              <path d="M2 32h80M92 32l6-22 6 18 8-8" />
-            </svg>
           </div>
         </div>
-
 
         <div class="stat-duo">
           <div class="stat-card">
@@ -589,7 +594,6 @@
             <div class="duo-value" id="stat-stars">0</div>
           </div>
         </div>
-
 
         <div class="stat-card" id="browser-card">
           <h4 style="margin-bottom: 0.75rem">
@@ -695,7 +699,6 @@
           </div>
         </div>
 
-
         <div class="stat-card">
           <h4 style="margin-bottom: 0.25rem">
             <svg
@@ -716,12 +719,11 @@
             Security
           </h4>
           <div
-            class="sec-score tier-high"
+            class="sec-score"
             id="sec-score"
-            data-score="96"
-            style="--pct: 96"
+            style="--pct: 0"
             role="img"
-            aria-label="Security score: 96 out of 100, low risk"
+            aria-label="Security score: not scanned yet"
           >
             <div class="sec-gauge">
               <svg class="sec-gauge-svg" viewBox="0 0 36 36" aria-hidden="true">
@@ -729,7 +731,7 @@
                 <circle class="sec-gauge-fill" cx="18" cy="18" r="15.5" />
               </svg>
               <div class="sec-gauge-num">
-                <span class="sec-score-val">96</span>
+                <span class="sec-score-val">—</span>
                 <span class="sec-score-denom">/100</span>
               </div>
             </div>
@@ -737,7 +739,7 @@
               <div class="sec-score-cap">Security score</div>
               <span class="sec-score-pill">
                 <span class="sec-pill-dot" aria-hidden="true"></span>
-                <span class="sec-score-tier">Low risk</span>
+                <span class="sec-score-tier">No score</span>
               </span>
               <div class="sec-score-note" id="sec-updated">—</div>
             </div>
@@ -757,7 +759,9 @@
               <circle cx="12" cy="12" r="10" />
               <path d="m9 12 2 2 4-4" />
             </svg>
-            <span id="sec-sub">Security score generated by the Sprinkling scan.</span>
+            <span id="sec-sub"
+              >Security score generated by the Sprinkling scan.</span
+            >
           </div>
           <button
             type="button"
@@ -784,538 +788,29 @@
           </button>
           <div class="sec-details" id="sec-details">
             <div class="sec-inner">
-              <h5 class="sec-h">Permissions required by this extension</h5>
-              <ul class="sec-perms">
-                <li class="perm">
-                  <button
-                    type="button"
-                    class="perm-row"
-                    aria-expanded="false"
-                    aria-controls="perm-mic"
-                  >
-                    <span class="perm-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"
-                        />
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                        <line x1="12" x2="12" y1="19" y2="22" />
-                      </svg>
-                    </span>
-                    <span class="perm-name">Microphone</span>
-                    <span class="perm-tag required">Required</span>
-                    <svg
-                      class="perm-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="perm-why" id="perm-mic">
-                    Capture audio for real-time transcription
-                  </div>
-                </li>
-                <li class="perm">
-                  <button
-                    type="button"
-                    class="perm-row"
-                    aria-expanded="false"
-                    aria-controls="perm-net"
-                  >
-                    <span class="perm-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <path
-                          d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
-                        />
-                        <path d="M2 12h20" />
-                      </svg>
-                    </span>
-                    <span class="perm-name">Network</span>
-                    <span class="perm-tag required">Required</span>
-                    <svg
-                      class="perm-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="perm-why" id="perm-net">
-                    Stream audio to the inference endpoint
-                  </div>
-                </li>
-                <li class="perm">
-                  <button
-                    type="button"
-                    class="perm-row"
-                    aria-expanded="false"
-                    aria-controls="perm-files"
-                  >
-                    <span class="perm-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
-                        />
-                      </svg>
-                    </span>
-                    <span class="perm-name">Files</span>
-                    <span class="perm-tag required">Required</span>
-                    <svg
-                      class="perm-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="perm-why" id="perm-files">
-                    Open local audio files for batch transcription
-                  </div>
-                </li>
-                <li class="perm">
-                  <button
-                    type="button"
-                    class="perm-row"
-                    aria-expanded="false"
-                    aria-controls="perm-storage"
-                  >
-                    <span class="perm-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <ellipse cx="12" cy="5" rx="9" ry="3" />
-                        <path d="M3 5V19A9 3 0 0 0 21 19V5" />
-                        <path d="M3 12A9 3 0 0 0 21 12" />
-                      </svg>
-                    </span>
-                    <span class="perm-name">Storage</span>
-                    <span class="perm-tag optional">Optional</span>
-                    <svg
-                      class="perm-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="perm-why" id="perm-storage">
-                    Cache model settings and clock preferences
-                  </div>
-                </li>
-              </ul>
-              <h5 class="sec-h">Data destinations</h5>
-              <div class="dest-note">
-                Endpoints this extension transmits data to
-              </div>
-              <ul class="sec-dest">
-                <li class="dest d-api">
-                  <div class="dest-head">
-                    <span class="dest-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                      </svg>
-                    </span>
-                    <span class="dest-domain">api.audio8.ai</span>
-                    <span class="dest-type">Inference API</span>
-                  </div>
-                  <p class="dest-desc">
-                    Sends streaming audio to transcribe your speech.
-                  </p>
-                  <button
-                    type="button"
-                    class="dest-more"
-                    aria-expanded="false"
-                    aria-controls="dest-api-more"
-                  >
-                    <span class="dest-more-label">Read more</span>
-                    <svg
-                      class="dest-more-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="dest-details" id="dest-api-more">
-                    <div class="dest-line">
-                      <span class="dest-k">Endpoint</span>
-                      <a
-                        class="dest-link"
-                        href="https://api.audio8.ai"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        >api.audio8.ai/v1/stream</a
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Data</span>
-                      <span class="dest-v"
-                        >Streaming audio chunks (16-bit PCM)</span
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Region</span>
-                      <span class="dest-v">us-east-1 · eu-west-1</span>
-                    </div>
-                  </div>
-                </li>
-                <li class="dest d-analytics">
-                  <div class="dest-head">
-                    <span class="dest-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="12" x2="12" y1="20" y2="10" />
-                        <line x1="18" x2="18" y1="20" y2="4" />
-                        <line x1="6" x2="6" y1="20" y2="16" />
-                      </svg>
-                    </span>
-                    <span class="dest-domain">google-analytics.com</span>
-                    <span class="dest-type">Analytics</span>
-                  </div>
-                  <p class="dest-desc">
-                    Sends anonymous usage stats to help improve the app.
-                  </p>
-                  <button
-                    type="button"
-                    class="dest-more"
-                    aria-expanded="false"
-                    aria-controls="dest-analytics-more"
-                  >
-                    <span class="dest-more-label">Read more</span>
-                    <svg
-                      class="dest-more-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="dest-details" id="dest-analytics-more">
-                    <div class="dest-line">
-                      <span class="dest-k">Endpoint</span>
-                      <a
-                        class="dest-link"
-                        href="https://support.google.com/analytics"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        >google-analytics.com/g/collect</a
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Data</span>
-                      <span class="dest-v"
-                        >Anonymized usage events, app version</span
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Region</span>
-                      <span class="dest-v">Global (US edge)</span>
-                    </div>
-                  </div>
-                </li>
-                <li class="dest d-telemetry">
-                  <div class="dest-head">
-                    <span class="dest-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-                        />
-                        <path d="M12 9v4" />
-                        <path d="M12 17h.01" />
-                      </svg>
-                    </span>
-                    <span class="dest-domain">sentry.io</span>
-                    <span class="dest-type">Error telemetry</span>
-                  </div>
-                  <p class="dest-desc">
-                    Sends crash reports — never your audio.
-                  </p>
-                  <button
-                    type="button"
-                    class="dest-more"
-                    aria-expanded="false"
-                    aria-controls="dest-telemetry-more"
-                  >
-                    <span class="dest-more-label">Read more</span>
-                    <svg
-                      class="dest-more-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="dest-details" id="dest-telemetry-more">
-                    <div class="dest-line">
-                      <span class="dest-k">Endpoint</span>
-                      <a
-                        class="dest-link"
-                        href="https://sentry.io/security/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        >o283947.ingest.sentry.io</a
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Data</span>
-                      <span class="dest-v">Crash traces + stack frames</span>
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Region</span>
-                      <span class="dest-v">EU (fra1)</span>
-                    </div>
-                  </div>
-                </li>
-                <li class="dest d-registry">
-                  <div class="dest-head">
-                    <span class="dest-ic" aria-hidden="true">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"
-                        />
-                        <path d="M12 12v9" />
-                        <path d="m8 17 4 4 4-4" />
-                      </svg>
-                    </span>
-                    <span class="dest-domain">huggingface.co</span>
-                    <span class="dest-type">Model registry</span>
-                  </div>
-                  <p class="dest-desc">Downloads model files to your device.</p>
-                  <button
-                    type="button"
-                    class="dest-more"
-                    aria-expanded="false"
-                    aria-controls="dest-registry-more"
-                  >
-                    <span class="dest-more-label">Read more</span>
-                    <svg
-                      class="dest-more-chevron"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="dest-details" id="dest-registry-more">
-                    <div class="dest-line">
-                      <span class="dest-k">Endpoint</span>
-                      <a
-                        class="dest-link"
-                        href="https://huggingface.co/Edge0/Audio8-ASR"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        >huggingface.co/api/models</a
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Data</span>
-                      <span class="dest-v"
-                        >Authenticated model-download requests</span
-                      >
-                    </div>
-                    <div class="dest-line">
-                      <span class="dest-k">Region</span>
-                      <span class="dest-v">Global (Cloudflare CDN)</span>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-              <h5 class="sec-h">Key metrics</h5>
-              <div class="sec-metrics">
-                <div class="sec-metric">
-                  <div class="value">1,2k</div>
-                  <div class="label">Repository stars</div>
-                </div>
-                <div class="sec-metric">
-                  <div class="value">Sep 28, 2026</div>
-                  <div class="label">Last commit</div>
-                </div>
-                <div class="sec-metric">
-                  <div class="value grade-a">A+</div>
-                  <div class="label">Repo trust score</div>
-                </div>
-              </div>
-              <ul class="sec-list">
-                <li>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    width="12"
-                    height="12"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
-                    />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
-                  Malware scan — no threats detected
-                </li>
-                <li>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    width="12"
-                    height="12"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
-                    />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
-                  Pickle review — no unsafe imports in .safetensors
-                </li>
-                <li>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    width="12"
-                    height="12"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
-                    />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
-                  Guardian AI analysis — 0 vulnerability findings
-                </li>
-                <li>
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    width="12"
-                    height="12"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C16.51 3.81 19 5 21 5a1 1 0 0 1 1 1z"
-                    />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
-                  Commit signing — all release tags verified
-                </li>
-              </ul>
-              <div class="sec-foot">
-                Re-scanned automatically on every commit · powered by
-                ReversingLabs + Guardian
-              </div>
+              <h5 class="sec-h" id="sec-signals-h">Security signals</h5>
+              <div class="dest-note" id="sec-signals-note"></div>
+              <ul class="sec-signals" id="sec-signals"></ul>
+
+              <h5 class="sec-h" id="sec-perms-h">
+                Permissions requested by this extension
+              </h5>
+              <div class="dest-note" id="sec-perms-note"></div>
+              <ul class="sec-perms" id="sec-perms"></ul>
+
+              <h5 class="sec-h" id="sec-dest-h">Data destinations</h5>
+              <div class="dest-note" id="sec-dest-note"></div>
+              <ul class="sec-dest" id="sec-dest"></ul>
+
+              <h5 class="sec-h" id="sec-metrics-h">Key metrics</h5>
+              <div class="dest-note" id="sec-metrics-note"></div>
+              <div class="sec-metrics" id="sec-metrics"></div>
+
+              <ul class="sec-list" id="sec-findings"></ul>
+              <div class="sec-foot" id="sec-foot"></div>
             </div>
           </div>
         </div>
-
 
         <div class="stat-card">
           <h4 style="margin-bottom: 0.75rem">
@@ -1371,7 +866,7 @@
               </g>
 
               <g
-                class="tri-ico"
+                class="tri-ico tri-ico-front"
                 transform="translate(52.8 30.8) scale(0.6)"
                 aria-hidden="true"
               >
@@ -1381,7 +876,7 @@
               </g>
 
               <g
-                class="tri-ico"
+                class="tri-ico tri-ico-back"
                 transform="translate(52.8 68.8) scale(0.6)"
                 aria-hidden="true"
               >
@@ -1413,11 +908,12 @@
       </aside>
     </main>
 
-    <script src="../js/vendor/lucide.min.js"></script>
-    <script src="../js/sprinkle-data.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/interactions.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/extension.js"></script>
+    <script src="/sprinkle-interface-html/js/vendor/lucide.min.js"></script>
+    <script src="/sprinkle-interface-html/js/sprinkle-data.js"></script>
+    <script src="/sprinkle-interface-html/js/api.js"></script>
+    <script src="/sprinkle-interface-html/js/interactions.js"></script>
+    <script src="/sprinkle-interface-html/js/auth.js"></script>
+    <script src="/sprinkle-interface-html/js/community.js"></script>
+    <script src="/sprinkle-interface-html/js/extension.js"></script>
   </body>
 </html>

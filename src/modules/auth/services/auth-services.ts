@@ -1,6 +1,12 @@
 import { UserRepository } from "@/modules/auth/repository/auth-repository";
 import { password } from "../utils/bcrypt";
 import { isUserAvailable } from "@/modules/auth/utils/userVerification";
+import { resolveLoginCredentials } from "@/modules/auth/utils/loginIdentifier";
+import {
+  loginDbg,
+  dbgFields,
+  dbgChars,
+} from "@/modules/auth/utils/loginDebug";
 import { token } from "@/modules/auth/utils/generateJwt";
 import {
   RegisterInput,
@@ -8,15 +14,32 @@ import {
   EmailLoginInput,
   BeBuilderInput,
   GetUserByUsernameInput,
+  UpdateProfileCommand,
 } from "@/schemas/auth";
 import { AppError } from "@/errorhandler";
 import type { Account } from "@/models";
 
 export class UserService {
   static async register(body: RegisterInput) {
+    loginDbg("service:register:enter", {
+      username: body.username,
+      email: body.email,
+      passwordChars: dbgChars(body.password),
+    });
+
     const isAvailable = await isUserAvailable(body.username, body.email);
 
+    loginDbg("service:register:availability-check", {
+      username: body.username,
+      email: body.email,
+      available: isAvailable,
+    });
+
     if (!isAvailable) {
+      loginDbg("service:register:reject-user-exists", {
+        username: body.username,
+        email: body.email,
+      });
       throw new AppError("User already exists", 409);
     }
 
@@ -25,6 +48,12 @@ export class UserService {
     const account = await UserRepository.insertNewUser({
       ...body,
       password: hashedPassword,
+    });
+
+    loginDbg("service:register:account-created", {
+      accountId: account.id,
+      username: account.username,
+      role: account.role,
     });
 
     const accessToken = token.generateAccessToken(account.id);
@@ -46,9 +75,31 @@ export class UserService {
   }
 
   static async login(body: LoginInput) {
-    const existingAccount = await UserRepository.login(body);
+    loginDbg("service:login:enter", {
+      fields: dbgFields(body),
+      identifier: body.identifier ?? null,
+      email: body.email ?? null,
+      username: body.username ?? null,
+      passwordChars: dbgChars(body.password),
+    });
+
+    const credentials = resolveLoginCredentials(body);
+
+    if (!credentials) {
+      loginDbg("service:login:reject-no-credential", {
+        fields: dbgFields(body),
+      });
+      throw new AppError("Email or username is required", 400);
+    }
+
+    const existingAccount =
+      await UserRepository.findByLoginCredentials(credentials);
 
     if (!existingAccount) {
+      loginDbg("service:login:reject-user-not-found", {
+        kind: credentials.kind,
+        value: credentials.value,
+      });
       throw new AppError("User not found", 409);
     }
 
@@ -57,7 +108,16 @@ export class UserService {
       existingAccount.password,
     );
 
+    loginDbg("service:login:password-verified", {
+      accountId: existingAccount.id,
+      kind: credentials.kind,
+      valid: isPasswordValid,
+    });
+
     if (!isPasswordValid) {
+      loginDbg("service:login:reject-password-mismatch", {
+        accountId: existingAccount.id,
+      });
       throw new AppError("Password doesn't match", 400);
     }
 
@@ -71,8 +131,18 @@ export class UserService {
       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     );
 
+    loginDbg("service:login:session-issued", {
+      accountId: existingAccount.id,
+      accountUsername: existingAccount.username,
+      loginKind: credentials.kind,
+      role: existingAccount.role,
+      accessTokenChars: dbgChars(accessToken),
+      refreshTokenChars: dbgChars(refreshToken),
+    });
+
     return {
       success: true,
+      loginKind: credentials.kind,
       token: accessToken,
       refreshToken,
       data: existingAccount,
@@ -80,9 +150,18 @@ export class UserService {
   }
 
   static async loginWithEmail(body: EmailLoginInput) {
-    const existingAccount = await UserRepository.login({
+    loginDbg("service:login-email:enter", {
       email: body.email,
-      password: body.password,
+      username: body.username,
+      passwordChars: dbgChars(body.password),
+    });
+
+    const existingAccount = await UserRepository.findByEmail(body.email);
+
+    loginDbg("service:login-email:email-lookup", {
+      email: body.email,
+      found: Boolean(existingAccount),
+      accountId: existingAccount?.id ?? null,
     });
 
     if (existingAccount) {
@@ -90,6 +169,11 @@ export class UserService {
         body.password,
         existingAccount.password,
       );
+
+      loginDbg("service:login-email:existing-account", {
+        accountId: existingAccount.id,
+        valid: isPasswordValid,
+      });
 
       if (!isPasswordValid) {
         throw new AppError("Password doesn't match", 400);
@@ -102,6 +186,11 @@ export class UserService {
       username: body.username,
     });
 
+    loginDbg("service:login-email:username-check", {
+      username: body.username,
+      taken: Boolean(usernameTaken),
+    });
+
     if (usernameTaken) {
       throw new AppError("Username already taken", 409);
     }
@@ -112,10 +201,16 @@ export class UserService {
       password: await password.hash(body.password),
     });
 
+    loginDbg("service:login-email:account-created", {
+      accountId: account.id,
+      username: account.username,
+    });
+
     return await UserService.issueSession(account);
   }
 
   private static async issueSession(account: Account) {
+    loginDbg("service:issue-session", { accountId: account.id });
     const accessToken = token.generateAccessToken(account.id);
 
     const refreshToken = token.generateRefreshToken();
@@ -167,6 +262,49 @@ export class UserService {
     return {
       success: true,
       data: account,
+    };
+  }
+
+  static async updateProfile(command: UpdateProfileCommand) {
+    const account = await UserRepository.findUserById({ id: command.userId });
+
+    if (!account) {
+      throw new AppError("User not found", 404);
+    }
+
+    const nextUsername = command.username?.trim();
+    const nextEmail = command.email?.trim();
+
+    if (nextUsername && nextUsername !== account.username) {
+      const taken = await UserRepository.findByUsername({
+        username: nextUsername,
+      });
+      if (taken) {
+        throw new AppError("Username already taken", 409);
+      }
+    }
+
+    if (nextEmail && nextEmail !== account.email) {
+      const taken = await UserRepository.findByEmail(nextEmail);
+      if (taken) {
+        throw new AppError("Email already in use", 409);
+      }
+    }
+
+    const updated = await UserRepository.updateProfile(account.id, {
+      username: nextUsername,
+      email: nextEmail,
+    });
+
+    if (!updated) {
+      throw new AppError("Failed to update profile", 500);
+    }
+
+    const { password: _hashedPassword, ...data } = updated;
+
+    return {
+      success: true,
+      data,
     };
   }
 }

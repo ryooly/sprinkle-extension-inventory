@@ -52,7 +52,11 @@
     var params = new URLSearchParams(location.search);
     var owner = params.get("user") || "sprinkle-labs";
     var CURRENT_USER = "sprinkle-labs";
-    var isMe = params.get("me") === "1" || owner === CURRENT_USER;
+    var session = S.auth && S.auth.session ? S.auth.session() : null;
+    var isMe =
+      params.get("me") === "1" ||
+      owner === CURRENT_USER ||
+      (session && session.username === owner);
 
 
     document.title = isMe ? "Your profile — Sprinkle" : owner + " — Sprinkle";
@@ -249,7 +253,7 @@
       if (followBtn) followBtn.hidden = true;
       if (ghLink) ghLink.hidden = true;
       on("profile-edit-btn", function () {
-        toast("Edit profile — coming soon");
+        openEditModal();
       });
       on("profile-settings-btn", function () {
         toast("Settings — coming soon");
@@ -259,5 +263,160 @@
       if (editBtn) editBtn.hidden = false;
       if (settingsBtn) settingsBtn.hidden = false;
     }
+
+    var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    var editOverlay = null;
+
+    function openEditModal() {
+      var live = S.auth && S.auth.session ? S.auth.session() : null;
+      if (!live || !live.id) {
+        if (S.showToast) S.showToast("Sign in to edit your profile.", "info");
+        if (S.auth) S.auth.open("login");
+        return;
+      }
+      if (editOverlay) {
+        editOverlay.hidden = false;
+        return;
+      }
+      buildEditModal(live);
+    }
+
+    function buildEditModal(live) {
+      editOverlay = document.createElement("div");
+      editOverlay.className = "auth-overlay";
+      editOverlay.innerHTML =
+        '<div class="auth-modal profile-edit-modal" role="dialog" aria-modal="true" aria-labelledby="profile-edit-title">' +
+        '<button type="button" class="icon-btn auth-close" aria-label="Close" data-edit-close>' +
+        (S.icons && S.icons.lucide ? S.icons.lucide("x", "icon-sm") : "×") +
+        "</button>" +
+        '<h2 class="auth-title" id="profile-edit-title">Edit profile</h2>' +
+        '<p class="auth-lede">Update your handle or email — changes save to your account.</p>' +
+        '<form class="auth-form" novalidate>' +
+        '<label class="auth-field"><span class="auth-field-label">Username</span>' +
+        '<input class="auth-input" type="text" name="edit-username" autocomplete="username" spellcheck="false" value="' +
+        escapeAttr(live.username) +
+        '" />' +
+        '<span class="auth-field-help">3-50 characters, used as your handle.</span>' +
+        '<span class="auth-field-error" hidden></span></label>' +
+        '<label class="auth-field"><span class="auth-field-label">Email</span>' +
+        '<input class="auth-input" type="email" name="edit-email" autocomplete="email" spellcheck="false" value="' +
+        escapeAttr(live.email || "") +
+        '" />' +
+        '<span class="auth-field-error" hidden></span></label>' +
+        '<p class="auth-note" role="alert" hidden></p>' +
+        '<div class="profile-edit-actions">' +
+        '<button type="button" class="disc-ghost" data-edit-close>Cancel</button>' +
+        '<button type="submit" class="auth-submit">Save changes</button>' +
+        "</div>" +
+        "</form>" +
+        "</div>";
+
+      var form = editOverlay.querySelector("form");
+      var submitBtn = form.querySelector(".auth-submit");
+      var noteEl = form.querySelector(".auth-note");
+      var usernameInput = form.querySelector('[name="edit-username"]');
+      var emailInput = form.querySelector('[name="edit-email"]');
+
+      function showNote(message) {
+        noteEl.hidden = !message;
+        noteEl.textContent = message || "";
+      }
+
+      function closeEdit() {
+        editOverlay.hidden = true;
+        document.documentElement.classList.remove("auth-open");
+      }
+
+      editOverlay.querySelectorAll("[data-edit-close]").forEach(function (btn) {
+        btn.addEventListener("click", closeEdit);
+      });
+      editOverlay.addEventListener("mousedown", function (event) {
+        if (event.target === editOverlay) closeEdit();
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (submitBtn.disabled) return;
+
+        var username = String(usernameInput.value || "").trim();
+        var email = String(emailInput.value || "").trim();
+
+        var payload = {};
+        if (username && username !== live.username) payload.username = username;
+        if (email && email !== (live.email || "")) payload.email = email;
+
+        if (!payload.username && !payload.email) {
+          showNote("Nothing to save — pick a new username or email.");
+          return;
+        }
+        if (payload.username && (payload.username.length < 3 || payload.username.length > 50)) {
+          showNote("Username must be 3-50 characters.");
+          return;
+        }
+        if (payload.email && !EMAIL_PATTERN.test(payload.email)) {
+          showNote("Enter a valid email address.");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.classList.add("busy");
+        submitBtn.textContent = "Saving…";
+        showNote("");
+
+        S.api
+          .updateProfile(payload)
+          .then(function (res) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove("busy");
+            submitBtn.textContent = "Save changes";
+
+            var account = res.data;
+            if (!res.ok || !account || !account.id) {
+              showNote(res.message || "Could not save your profile.");
+              return;
+            }
+
+            if (S.auth && S.auth.applyAccount) S.auth.applyAccount(account);
+
+            var next = account.username || username || live.username;
+            if (S.showToast) S.showToast("Profile updated.", "success");
+
+            // Navigate to the (possibly renamed) profile so the header, links,
+            // and project list all reflect the saved values.
+            location.href =
+              "/sprinkle-interface-html/pages/profile.html?user=" +
+              encodeURIComponent(next) +
+              "&me=1";
+          })
+          .catch(function () {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove("busy");
+            submitBtn.textContent = "Save changes";
+            showNote("The gateway is unreachable. Is `bun run dev` listening?");
+          });
+      });
+
+      document.body.appendChild(editOverlay);
+      document.documentElement.classList.add("auth-open");
+      requestAnimationFrame(function () {
+        editOverlay.classList.add("open");
+        usernameInput.focus();
+      });
+    }
+  }
+
+  function escapeAttr(value) {
+    return String(value == null ? "" : value).replace(
+      /[&<>"']/g,
+      function (c) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[c];
+      },
+    );
   }
 })();

@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authMiddleware } from "@/middlewares/auth-middleware";
+import { premiumMiddleware } from "@/middlewares/premium-middleware";
 import {
   handleGetDailyShowcase,
   handleGetPremiumShowcase,
@@ -19,6 +20,7 @@ export const dailyShowcaseRoutes = new Elysia({ prefix: "/showcase" })
   )
 
   .use(authMiddleware)
+  .use(premiumMiddleware)
   .get(
     "/premium",
     async ({ query }) => {

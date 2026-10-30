@@ -74,3 +74,57 @@ export async function gatewayHandle(
     );
   }
 }
+
+export async function listPlansHandle(): Promise<ControllerResult<unknown>> {
+  try {
+    const data = await PaymentRepository.listPlans();
+
+    return { success: true, data };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError("Failed to list plans", 500, { cause: err });
+  }
+}
+
+export async function subscriptionHandle(
+  userId: string,
+): Promise<ControllerResult<unknown>> {
+  try {
+    const data = await PaymentRepository.getSubscriptionState(userId);
+
+    return { success: true, data };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(`Failed to load subscription for "${userId}"`, 500, {
+      cause: err,
+    });
+  }
+}
+
+export async function cancelHandle(
+  userId: string,
+): Promise<ControllerResult<unknown>> {
+  try {
+    const data = await PaymentRepository.cancelSubscription(userId);
+
+    return { success: true, data };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(`Failed to cancel subscription for "${userId}"`, 500, {
+      cause: err,
+    });
+  }
+}
+
+export async function premiumAccessHandle(
+  userId: string,
+): Promise<boolean> {
+  try {
+    return await PaymentRepository.hasPremiumAccess(userId);
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(`Failed to verify premium access for "${userId}"`, 500, {
+      cause: err,
+    });
+  }
+}

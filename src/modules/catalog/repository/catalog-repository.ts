@@ -3,10 +3,17 @@ import { db } from "@/db/client";
 import {
   extensionCategories,
   extensionHashtags,
+  extensionPermissions,
   extensions,
   hashtags,
 } from "@/models";
-import type { Browser, Category, Extension, PublisherType } from "@/models";
+import type {
+  Browser,
+  BrowserPermission,
+  Category,
+  Extension,
+  PublisherType,
+} from "@/models";
 
 export interface CatalogFilters {
   search?: string;
@@ -204,6 +211,29 @@ export async function findHashtagsByExtensionIds(
   for (const row of rows) {
     const list = grouped.get(row.extensionId) ?? [];
     list.push(row.name);
+    grouped.set(row.extensionId, list);
+  }
+
+  return grouped;
+}
+
+export async function findPermissionsByExtensionIds(
+  extensionIds: string[],
+): Promise<Map<string, BrowserPermission[]>> {
+  const grouped = new Map<string, BrowserPermission[]>();
+  if (extensionIds.length === 0) return grouped;
+
+  const rows = await db
+    .select({
+      extensionId: extensionPermissions.extensionId,
+      permission: extensionPermissions.permission,
+    })
+    .from(extensionPermissions)
+    .where(inArray(extensionPermissions.extensionId, extensionIds));
+
+  for (const row of rows) {
+    const list = grouped.get(row.extensionId) ?? [];
+    list.push(row.permission);
     grouped.set(row.extensionId, list);
   }
 

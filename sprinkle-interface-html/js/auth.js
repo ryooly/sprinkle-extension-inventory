@@ -8,6 +8,10 @@
 
   var S = window.SPRINKLE;
 
+  function loginDbg(event, data) {
+    if (S.loginDbg) S.loginDbg(event, data);
+  }
+
   var STORAGE_KEY = "sprinkle:auth";
   var USERNAME_MIN = 3;
   var USERNAME_MAX = 50;
@@ -21,7 +25,11 @@
       type: "text",
       placeholder: "octocat",
       help: "3-50 characters, used as your handle.",
-      registerOnly: true,
+      login: {
+        label: "Username or email",
+        placeholder: "octocat",
+        help: "Sign in with either one — the API detects which it is.",
+      },
     },
     {
       key: "email",
@@ -29,6 +37,7 @@
       type: "email",
       placeholder: "you@example.com",
       help: "",
+      hideOnLogin: true,
     },
     {
       key: "password",
@@ -42,7 +51,7 @@
   var COPY = {
     login: {
       title: "Log in to Sprinkle",
-      lede: "Use your email and password to restore your session.",
+      lede: "Use your username or email with your password to restore your session.",
       submit: "Log in",
       autocomplete: "current-password",
       switchText: "No account yet?",
@@ -64,6 +73,7 @@
   var pending = false;
   var mode = "login";
   var session = readSession();
+  var lastSignedIn = !!session;
 
   function readSession() {
     try {
@@ -82,6 +92,15 @@
       if (next) localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       else localStorage.removeItem(STORAGE_KEY);
     } catch (e) {}
+
+    if (!!next !== lastSignedIn) {
+      lastSignedIn = !!next;
+      document.dispatchEvent(
+        new CustomEvent("sprinkle:auth", {
+          detail: { signedIn: !!next },
+        }),
+      );
+    }
   }
 
   function toSession(account) {
@@ -125,7 +144,7 @@
         '<label class="auth-field" data-field="' +
         spec.key +
         '">' +
-        '<span class="auth-field-label">' +
+        '<span class="auth-field-label" data-auth-label>' +
         spec.label +
         "</span>" +
         '<input class="auth-input" type="' +
@@ -135,9 +154,11 @@
         '" placeholder="' +
         spec.placeholder +
         '" autocomplete="off" spellcheck="false" />' +
-        (spec.help
-          ? '<span class="auth-field-help">' + spec.help + "</span>"
-          : "") +
+        '<span class="auth-field-help" data-auth-help' +
+        (spec.help ? "" : " hidden") +
+        ">" +
+        spec.help +
+        "</span>" +
         '<span class="auth-field-error" hidden></span>' +
         "</label>"
       );
@@ -220,8 +241,18 @@
     FIELDS.forEach(function (spec) {
       var field = fieldOf(spec.key);
       if (!field) return;
-      field.hidden = !!(spec.registerOnly && mode === "login");
+      var view = mode === "login" && spec.login ? spec.login : spec;
       var input = field.querySelector("input");
+      var label = field.querySelector("[data-auth-label]");
+      var help = field.querySelector("[data-auth-help]");
+
+      field.hidden = !!(spec.hideOnLogin && mode === "login");
+      input.placeholder = view.placeholder;
+      if (label) label.textContent = view.label;
+      if (help) {
+        help.textContent = view.help;
+        help.hidden = !view.help;
+      }
       input.autocomplete =
         spec.key === "password"
           ? copy.autocomplete
@@ -233,6 +264,23 @@
       }
     });
 
+    loginDbg("dialog:render", {
+      mode: mode,
+      visibleFields: FIELDS.filter(function (spec) {
+        var field = fieldOf(spec.key);
+        return field && !field.hidden;
+      })
+        .map(function (spec) {
+          return spec.key;
+        })
+        .join(","),
+      identifierLabel: (function () {
+        var field = fieldOf("username");
+        var label = field ? field.querySelector("[data-auth-label]") : null;
+        return label ? label.textContent : null;
+      })(),
+    });
+
     paintErrors({});
     showNote("");
   }
@@ -240,8 +288,7 @@
   function apply(nextMode) {
     mode = nextMode === "register" ? "register" : "login";
     render();
-    var focusKey = mode === "register" ? "username" : "email";
-    var input = fieldOf(focusKey).querySelector("input");
+    var input = fieldOf("username").querySelector("input");
     if (input) input.focus();
   }
 
@@ -268,6 +315,11 @@
     });
   }
 
+  function isIdentifier(value) {
+    if (EMAIL_PATTERN.test(value)) return true;
+    return value.length >= USERNAME_MIN && value.length <= USERNAME_MAX;
+  }
+
   function validate() {
     var username = inputValue("username").trim();
     var email = inputValue("email").trim();
@@ -283,18 +335,30 @@
           USERNAME_MAX +
           " characters.";
       }
+      if (!EMAIL_PATTERN.test(email)) {
+        errors.email = "Enter a valid email address.";
+      }
+    } else if (!isIdentifier(username)) {
+      errors.username = "Enter your username or a valid email address.";
     }
-    if (!EMAIL_PATTERN.test(email)) {
-      errors.email = "Enter a valid email address.";
-    }
+
     if (password.length < PASSWORD_MIN) {
       errors.password = "Use at least " + PASSWORD_MIN + " characters.";
     }
+
+    loginDbg("validate", {
+      mode: mode,
+      usernameField: username,
+      emailField: email,
+      passwordChars: password.length,
+      errors: Object.keys(errors),
+    });
 
     return {
       errors: errors,
       username: username,
       email: email,
+      identifier: username,
       password: password,
     };
   }
@@ -317,7 +381,10 @@
 
     var check = validate();
     paintErrors(check.errors);
-    if (Object.keys(check.errors).length) return;
+    if (Object.keys(check.errors).length) {
+      loginDbg("submit:blocked-by-validation", { errors: check.errors });
+      return;
+    }
 
     setPending(true);
 
@@ -328,11 +395,22 @@
             email: check.email,
             password: check.password,
           })
-        : S.api.login({ email: check.email, password: check.password });
+        : S.api.login({
+            identifier: check.identifier,
+            password: check.password,
+          });
 
     request
       .then(function (res) {
         setPending(false);
+        loginDbg("submit:result", {
+          mode: mode,
+          status: res.status,
+          ok: res.ok,
+          loginKind: res.payload ? res.payload.loginKind : null,
+          message: res.message || null,
+          accountId: res.data ? res.data.id : null,
+        });
 
         var account = res.data;
         if (!res.ok || !account || !account.id) {
@@ -356,8 +434,12 @@
           "info",
         );
       })
-      .catch(function () {
+      .catch(function (err) {
         setPending(false);
+        loginDbg("submit:exception", {
+          mode: mode,
+          message: (err && err.message) || String(err),
+        });
         showNote("The gateway is unreachable. Is `bun run dev` listening?");
       });
   }
@@ -368,6 +450,12 @@
     mode = nextMode === "register" ? "register" : "login";
     render();
 
+    loginDbg("dialog:open", {
+      mode: mode,
+      apiBase: S.api && S.api.base ? S.api.base() : "api unavailable",
+      storedSession: session ? session.username : null,
+    });
+
     window.clearTimeout(closeTimer);
     overlay.hidden = false;
     document.documentElement.classList.add("auth-open");
@@ -375,7 +463,7 @@
 
     requestAnimationFrame(function () {
       overlay.classList.add("open");
-      var input = fieldOf(mode === "register" ? "username" : "email");
+      var input = fieldOf("username");
       if (input) input.querySelector("input").focus();
     });
   }
@@ -460,7 +548,9 @@
     var link = menu.querySelector("[data-auth-profile-link]");
     if (link) {
       link.href =
-        "profile.html?user=" + encodeURIComponent(session.username) + "&me=1";
+        "/sprinkle-interface-html/pages/profile.html?user=" +
+        encodeURIComponent(session.username) +
+        "&me=1";
     }
     var avatar = menu.querySelector(".dropdown-avatar");
     if (avatar) avatar.textContent = initials(session.username);
@@ -527,6 +617,13 @@
     },
     isLoggedIn: function () {
       return !!session;
+    },
+    applyAccount: function (account) {
+      if (!account || !account.id) return session;
+      session = toSession(account);
+      storeSession(session);
+      sync();
+      return session;
     },
     open: open,
     close: close,

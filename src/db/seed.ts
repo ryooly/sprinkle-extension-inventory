@@ -91,7 +91,9 @@ export async function seed(): Promise<void> {
     }
 
     // 3. Active subscription on the premium plan — this is what flips
-    //    hasActiveSubscription() (and therefore GET /showcase/premium) to 200.
+    //    hasPremiumAccess() (and therefore GET /showcase/premium) to 200.
+    const demoExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
     const [activeSub] = await db
       .select()
       .from(subscriptions)
@@ -104,9 +106,19 @@ export async function seed(): Promise<void> {
       .limit(1);
 
     if (activeSub) {
-      logger.info(
-        `• premium demo already has an active subscription (id=${activeSub.id})`,
-      );
+      if (!activeSub.expiresAt) {
+        await db
+          .update(subscriptions)
+          .set({ expiresAt: demoExpiresAt })
+          .where(eq(subscriptions.id, activeSub.id));
+        logger.info(
+          `• backfilled expiry on active subscription (id=${activeSub.id})`,
+        );
+      } else {
+        logger.info(
+          `• premium demo already has an active subscription (id=${activeSub.id})`,
+        );
+      }
     } else {
       const [sub] = await db
         .insert(subscriptions)
@@ -114,6 +126,7 @@ export async function seed(): Promise<void> {
           userId: demo.id,
           planId: premiumPlanId,
           status: "active",
+          expiresAt: demoExpiresAt,
         })
         .returning();
       logger.info(

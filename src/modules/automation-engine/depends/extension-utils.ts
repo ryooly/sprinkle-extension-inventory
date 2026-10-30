@@ -181,9 +181,20 @@ export const FRONTEND_LANGUAGES: ReadonlySet<string> = new Set([
   "stylus",
   "vue",
   "svelte",
+  "astro",
+  "mdx",
   "coffeescript",
   "jsx",
   "tsx",
+  "elm",
+  "pug",
+  "haml",
+  "handlebars",
+  "ejs",
+  "twig",
+  "blade",
+  "liquid",
+  "html+erb",
 ]);
 
 export const BACKEND_LANGUAGES: ReadonlySet<string> = new Set([
@@ -206,9 +217,25 @@ export const BACKEND_LANGUAGES: ReadonlySet<string> = new Set([
   "clojure",
   "crystal",
   "groovy",
+  "objective-c",
   "objectivec",
   "swift",
   "lua",
+  "r",
+  "julia",
+  "zig",
+  "nim",
+  "ocaml",
+  "f#",
+  "fsharp",
+  "visual basic .net",
+  "vb.net",
+  "jupyter notebook",
+  "vba",
+  "solidity",
+  "fortran",
+  "cobol",
+  "d",
 ]);
 
 export function classifyLanguage(name: string): "frontend" | "backend" | null {
@@ -1124,7 +1151,14 @@ export class ExtensionUtils {
       }
 
       return [frontend, backend];
-    } catch {
+    } catch (error) {
+      // An empty result here means "unknown", not "no languages" — log it so a
+      // rate-limited or private repo is re-detected by the backfill instead of
+      // silently rendering an empty tech stack forever.
+      logger.warn(
+        { err: error, owner: trimmedOwner, repo: trimmedRepo },
+        "extension language detection failed",
+      );
       return [frontend, backend];
     }
   }
@@ -1549,14 +1583,28 @@ const EXT_TO_LANGUAGE: Record<string, string> = {
   ".cjs": "JavaScript",
   ".jsx": "JavaScript",
   ".ts": "TypeScript",
+  ".mts": "TypeScript",
+  ".cts": "TypeScript",
   ".tsx": "TypeScript",
   ".html": "HTML",
+  ".htm": "HTML",
   ".css": "CSS",
   ".scss": "SCSS",
   ".sass": "Sass",
   ".less": "Less",
+  ".styl": "Stylus",
   ".vue": "Vue",
   ".svelte": "Svelte",
+  ".astro": "Astro",
+  ".mdx": "MDX",
+  ".elm": "Elm",
+  ".pug": "Pug",
+  ".haml": "Haml",
+  ".hbs": "Handlebars",
+  ".ejs": "EJS",
+  ".twig": "Twig",
+  ".liquid": "Liquid",
+  ".erb": "HTML+ERB",
   ".py": "Python",
   ".java": "Java",
   ".go": "Go",
@@ -1564,11 +1612,27 @@ const EXT_TO_LANGUAGE: Record<string, string> = {
   ".php": "PHP",
   ".cs": "C#",
   ".c": "C",
+  ".h": "C",
   ".cpp": "C++",
+  ".cc": "C++",
+  ".hpp": "C++",
   ".rs": "Rust",
   ".swift": "Swift",
   ".kt": "Kotlin",
   ".lua": "Lua",
+  ".r": "R",
+  ".jl": "Julia",
+  ".zig": "Zig",
+  ".nim": "Nim",
+  ".ml": "OCaml",
+  ".ex": "Elixir",
+  ".exs": "Elixir",
+  ".clj": "Clojure",
+  ".hs": "Haskell",
+  ".scala": "Scala",
+  ".pl": "Perl",
+  ".dart": "Dart",
+  ".ipynb": "Jupyter Notebook",
 };
 
 function resolveInZip(

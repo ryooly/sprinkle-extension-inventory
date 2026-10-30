@@ -506,3 +506,96 @@ a.license-chip {
   border: none;
   border-top: 1px solid var(--border);
 }
+
+/* Announcement rendered like a GitHub README file card. */
+.ext-notes.readme {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card, var(--background));
+  line-height: 1.6;
+}
+.readme-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.readme-head-icon {
+  display: inline-flex;
+}
+.readme-head-title {
+  letter-spacing: 0.01em;
+}
+.readme-body {
+  padding: 1.25rem 1.5rem;
+  overflow-wrap: break-word;
+}
+.readme-body > *:first-child {
+  margin-top: 0;
+}
+.readme-body > *:last-child {
+  margin-bottom: 0;
+}
+.readme-body h1,
+.readme-body h2,
+.readme-body h3,
+.readme-body h4,
+.readme-body h5,
+.readme-body h6 {
+  color: var(--foreground);
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem;
+}
+.readme-body h1,
+.readme-body h2 {
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+.readme-body h1 {
+  font-size: 1.6rem;
+  line-height: 1.4;
+}
+.readme-body h2 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+.readme-body h3 {
+  font-size: 1.1rem;
+}
+.readme-body h4 {
+  font-size: 1rem;
+}
+.readme-body h5,
+.readme-body h6 {
+  font-size: 0.875rem;
+}
+.readme-body p {
+  margin: 0 0 0.85rem;
+}
+.readme-body ul,
+.readme-body ol {
+  margin: 0 0 0.85rem;
+  gap: 0.25rem;
+}
+.readme-body a {
+  color: var(--primary);
+  text-decoration: none;
+}
+.readme-body a:hover {
+  text-decoration: underline;
+}
+.readme-body img {
+  max-width: 100%;
+}
+.readme-body .notes-code,
+.readme-body pre {
+  margin: 0 0 0.85rem;
+}
+

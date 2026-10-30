@@ -9,8 +9,54 @@ import {
   uniqueIndex,
   serial,
   primaryKey,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+export interface SecurityBreakdown {
+  endpointThreats: number;
+  verificationConfidence: number;
+  transportHygiene: number;
+  permissionExposure: number;
+}
+
+export interface RepoRatingBreakdown {
+  stars: number;
+  forks: number;
+  lastUpdate: number;
+  closedIssueRatio: number;
+  securityAlerts: number;
+}
+
+export interface RepoRating {
+  totalScore: number;
+  breakdown: RepoRatingBreakdown;
+}
+
+export type RepoGrade = "S" | "A" | "B" | "C" | "D" | "E";
+
+export interface EndpointThreat {
+  threatType: string;
+  platformType: string;
+  threatEntryType: string;
+}
+
+export interface EndpointSafety {
+  type: "internal" | "external";
+  file: string;
+  method: string;
+  path: string;
+  safe: boolean;
+  threats: EndpointThreat[];
+  checkedAt: string;
+  skippedOnError: boolean;
+}
+
+export type SecurityRisk =
+  | "flagged-endpoint"
+  | "unverified-endpoint"
+  | "insecure-endpoint"
+  | "sensitive-permission";
 
 export const verificationStatusEnum = pgEnum("verification_status", [
   "verified",
@@ -61,8 +107,13 @@ export const extensions = pgTable(
     stars: integer("stars"),
     repoFiles: text("repo_files").array(),
     apiEndpoints: text("api_endpoints").array(),
+    endpointSafety: jsonb("endpoint_safety").$type<EndpointSafety[]>(),
     securityScore: integer("security_score"),
+    securityBreakdown: jsonb("security_breakdown").$type<SecurityBreakdown>(),
+    securityRisks: text("security_risks").array().$type<SecurityRisk[]>(),
     announcement: text("announcement"),
+    repoGrade: text("repo_grade").$type<RepoGrade>(),
+    repoRating: jsonb("repo_rating").$type<RepoRating>(),
     extensionStatus: extensionStatusEnum("extension_status")
       .notNull()
       .default("basic"),

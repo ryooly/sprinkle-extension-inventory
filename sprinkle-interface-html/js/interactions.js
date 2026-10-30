@@ -414,11 +414,13 @@
     denied: "ban",
   };
 
+  var boundPops = [];
+
   function buildLicensePop(lic) {
     var pop = document.createElement("div");
     pop.className = "license-pop";
     pop.setAttribute("role", "dialog");
-    pop.setAttribute("aria-label", lic.name + " details");
+    pop.setAttribute("aria-label", S.escapeHtml(lic.name) + " details");
 
 
     var maxRows = 0;
@@ -433,7 +435,7 @@
           '">' +
           S.icons.lucide(GROUP_ICONS[g.kind], "icon-sm") +
           "<span>" +
-          g.label +
+          S.escapeHtml(g.label) +
           "</span></th>"
         );
       })
@@ -443,11 +445,20 @@
       bodyHtml += "<tr>";
       lic.groups.forEach(function (g) {
         bodyHtml += g.items[r]
-          ? '<td class="col-' + g.kind + '">' + g.items[r] + "</td>"
+          ? '<td class="col-' + g.kind + '">' + S.escapeHtml(termLabel(g.items[r])) + "</td>"
           : '<td class="col-' + g.kind + ' empty">—</td>';
       });
       bodyHtml += "</tr>";
     }
+
+    var tableHtml =
+      maxRows > 0
+        ? '<table class="lic-table"><thead><tr>' +
+          headHtml +
+          "</tr></thead><tbody>" +
+          bodyHtml +
+          "</tbody></table>"
+        : "";
 
     pop.innerHTML =
       '<div class="lic-pop-head">' +
@@ -456,10 +467,10 @@
       "</span>" +
       '<div class="lic-pop-names">' +
       '<div class="lic-pop-title">' +
-      lic.name +
+      S.escapeHtml(lic.name) +
       "</div>" +
       '<div class="lic-pop-sub">' +
-      lic.tagline +
+      S.escapeHtml(lic.tagline) +
       "</div>" +
       "</div>" +
       '<button type="button" class="lic-pop-close" aria-label="Close license details">' +
@@ -467,24 +478,36 @@
       "</button>" +
       "</div>" +
       '<p class="lic-pop-summary">' +
-      lic.summary +
+      S.escapeHtml(lic.summary) +
       "</p>" +
-      '<table class="lic-table"><thead><tr>' +
-      headHtml +
-      "</tr></thead><tbody>" +
-      bodyHtml +
-      "</tbody></table>" +
+      tableHtml +
       '<div class="lic-pop-foot">' +
-      '<button type="button" class="lic-btn lic-read">' +
-      S.icons.lucide("external-link", "icon-sm") +
-      "<span>Read full text</span></button>" +
+      (lic.url
+        ? '<a class="lic-btn lic-read" href="' +
+          S.escapeHtml(lic.url) +
+          '" target="_blank" rel="noopener noreferrer">' +
+          S.icons.lucide("external-link", "icon-sm") +
+          "<span>Read full text</span></a>"
+        : '<button type="button" class="lic-btn lic-read" disabled>' +
+          S.icons.lucide("external-link", "icon-sm") +
+          "<span>No full text link</span></button>") +
       '<button type="button" class="lic-btn lic-copy">' +
       S.icons.lucide("copy", "icon-sm") +
       "<span>Copy " +
-      lic.spdx +
+      S.escapeHtml(lic.spdx) +
       "</span></button>" +
       "</div>";
     return pop;
+  }
+
+  // Licence arrays arrive as SPDX-style slugs ("commercial-use"); print them
+  // the way the old reference table did without inventing any extra terms.
+  function termLabel(term) {
+    return String(term)
+      .replace(/[-_]+/g, " ")
+      .replace(/^./, function (char) {
+        return char.toUpperCase();
+      });
   }
 
   function attachLicensePop(anchor, lic) {
@@ -516,64 +539,71 @@
       if (event.target.closest(".lic-pop-close")) setOpen(false);
     });
 
-    pop.querySelector(".lic-read").addEventListener("click", function () {
-      S.showToast("Opening the " + lic.name + " full text (demo)", "info");
-    });
-    pop.querySelector(".lic-copy").addEventListener("click", function () {
-      function done() {
-        S.showToast("Copied SPDX identifier: " + lic.spdx, "copy");
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(lic.spdx).then(done, done);
-      } else {
-        done();
-      }
-    });
+    boundPops.push(pop);
+
+    var copyBtn = pop.querySelector(".lic-copy");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function () {
+        function done() {
+          S.showToast("Copied SPDX identifier: " + lic.spdx, "copy");
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(lic.spdx).then(done, done);
+        } else {
+          done();
+        }
+      });
+    }
 
     return pop;
   }
 
-  function initLicenseAnchors() {
-    var closers = [];
+  // The extension page owns the only licence payload that comes from the
+  // database, so the popover is bound once the detail response has arrived.
+  function bindExtensionLicense(extension) {
+    if (!extension || !S.licenseOf) return;
 
-    document.querySelectorAll(".license-chip").forEach(function (chip) {
-      var lic = (S.LICENSES || {})[chip.getAttribute("data-license")];
-      if (!lic) return;
-      closers.push(attachLicensePop(chip, lic));
-    });
+    var line = document.querySelector(".license-line");
+    if (!line || line.getAttribute("data-license-bound") === "true") return;
+    if (!extension.licenseName && !extension.licenseKey) return;
 
+    var trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "lic-details";
+    trigger.innerHTML =
+      "<span>License details</span>" +
+      S.icons.lucide("chevron-down", "icon-sm chevron");
 
-    document.querySelectorAll(".license-line[data-license]").forEach(function (line) {
-      var lic = (S.LICENSES || {})[line.getAttribute("data-license")];
-      if (!lic) return;
-      var trigger = document.createElement("button");
-      trigger.type = "button";
-      trigger.className = "lic-details";
-      trigger.setAttribute("data-license", line.getAttribute("data-license"));
-      trigger.innerHTML =
-        "<span>License details</span>" +
-        S.icons.lucide("chevron-down", "icon-sm chevron");
-      line.appendChild(trigger);
-      closers.push(attachLicensePop(trigger, lic));
-    });
+    line.setAttribute("data-license-bound", "true");
+    // The "View license" link already carries the .lic-details class, so the
+    // new trigger goes in front of it rather than being mistaken for it.
+    var link = document.getElementById("ext-license-link");
+    if (link && link.parentNode === line) line.insertBefore(trigger, link);
+    else line.appendChild(trigger);
 
+    attachLicensePop(trigger, S.licenseOf(extension));
+  }
 
-    function closeAll() {
-      closers.forEach(function (pop) {
-        if (!pop.classList.contains("open")) return;
-        pop.classList.remove("open");
-        var anchor = pop.previousElementSibling;
-        if (anchor) {
-          anchor.classList.remove("open");
-          anchor.setAttribute("aria-expanded", "false");
-        }
-      });
-    }
-    document.addEventListener("click", closeAll);
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") closeAll();
+  function closeAllLicensePops() {
+    boundPops.forEach(function (pop) {
+      if (!pop.classList.contains("open")) return;
+      pop.classList.remove("open");
+      var anchor = pop.previousElementSibling;
+      if (anchor) {
+        anchor.classList.remove("open");
+        anchor.setAttribute("aria-expanded", "false");
+      }
     });
   }
+
+  function initLicenseAnchors() {
+    document.addEventListener("click", closeAllLicensePops);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeAllLicensePops();
+    });
+  }
+
+  S.bindExtensionLicense = bindExtensionLicense;
 
   document.addEventListener("DOMContentLoaded", initMoreMenus);
   document.addEventListener("DOMContentLoaded", initLicenseAnchors);

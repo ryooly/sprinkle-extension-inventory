@@ -926,7 +926,7 @@ window.SPRINKLE = (function () {
   function cardHtml(card, compact) {
     var href =
       card.href ||
-      "extensions.html?slug=" +
+      "/sprinkle-interface-html/pages/extensions.html?slug=" +
         encodeURIComponent(card.repo) +
         "&user=" +
         encodeURIComponent(card.user);
@@ -1132,7 +1132,7 @@ window.SPRINKLE = (function () {
       backBtn.innerHTML = icons.lucide("arrow-left", "icon-sm");
       backBtn.addEventListener("click", function () {
         if (startLoadBar) startLoadBar();
-        location.href = "index.html";
+        location.href = "/sprinkle-interface-html/pages/index.html";
       });
       if (profileSide) {
 
@@ -1165,14 +1165,14 @@ window.SPRINKLE = (function () {
     '        <button type="button" class="dropdown-item" data-demo-toast="Files — coming soon"><span data-icon="folder"></span><span>Files</span></button>',
     '        <div class="menu-label">Library</div>',
     '        <button type="button" class="dropdown-item" data-demo-toast="Inventory — coming soon"><span data-icon="package"></span><span>Inventory</span></button>',
-    '        <a href="saved.html" class="dropdown-item"><span data-icon="bookmark"></span><span>Saved</span></a>',
-    '        <a href="history.html" class="dropdown-item"><span data-icon="history"></span><span>History</span></a>',
+    '        <a href="/sprinkle-interface-html/pages/saved.html" class="dropdown-item"><span data-icon="bookmark"></span><span>Saved</span></a>',
+    '        <a href="/sprinkle-interface-html/pages/history.html" class="dropdown-item"><span data-icon="history"></span><span>History</span></a>',
     '        <div class="dropdown-sep"></div>',
     '        <button type="button" class="dropdown-item" data-demo-toast="Docs &amp; help — coming soon"><span data-icon="book-open"></span><span>Docs &amp; help</span></button>',
     '        <button type="button" class="dropdown-item" data-demo-toast="Settings — coming soon"><span data-icon="settings"></span><span>Settings</span></button>',
     "      </nav>",
     "    </div>",
-    '    <a href="index.html" aria-label="Sprinkle home" class="logo-link" data-icon="logo"></a>',
+    '    <a href="/sprinkle-interface-html/pages/index.html" aria-label="Sprinkle home" class="logo-link" data-icon="logo"></a>',
     "  </div>",
     '  <div class="search-wrap" id="search-wrap">',
     '    <div class="search-box">',
@@ -1192,11 +1192,11 @@ window.SPRINKLE = (function () {
     '          <p class="auth-guest-hint">Browse the catalog freely &mdash; an account unlocks saving and publishing.</p>',
     "        </div>",
     '        <div class="auth-user" data-auth-user hidden>',
-    '          <a href="profile.html?user=sprinkle-labs&me=1" class="dropdown-user" aria-label="View your profile" data-auth-profile-link><span class="dropdown-avatar" aria-hidden="true">SL</span><span class="dropdown-user-meta"><span class="name" data-auth-name>Sprinkle Labs</span><span class="handle" data-auth-handle>@sprinkle-labs</span></span><svg class="dropdown-user-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></a>',
+    '          <a href="/sprinkle-interface-html/pages/profile.html?user=sprinkle-labs&me=1" class="dropdown-user" aria-label="View your profile" data-auth-profile-link><span class="dropdown-avatar" aria-hidden="true">SL</span><span class="dropdown-user-meta"><span class="name" data-auth-name>Sprinkle Labs</span><span class="handle" data-auth-handle>@sprinkle-labs</span></span><svg class="dropdown-user-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></a>',
     '          <div class="auth-user-meta"><span class="auth-user-mail" data-auth-email hidden></span><span class="auth-user-role" data-auth-role hidden></span></div>',
     '          <div class="dropdown-sep"></div>',
-    '          <a href="create-extension.html" class="dropdown-item"><span data-icon="plus"></span><span>Create Extension</span></a>',
-    '          <a href="inventory.html" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></a>',
+    '          <a href="/sprinkle-interface-html/pages/create-extension.html" class="dropdown-item"><span data-icon="plus"></span><span>Create Extension</span></a>',
+    '          <a href="/sprinkle-interface-html/pages/inventory.html" class="dropdown-item"><span data-icon="package"></span><span>Inventory</span></a>',
     '          <button type="button" class="dropdown-item"><span data-icon="settings"></span><span>Settings</span></button>',
     '          <div class="dropdown-sep"></div>',
     '          <button type="button" class="dropdown-item" data-auth-logout><span data-icon="log-out"></span><span>Log out</span></button>',
@@ -1298,7 +1298,7 @@ window.SPRINKLE = (function () {
 
 
     if (location.protocol !== "file:") {
-      fetch("../partials/header.html")
+      fetch("/sprinkle-interface-html/partials/header.html")
         .then(function (res) {
           return res.text();
         })
@@ -1319,41 +1319,6 @@ window.SPRINKLE = (function () {
     hydrateIcons(mount);
     done();
   }
-
-
-
-  var LICENSES = {
-    "apache-2.0": {
-      spdx: "Apache-2.0",
-      name: "Apache License 2.0",
-      tagline: "Permissive · OSI-approved",
-      summary:
-        "Free for commercial and personal use. Keep the license notice, state your changes, and you're covered — including an explicit grant of patent rights.",
-      groups: [
-        {
-          kind: "allowed",
-          label: "Permissions",
-          items: [
-            "Commercial use",
-            "Modification",
-            "Distribution",
-            "Patent grant",
-            "Private use",
-          ],
-        },
-        {
-          kind: "warn",
-          label: "Conditions",
-          items: ["License notice", "Copyright notice", "State changes"],
-        },
-        {
-          kind: "denied",
-          label: "Limitations",
-          items: ["No warranty", "No liability", "No trademark use"],
-        },
-      ],
-    },
-  };
 
 
 
@@ -1422,7 +1387,6 @@ window.SPRINKLE = (function () {
     CARDS: CARDS,
     TOP_REPOS: TOP_REPOS,
     GENRES: GENRES,
-    LICENSES: LICENSES,
     REPO_TREE: REPO_TREE,
     icons: icons,
     cardHtml: cardHtml,

@@ -35,6 +35,19 @@
     });
   });
 
+  document.addEventListener("sprinkle:premium", function () {
+    loadCatalog();
+  });
+
+  function isPremiumViewer() {
+    return !!(
+      S.premium &&
+      S.premium.state &&
+      S.premium.state().isPremium &&
+      S.api.premiumShowcase
+    );
+  }
+
   function showcaseOrder(a, b) {
     function rank(card) {
       if (card.publishedBy === "user" && card.status === "premium") return 0;
@@ -53,7 +66,7 @@
 
     Promise.all([
       S.api.listExtensions({ limit: CARD_LIMIT }),
-      S.api.dailyShowcase(),
+      isPremiumViewer() ? S.api.premiumShowcase() : S.api.dailyShowcase(),
     ]).then(function (results) {
       var listRes = results[0];
       var showRes = results[1];
@@ -98,7 +111,9 @@
     var label = state.showcaseDate
       ? "Updated " + S.formatDate(state.showcaseDate)
       : "Updated daily";
-    el.textContent = label + " · refreshes every 24 hours";
+    el.textContent =
+      label +
+      (isPremiumViewer() ? " · premium picks" : " · refreshes every 24 hours");
   }
 
   function initGenres() {

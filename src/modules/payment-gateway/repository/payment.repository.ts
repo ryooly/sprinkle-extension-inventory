@@ -1,6 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lt, ne, or } from "drizzle-orm";
 import { db } from "@/db/client";
 import { plans, subscriptions, payments, accounts } from "@/models";
+
+export async function listActivePlans() {
+  return await db
+    .select()
+    .from(plans)
+    .where(eq(plans.isActive, 1))
+    .orderBy(plans.id);
+}
 
 export async function getPlanById(planId: number) {
   const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
@@ -19,6 +27,7 @@ export async function insertSubscription(data: {
   userId: string;
   planId: number;
   status: "pending" | "active" | "expired" | "cancelled";
+  expiresAt?: Date | null;
 }) {
   const [subscription] = await db
     .insert(subscriptions)
@@ -30,13 +39,90 @@ export async function insertSubscription(data: {
 export async function updateSubscriptionStatus(
   subscriptionId: string,
   status: "pending" | "active" | "expired" | "cancelled",
+  expiresAt?: Date | null,
 ) {
   const [subscription] = await db
     .update(subscriptions)
-    .set({ status })
+    .set({
+      status,
+      ...(expiresAt !== undefined && { expiresAt }),
+    })
     .where(eq(subscriptions.id, subscriptionId))
     .returning();
   return subscription;
+}
+
+export async function findActiveSubscription(userId: string) {
+  const [row] = await db
+    .select({ subscription: subscriptions, plan: plans })
+    .from(subscriptions)
+    .innerJoin(plans, eq(subscriptions.planId, plans.id))
+    .where(
+      and(
+        eq(subscriptions.userId, userId),
+        eq(subscriptions.status, "active"),
+        or(
+          isNull(subscriptions.expiresAt),
+          gt(subscriptions.expiresAt, new Date()),
+        ),
+      ),
+    )
+    .orderBy(desc(subscriptions.createdAt))
+    .limit(1);
+
+  return row;
+}
+
+export async function getSubscriptionWithPlan(subscriptionId: string) {
+  const [row] = await db
+    .select({ subscription: subscriptions, plan: plans })
+    .from(subscriptions)
+    .innerJoin(plans, eq(subscriptions.planId, plans.id))
+    .where(eq(subscriptions.id, subscriptionId))
+    .limit(1);
+
+  return row;
+}
+
+export async function findLatestSubscription(userId: string) {
+  const [row] = await db
+    .select({ subscription: subscriptions, plan: plans })
+    .from(subscriptions)
+    .innerJoin(plans, eq(subscriptions.planId, plans.id))
+    .where(eq(subscriptions.userId, userId))
+    .orderBy(desc(subscriptions.createdAt))
+    .limit(1);
+
+  return row;
+}
+
+export async function expireStaleSubscriptions(userId: string) {
+  return await db
+    .update(subscriptions)
+    .set({ status: "expired" })
+    .where(
+      and(
+        eq(subscriptions.userId, userId),
+        eq(subscriptions.status, "active"),
+        lt(subscriptions.expiresAt, new Date()),
+      ),
+    );
+}
+
+export async function cancelOtherActiveSubscriptions(
+  userId: string,
+  keepSubscriptionId: string,
+) {
+  return await db
+    .update(subscriptions)
+    .set({ status: "cancelled" })
+    .where(
+      and(
+        eq(subscriptions.userId, userId),
+        eq(subscriptions.status, "active"),
+        ne(subscriptions.id, keepSubscriptionId),
+      ),
+    );
 }
 
 export async function insertPayment(data: {

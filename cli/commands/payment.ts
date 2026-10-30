@@ -44,18 +44,26 @@ async function createPayment(ctx: CommandContext): Promise<void> {
 
   if (res.ok) {
     const data = bodyOf(res).data as Record<string, unknown> | undefined;
-    out.heading("Payment created");
-    out.success(`Checkout started for plan ${planId}`);
+    const checkout = data?.checkout as Record<string, unknown> | undefined;
+    const redirectUrl = checkout?.redirectUrl as string | undefined;
+
+    out.heading("Plan activated");
+    out.success(`Plan ${planId} is now active`);
     out.fields({
-      redirectUrl: data?.redirectUrl,
-      snapToken: data?.token,
+      redirectUrl,
+      snapToken: checkout?.token,
+      plan: data?.plan ? JSON.stringify(data.plan) : undefined,
       subscription: data?.subscription
         ? JSON.stringify(data.subscription)
         : undefined,
       payment: data?.payment ? JSON.stringify(data.payment) : undefined,
     });
-    if (data?.redirectUrl)
-      out.info(`Open the redirectUrl in a browser to complete payment.`);
+    if (redirectUrl)
+      out.info(`Open the redirectUrl in a browser to pay for this plan.`);
+    else
+      out.info(
+        "No gateway checkout was created — the plan was activated directly.",
+      );
   } else {
     out.error(`payment-create failed (${res.status}): ${errorMessage(res)}`);
     process.exitCode = 1;

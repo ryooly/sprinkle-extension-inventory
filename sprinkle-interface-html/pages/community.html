@@ -3,10 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/sprinkle-interface-html/favicon.svg" />
     <title>Community — Sprinkle</title>
-    <link rel="stylesheet" href="../css/pages/extension.css" />
-    <link rel="stylesheet" href="../css/pages/community.css" />
-    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="/sprinkle-interface-html/css/pages/extension.css" />
+    <link rel="stylesheet" href="/sprinkle-interface-html/css/pages/community.css" />
+    <link rel="stylesheet" href="/sprinkle-interface-html/css/base.css" />
   </head>
   <body>
 
@@ -121,12 +122,12 @@
 
         <div class="ext-tabs-row">
           <nav class="ext-tabs">
-            <a class="tab-btn" href="extensions.html">Model card</a>
-            <a class="tab-btn" href="files.html">
+            <a class="tab-btn" href="/sprinkle-interface-html/pages/extensions.html">Model card</a>
+            <a class="tab-btn" href="/sprinkle-interface-html/pages/files.html">
               Files and versions
               <span class="tab-kbd">⌘ xet</span>
             </a>
-            <a class="tab-btn active" href="community.html" aria-current="page">
+            <a class="tab-btn active" href="/sprinkle-interface-html/pages/community.html" aria-current="page">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -142,7 +143,7 @@
                   d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
                 />
               </svg>
-              Community <span class="font-mono text-xs">2</span>
+              Community <span class="font-mono text-xs" id="community-count"></span>
             </a>
           </nav>
 
@@ -214,11 +215,7 @@
 
     <main class="files-layout">
       <div>
-        <button
-          type="button"
-          class="primary-btn"
-          data-demo-toast="Discussions are read-only in this demo"
-        >
+        <button type="button" class="primary-btn" id="disc-new">
           New discussion
         </button>
       </div>
@@ -229,314 +226,35 @@
           <span class="path" id="tree-owner">Edge0/Audio8-ASR-Infinite</span>
         </div>
 
-        <div class="disc-thread">
-          <div class="discussion-item">
-            <span
-              class="discussion-avatar"
-              style="background: #0284c7"
-              aria-hidden="true"
-              >MU</span
-            >
-            <div class="discussion-body">
-              <div class="discussion-title">
-                Realtime latency on CPU-only machines?
-              </div>
-              <div class="discussion-meta">
-                <span class="mono">ming-uyen</span> · opened 3 days ago
-              </div>
-            </div>
-            <span class="discussion-replies">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
-                />
-              </svg>
-              8
-            </span>
-            <button
-              type="button"
-              class="disc-toggle"
-              aria-expanded="false"
-              aria-label="Show replies"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+        <form class="disc-composer" id="disc-composer" hidden>
+          <textarea
+            class="disc-input"
+            id="disc-input"
+            rows="3"
+            maxlength="2000"
+            placeholder="Ask the community a question about this extension…"
+          ></textarea>
+          <div class="disc-composer-actions">
+            <span class="disc-hint">Up to 2000 characters.</span>
+            <button type="button" class="disc-ghost" id="disc-cancel">
+              Cancel
+            </button>
+            <button type="submit" class="primary-btn" id="disc-submit">
+              Post discussion
             </button>
           </div>
-          <div class="disc-replies">
-            <div class="disc-replies-inner">
-              <div class="disc-reply">
-                <span
-                  class="discussion-avatar"
-                  style="background: #22b558"
-                  aria-hidden="true"
-                  >SL</span
-                >
-                <div class="disc-reply-main">
-                  <div class="discussion-meta">
-                    <span class="mono">soniclug</span> · replied 2 days ago
-                  </div>
-                  <p class="disc-reply-text">
-                    Ran it on an i5-8250U with the ONNX INT8 build — ~180ms
-                    real-time factor, good enough for near-live captions.
-                  </p>
-                  <button type="button" class="disc-more" aria-expanded="false">
-                    <span class="disc-more-label">Read more</span>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="disc-nested">
-                    <div class="disc-reply sub">
-                      <span
-                        class="discussion-avatar"
-                        style="background: #0284c7"
-                        aria-hidden="true"
-                        >MU</span
-                      >
-                      <div class="disc-reply-main">
-                        <div class="discussion-meta">
-                          <span class="mono">ming-uyen</span> · replied 1 day
-                          ago · author
-                        </div>
-                        <p class="disc-reply-text">
-                          Nice — is that with the 16k or the 8k frontend?
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="disc-reply">
-                <span
-                  class="discussion-avatar"
-                  style="background: #f43f6b"
-                  aria-hidden="true"
-                  >PF</span
-                >
-                <div class="disc-reply-main">
-                  <div class="discussion-meta">
-                    <span class="mono">pyfemme</span> · replied 2 days ago
-                  </div>
-                  <p class="disc-reply-text">
-                    Try capping the beam size to 2 — it cut our CPU latency by a
-                    third with no accuracy drop.
-                  </p>
-                </div>
-              </div>
-              <div class="disc-reply">
-                <span
-                  class="discussion-avatar"
-                  style="background: #0a7cff"
-                  aria-hidden="true"
-                  >E0</span
-                >
-                <div class="disc-reply-main">
-                  <div class="discussion-meta">
-                    <span class="mono">edge0</span> · replied 1 day ago ·
-                    maintainer
-                  </div>
-                  <p class="disc-reply-text">
-                    A quantized decoder variant is on the roadmap for v0.4.
-                  </p>
-                  <button type="button" class="disc-more" aria-expanded="false">
-                    <span class="disc-more-label">Read more</span>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="disc-nested">
-                    <div class="disc-reply sub">
-                      <span
-                        class="discussion-avatar"
-                        style="background: #22b558"
-                        aria-hidden="true"
-                        >SL</span
-                      >
-                      <div class="disc-reply-main">
-                        <div class="discussion-meta">
-                          <span class="mono">soniclug</span> · replied 20 hours
-                          ago
-                        </div>
-                        <p class="disc-reply-text">
-                          Any ETA on v0.4? Happy to beta-test the quantized
-                          build.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        </form>
 
-        <div class="disc-thread">
-          <div class="discussion-item">
-            <span
-              class="discussion-avatar"
-              style="background: #8a3ffc"
-              aria-hidden="true"
-              >AH</span
-            >
-            <div class="discussion-body">
-              <div class="discussion-title">
-                Streaming VAD + endpointing recipe (with code)
-              </div>
-              <div class="discussion-meta">
-                <span class="mono">audiohacker</span> · opened 2 weeks ago ·
-                pinned
-              </div>
-            </div>
-            <span class="discussion-replies">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
-                />
-              </svg>
-              2
-            </span>
-            <button
-              type="button"
-              class="disc-toggle"
-              aria-expanded="false"
-              aria-label="Show replies"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-          </div>
-          <div class="disc-replies">
-            <div class="disc-replies-inner">
-              <div class="disc-reply">
-                <span
-                  class="discussion-avatar"
-                  style="background: #ffa400"
-                  aria-hidden="true"
-                  >DD</span
-                >
-                <div class="disc-reply-main">
-                  <div class="discussion-meta">
-                    <span class="mono">decibel-dan</span> · replied 6 days ago
-                  </div>
-                  <p class="disc-reply-text">
-                    This recipe is gold. Swapped it into our voice bot and user
-                    drop-offs fell 22%.
-                  </p>
-                  <button type="button" class="disc-more" aria-expanded="false">
-                    <span class="disc-more-label">Read more</span>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                  <div class="disc-nested">
-                    <div class="disc-reply sub">
-                      <span
-                        class="discussion-avatar"
-                        style="background: #8a3ffc"
-                        aria-hidden="true"
-                        >AH</span
-                      >
-                      <div class="disc-reply-main">
-                        <div class="discussion-meta">
-                          <span class="mono">audiohacker</span> · replied 5 days
-                          ago · author
-                        </div>
-                        <p class="disc-reply-text">
-                          Glad it helped! Tuning notes are welcome on the
-                          follow-up PR.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="disc-reply">
-                <span
-                  class="discussion-avatar"
-                  style="background: #00b2f0"
-                  aria-hidden="true"
-                  >WW</span
-                >
-                <div class="disc-reply-main">
-                  <div class="discussion-meta">
-                    <span class="mono">wavewatcher</span> · replied 5 days ago
-                  </div>
-                  <p class="disc-reply-text">
-                    Any chance you'll publish the config as a gist? Would love
-                    to diff it against ours.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="disc-list" id="disc-list"></div>
       </section>
     </main>
 
-    <script src="../js/vendor/lucide.min.js"></script>
-    <script src="../js/sprinkle-data.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/interactions.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/extension.js"></script>
+    <script src="/sprinkle-interface-html/js/vendor/lucide.min.js"></script>
+    <script src="/sprinkle-interface-html/js/sprinkle-data.js"></script>
+    <script src="/sprinkle-interface-html/js/api.js"></script>
+    <script src="/sprinkle-interface-html/js/interactions.js"></script>
+    <script src="/sprinkle-interface-html/js/auth.js"></script>
+    <script src="/sprinkle-interface-html/js/community.js"></script>
+    <script src="/sprinkle-interface-html/js/extension.js"></script>
   </body>
 </html>

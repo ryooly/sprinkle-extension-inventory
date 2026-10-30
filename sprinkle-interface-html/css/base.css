@@ -1681,6 +1681,11 @@ html.dark .panel-card {
   font-size: 0.8125rem;
   font-weight: 600;
 }
+.panel-head .panel-title {
+  margin: 0;
+  font: inherit;
+  font-weight: 600;
+}
 .panel-head .path {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;

@@ -50,3 +50,17 @@ export const updateExtensionSchema = t.Object({
   categories: t.Optional(t.Array(categorySchema)),
   hashtags: t.Optional(t.Array(t.String({ minLength: 1, maxLength: 50 }))),
 });
+
+/**
+ * Multipart bodies arrive as strings when a field has a single value, and
+ * Elysia only coerces that shape for arrays of primitives. Literal-union
+ * arrays need wrapping, so one picked category/browser validates the same
+ * as several.
+ */
+export function normaliseList<T extends object, K extends keyof T>(
+  body: T,
+  key: K,
+): void {
+  const value = body[key];
+  if (typeof value === "string") body[key] = [value] as T[K];
+}

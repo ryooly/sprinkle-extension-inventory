@@ -8,6 +8,7 @@ import {
   timestamp,
   pgEnum,
 } from "drizzle-orm/pg-core";
+import { type InferSelectModel, type InferInsertModel } from "drizzle-orm";
 import { accounts } from "./accounts";
 
 export const subscriptionStatusEnum = pgEnum("subscription_status", [
@@ -46,6 +47,7 @@ export const subscriptions = pgTable("subscriptions", {
     .notNull()
     .references(() => plans.id),
   status: subscriptionStatusEnum("status").notNull().default("pending"),
+  expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -61,3 +63,12 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export type Plan = InferSelectModel<typeof plans>;
+export type NewPlan = InferInsertModel<typeof plans>;
+
+export type Subscription = InferSelectModel<typeof subscriptions>;
+export type NewSubscription = InferInsertModel<typeof subscriptions>;
+
+export type Payment = InferSelectModel<typeof payments>;
+export type NewPayment = InferInsertModel<typeof payments>;

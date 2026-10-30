@@ -85,6 +85,20 @@ export async function insertExtensionsFromGithub(
     const apiEndpoints = endpoints.map(
       (e) => `${e.type}:${e.method} ${e.path}`,
     );
+    const endpointSafety = endpoints.map((e) => ({
+      type: e.type,
+      file: e.file,
+      method: e.method,
+      path: e.path,
+      safe: e.security.safe,
+      threats: e.security.threats.map((threat) => ({
+        threatType: threat.threatType,
+        platformType: threat.platformType,
+        threatEntryType: threat.threatEntryType,
+      })),
+      checkedAt: e.security.checkedAt,
+      skippedOnError: e.security.skippedOnError,
+    }));
 
     const effectivePermissions =
       manifestPermissions.length > 0
@@ -171,7 +185,15 @@ export async function insertExtensionsFromGithub(
         repoFiles:
           repoFiles.length > 0 ? repoFiles : (normalized.repoFiles ?? null),
         apiEndpoints: apiEndpoints.length > 0 ? apiEndpoints : null,
+        endpointSafety: endpointSafety.length > 0 ? endpointSafety : null,
         securityScore: security.score,
+        securityBreakdown: security.breakdown,
+        securityRisks: security.risks,
+        repoGrade: repoRating.grade,
+        repoRating: {
+          totalScore: repoRating.totalScore,
+          breakdown: repoRating.breakdown,
+        },
         announcement: readme ?? normalized.description,
         licenseName: license?.name ?? normalized.licenseName ?? null,
         licenseKey: normalized.licenseKey ?? license?.name ?? null,
@@ -245,6 +267,8 @@ export async function insertExtensionFromUpload(
     repoFiles: local.repoFiles.length > 0 ? local.repoFiles : null,
     apiEndpoints: local.apiEndpoints.length > 0 ? local.apiEndpoints : null,
     securityScore: security.score,
+    securityBreakdown: security.breakdown,
+    securityRisks: security.risks,
     announcement: local.readme ?? data.description,
   });
 

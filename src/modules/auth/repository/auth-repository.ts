@@ -1,9 +1,10 @@
 import { eq, or } from "drizzle-orm";
 import { db } from "@/db/client";
 import { accounts, saved, inventory, refreshTokens } from "@/models";
+import { loginDbg } from "@/modules/auth/utils/loginDebug";
 import {
   RegisterInput,
-  LoginInput,
+  LoginCredentials,
   BeBuilderInput,
   GetUserByUsernameInput,
   GetUserByIdInput,
@@ -28,14 +29,33 @@ export const UserRepository = {
     });
   },
 
-  login: async (body: LoginInput) => {
+  findByEmail: async (email: string) => {
     const account = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.email, body.email))
+      .where(eq(accounts.email, email))
       .limit(1);
 
     return account[0] ?? null;
+  },
+
+  findByLoginCredentials: async (credentials: LoginCredentials) => {
+    const found =
+      credentials.kind === "email"
+        ? await UserRepository.findByEmail(credentials.value)
+        : await UserRepository.findByUsername({ username: credentials.value });
+
+    loginDbg("repo:lookup", {
+      kind: credentials.kind,
+      column:
+        credentials.kind === "email" ? "accounts.email" : "accounts.username",
+      value: credentials.value,
+      found: Boolean(found),
+      accountId: found?.id ?? null,
+      accountUsername: found?.username ?? null,
+    });
+
+    return found;
   },
 
   upToBuilder: async (body: BeBuilderInput) => {
@@ -50,6 +70,28 @@ export const UserRepository = {
 
       return updatedAccount;
     });
+  },
+
+  updateProfile: async (
+    accountId: string,
+    data: { username?: string; email?: string },
+  ) => {
+    const patch: {
+      username?: string;
+      email?: string;
+      updatedAt: Date;
+    } = { updatedAt: new Date() };
+
+    if (data.username !== undefined) patch.username = data.username;
+    if (data.email !== undefined) patch.email = data.email;
+
+    const [updatedAccount] = await db
+      .update(accounts)
+      .set(patch)
+      .where(eq(accounts.id, accountId))
+      .returning();
+
+    return updatedAccount ?? null;
   },
 
   findUserById: async (params: GetUserByIdInput) => {

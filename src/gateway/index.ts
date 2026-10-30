@@ -3,6 +3,7 @@ import { logger } from "@/logger";
 
 import { buildCorsPlugin } from "./cors";
 import { AppError } from "@/errorhandler";
+import { loginDbg } from "@/modules/auth/utils/loginDebug";
 import type { ErrorResponse } from "@/types/error-response";
 import { userRoutes } from "@/modules/auth";
 import { extensionRoutes } from "@/modules/manual-ekstension";
@@ -16,7 +17,29 @@ import { savedExtensionRoutes } from "@/modules/automation-engine/algorithm-engi
 new Elysia()
   .use(buildCorsPlugin())
 
-  .onError(({ code, error, set }) => {
+  .onError(({ code, error, path, set }) => {
+    const status =
+      typeof (error as { status?: unknown }).status === "number"
+        ? (error as { status: number }).status
+        : null;
+
+    if (
+      path.startsWith("/user/") ||
+      status === 401 ||
+      status === 403 ||
+      status === 500 ||
+      code === "INTERNAL_SERVER_ERROR" ||
+      code === "INVALID_COOKIE_SIGNATURE"
+    ) {
+      loginDbg("gateway:onError", {
+        code: String(code),
+        path,
+        status,
+        message: error instanceof Error ? error.message : String(error),
+        details: (error as { details?: unknown }).details ?? null,
+      });
+    }
+
     const fail = (status: number, message: string): ErrorResponse => {
       set.status = status;
       return { success: false, message, status };
@@ -28,20 +51,17 @@ new Elysia()
     if (code === "VALIDATION" || code === "PARSE")
       return fail(400, "Request validation failed");
 
-    const status =
-      typeof (error as { status?: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : 500;
+    const failStatus = status ?? 500;
 
-    if (status >= 500) {
+    if (failStatus >= 500) {
       logger.error(
         `[gateway] unhandled error: ${error instanceof Error ? error.message : String(error)}`,
       );
-      return fail(status, "Internal server error");
+      return fail(failStatus, "Internal server error");
     }
 
     return fail(
-      status,
+      failStatus,
       error instanceof Error && error.message
         ? error.message
         : "Request failed",

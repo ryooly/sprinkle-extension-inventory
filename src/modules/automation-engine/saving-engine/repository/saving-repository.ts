@@ -54,6 +54,27 @@ export interface UpdateExtensionPayload {
   data: Partial<Omit<NewExtension, "id" | "createdAt" | "updatedAt">>;
   categories?: Category[];
   hashtags?: string[];
+  permissions?: BrowserPermission[];
+}
+
+async function replacePermissions(
+  executor: DbExecutor,
+  extensionId: string,
+  permissions: BrowserPermission[],
+): Promise<void> {
+  await executor
+    .delete(extensionPermissions)
+    .where(eq(extensionPermissions.extensionId, extensionId));
+
+  const unique = [...new Set(permissions)];
+  if (unique.length === 0) return;
+
+  await executor.insert(extensionPermissions).values(
+    unique.map((permission) => ({
+      extensionId,
+      permission,
+    })),
+  );
 }
 
 export async function createExtension(payload: CreateExtensionPayload) {
@@ -90,14 +111,7 @@ export async function createExtension(payload: CreateExtensionPayload) {
     }
 
     if (permissions && permissions.length > 0) {
-      const uniquePermissions = [...new Set(permissions)];
-
-      await tx.insert(extensionPermissions).values(
-        uniquePermissions.map((permission) => ({
-          extensionId: extension.id,
-          permission,
-        })),
-      );
+      await replacePermissions(tx, extension.id, permissions);
     }
 
     return extension;
@@ -105,7 +119,7 @@ export async function createExtension(payload: CreateExtensionPayload) {
 }
 
 export async function updateExtension(payload: UpdateExtensionPayload) {
-  const { id, data, categories, hashtags } = payload;
+  const { id, data, categories, hashtags, permissions } = payload;
 
   return await db.transaction(async (tx) => {
     const [updated] = await tx
@@ -149,6 +163,10 @@ export async function updateExtension(payload: UpdateExtensionPayload) {
 
         await tx.insert(extensionHashtags).values(hashtagRows);
       }
+    }
+
+    if (permissions) {
+      await replacePermissions(tx, id, permissions);
     }
 
     return updated;

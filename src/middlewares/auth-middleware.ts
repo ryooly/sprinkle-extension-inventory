@@ -7,6 +7,7 @@ import { refreshTokens } from "@/models";
 import { eq, and, gt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { config } from "config";
+import { loginDbg, loginDbgTrace } from "@/modules/auth/utils/loginDebug";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,19 +18,42 @@ export const authMiddleware = new Elysia()
     const accountId = String(cookie.accountId ?? "");
     const refreshToken = String(cookie.refreshToken ?? "");
 
+    const hasSessionHint = Boolean(accessToken || accountId || refreshToken);
+
+    if (hasSessionHint) {
+      loginDbgTrace("middleware:derive:cookies", {
+        hasAccessToken: Boolean(accessToken),
+        accessTokenChars: accessToken.length,
+        accountId: accountId || null,
+        hasRefreshToken: Boolean(refreshToken),
+      });
+    }
+
     if (accessToken) {
       try {
         const payload = jwt.verify(accessToken, config.jwtSecret);
 
+        loginDbgTrace("middleware:derive:access-token-valid", {
+          subject: typeof payload === "object" ? payload.userId : null,
+        });
+
         if (typeof payload === "object" && payload !== null) {
           return { user: payload };
         }
-      } catch {
-
+      } catch (err) {
+        loginDbg("middleware:derive:access-token-rejected", {
+          reason: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 
     if (!UUID_PATTERN.test(accountId) || !refreshToken) {
+      if (hasSessionHint) {
+        loginDbg("middleware:derive:reject-missing-session", {
+          accountIdIsUuid: UUID_PATTERN.test(accountId),
+          hasRefreshToken: Boolean(refreshToken),
+        });
+      }
       throw new AppError(
         "Unauthorized: missing or invalid session cookies",
         401,
@@ -48,7 +72,14 @@ export const authMiddleware = new Elysia()
       )
       .limit(1);
 
+    loginDbgTrace("middleware:derive:refresh-lookup", {
+      accountId,
+      found: Boolean(storedToken),
+      expiresAt: storedToken?.expiresAt ?? null,
+    });
+
     if (!storedToken) {
+      loginDbg("middleware:derive:reject-refresh-token", { accountId });
       throw new AppError(
         "Unauthorized: refresh token is invalid or expired",
         401,
@@ -75,11 +106,19 @@ export const authMiddleware = new Elysia()
     });
 
     const { secure, sameSite } = getCookiePolicy();
+
+    loginDbgTrace("middleware:derive:session-rotated", {
+      accountId: storedToken.accountId,
+      secure,
+      sameSite,
+    });
+
     set.cookie = {
       auth: {
         value: newAccessToken,
         httpOnly: true,
         secure,
+        path: "/",
         maxAge: 15 * 60,
         sameSite,
       },
@@ -87,6 +126,7 @@ export const authMiddleware = new Elysia()
         value: newRefreshTokenValue,
         httpOnly: true,
         secure,
+        path: "/",
         maxAge: 60 * 60 * 24 * 7,
         sameSite,
       },

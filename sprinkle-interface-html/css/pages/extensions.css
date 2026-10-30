@@ -612,10 +612,10 @@
 .sec-h {
   margin-top: 0.875rem;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 
 .sec-inner > .sec-h:first-child {
@@ -937,12 +937,13 @@
 
 .tech-stack {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.875rem;
+  gap: 0.75rem 0.875rem;
 }
 .tri {
   flex: none;
-  width: 7rem;
+  width: 6.5rem;
   height: auto;
   overflow: visible;
 }
@@ -958,6 +959,13 @@
   stroke-width: 2;
   stroke-linejoin: round;
 }
+/* A tier with no detected language is dimmed instead of staying fully coloured,
+   so the pyramid never implies a stack the record does not carry. */
+.tri-frontend.is-empty,
+.tri-backend.is-empty {
+  fill: color-mix(in oklab, var(--muted-foreground) 22%, var(--card));
+  opacity: 0.55;
+}
 .tri-ico {
   fill: none;
   stroke: #fff;
@@ -966,12 +974,15 @@
   stroke-linejoin: round;
   opacity: 1;
 }
+.tri-ico.is-empty {
+  opacity: 0.35;
+}
 .tech-legend {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 11rem;
   min-width: 0;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.5rem;
 }
 .lg-row {
   display: flex;
@@ -979,13 +990,14 @@
   gap: 0.5rem;
 }
 .lg-key {
-  flex: none;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  width: 4.75rem;
+  min-width: 4.25rem;
   font-size: 11px;
   font-weight: 600;
+  line-height: 1.3;
   color: var(--foreground);
 }
 .lg-line {
@@ -1006,8 +1018,16 @@
 }
 .lg-chips {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  gap: 0.3rem;
+}
+.lg-empty {
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--muted-foreground);
 }
 .lg-chip {
   display: inline-flex;
@@ -1038,4 +1058,147 @@
 #like-btn.active svg {
 
   fill: url(#thumbs-up-gradient);
+}
+
+
+.ext-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.5rem 0.75rem;
+  margin: 0.875rem 0 0;
+  padding: 0.75rem 0 0;
+  border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+}
+.ext-meta-row {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+.ext-meta dt {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+.ext-meta dd {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+
+.sec-signals {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin-top: 0.5rem;
+}
+.sec-signal {
+  display: grid;
+  gap: 0.25rem;
+}
+.sec-signal-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+}
+.sec-signal-name {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.sec-signal-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--muted-foreground);
+}
+.sec-signal-track {
+  height: 0.3rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--border) 80%, transparent);
+}
+.sec-signal-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--emerald);
+  transition: width 320ms ease;
+}
+.sec-signal.mid .sec-signal-fill {
+  background-color: var(--lic-warn);
+}
+.sec-signal.low .sec-signal-fill {
+  background-color: var(--lic-denied);
+}
+.sec-list li.warn svg {
+  color: var(--lic-warn);
+}
+.sec-list li.bad svg {
+  color: var(--lic-denied);
+}
+.perm-tag.high {
+  border: 1px solid color-mix(in oklab, var(--lic-denied) 45%, transparent);
+  background-color: color-mix(in oklab, var(--lic-denied) 12%, transparent);
+  color: var(--lic-denied);
+}
+.perm-tag.medium {
+  border: 1px solid color-mix(in oklab, var(--lic-warn) 45%, transparent);
+  background-color: color-mix(in oklab, var(--lic-warn) 12%, transparent);
+  color: var(--lic-warn);
+}
+.perm-tag.low {
+  border: 1px solid var(--border);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.dest-note:empty {
+  display: none;
+}
+.sec-perms:empty,
+.sec-dest:empty,
+.sec-signals:empty,
+.sec-list:empty {
+  display: none;
+}
+.ext-meta dd a {
+  color: var(--pill-active-color, var(--foreground));
+  text-decoration: none;
+}
+.ext-meta dd a:hover {
+  text-decoration: underline;
+}
+a.lic-btn {
+  text-decoration: none;
+  cursor: pointer;
+}
+.lic-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The license popover wraps its trigger, so the right-alignment moves up one
+   level inside the flex .license-line row. */
+.license-line .lic-wrap {
+  margin-left: auto;
+  align-self: center;
+  flex-shrink: 0;
+}
+.license-line .lic-wrap .lic-details {
+  margin-left: 0;
+}
+
+/* Collapsed panels are marked inert from script; this only keeps the hidden
+   permission/destination text out of the accessibility tree. */
+.perm-why:not(.open),
+.perm:not(.open) .perm-why,
+.dest:not(.open) .dest-details {
+  visibility: hidden;
+}
+.sec-details[hidden] {
+  display: none;
 }

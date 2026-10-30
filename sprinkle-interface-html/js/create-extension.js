@@ -283,7 +283,8 @@
           if (createdId) {
             window.setTimeout(function () {
               location.href =
-                "extensions.html?id=" + encodeURIComponent(createdId);
+                "/sprinkle-interface-html/pages/extensions.html?id=" +
+                encodeURIComponent(createdId);
             }, 700);
           }
           return;

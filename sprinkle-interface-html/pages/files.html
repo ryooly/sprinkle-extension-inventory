@@ -3,10 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/sprinkle-interface-html/favicon.svg"
+    />
     <title>Files and versions — Sprinkle</title>
-    <link rel="stylesheet" href="../css/pages/extension.css" />
-    <link rel="stylesheet" href="../css/pages/files.css" />
-    <link rel="stylesheet" href="../css/base.css" />
+    <link
+      rel="stylesheet"
+      href="/sprinkle-interface-html/css/pages/extension.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/sprinkle-interface-html/css/pages/files.css"
+    />
+    <link rel="stylesheet" href="/sprinkle-interface-html/css/base.css" />
   </head>
   <body>
     <div data-header></div>
@@ -80,12 +91,23 @@
 
         <div class="ext-tabs-row">
           <nav class="ext-tabs">
-            <a class="tab-btn" href="extensions.html">Model card</a>
-            <a class="tab-btn active" href="files.html" aria-current="page">
+            <a
+              class="tab-btn"
+              href="/sprinkle-interface-html/pages/extensions.html"
+              >Model card</a
+            >
+            <a
+              class="tab-btn active"
+              href="/sprinkle-interface-html/pages/files.html"
+              aria-current="page"
+            >
               Files and versions
               <span class="tab-kbd">⌘ xet</span>
             </a>
-            <a class="tab-btn" href="community.html">
+            <a
+              class="tab-btn"
+              href="/sprinkle-interface-html/pages/community.html"
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -101,7 +123,8 @@
                   d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
                 />
               </svg>
-              Community <span class="font-mono text-xs">2</span>
+              Community
+              <span class="font-mono text-xs" id="community-count"></span>
             </a>
           </nav>
 
@@ -173,7 +196,7 @@
     <main class="files-layout">
       <section class="panel-card">
         <div class="panel-head">
-          <span>Files</span>
+          <h5 class="panel-title">Files</h5>
           <nav
             class="fb-crumbs"
             id="fb-crumbs"
@@ -201,18 +224,19 @@
 
       <section class="panel-card">
         <div class="panel-head">
-          <span>API endpoints</span>
+          <h5 class="panel-title">API endpoints</h5>
           <span class="path" id="endpoint-count">0 endpoints</span>
         </div>
         <ul class="endpoint-list" id="files-endpoints"></ul>
       </section>
     </main>
 
-    <script src="../js/vendor/lucide.min.js"></script>
-    <script src="../js/sprinkle-data.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/interactions.js"></script>
-    <script src="../js/auth.js"></script>
-    <script src="../js/extension.js"></script>
+    <script src="/sprinkle-interface-html/js/vendor/lucide.min.js"></script>
+    <script src="/sprinkle-interface-html/js/sprinkle-data.js"></script>
+    <script src="/sprinkle-interface-html/js/api.js"></script>
+    <script src="/sprinkle-interface-html/js/interactions.js"></script>
+    <script src="/sprinkle-interface-html/js/auth.js"></script>
+    <script src="/sprinkle-interface-html/js/community.js"></script>
+    <script src="/sprinkle-interface-html/js/extension.js"></script>
   </body>
 </html>

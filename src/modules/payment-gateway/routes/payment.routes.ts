@@ -3,6 +3,9 @@ import * as PaymentController from "../controller/payment.controller";
 import { authMiddleware } from "@/middlewares/auth-middleware";
 
 export const paymentRoutes = new Elysia({ prefix: "/payment" })
+  .get("/plans", async () => {
+    return await PaymentController.listPlansHandle();
+  })
 
   .post(
     "/gateway",
@@ -23,6 +26,14 @@ export const paymentRoutes = new Elysia({ prefix: "/payment" })
   )
 
   .use(authMiddleware)
+
+  .get("/subscription", async ({ user }) => {
+    return await PaymentController.subscriptionHandle(user.userId);
+  })
+
+  .post("/cancel", async ({ user }) => {
+    return await PaymentController.cancelHandle(user.userId);
+  })
 
   .post(
     "/create",

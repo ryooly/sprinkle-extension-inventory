@@ -4,6 +4,7 @@ import {
   updateExtensionSchema,
   categorySchema,
   browserSchema,
+  normaliseList,
 } from "@/schemas/extension-validator";
 import {
   handleCreateExtension,
@@ -18,8 +19,7 @@ import {
 import { authMiddleware } from "@/middlewares/auth-middleware";
 import { builderMiddleware } from "@/middlewares/builder-middlewares";
 
-export const extensionRoutes = new Elysia({ prefix: "/extensions" })
-  .use(authMiddleware)
+const builderRoutes = new Elysia()
   .use(builderMiddleware)
   .post(
     "/creating",
@@ -27,7 +27,17 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
       const result = await handleCreateExtension(body);
       return result;
     },
-    { body: createExtensionUserSchema },
+    {
+      body: createExtensionUserSchema,
+      // Multipart sends a single picked value as a plain string, and Elysia
+      // only coerces that shape for arrays of primitives, so normalise the
+      // literal unions here. Keeps "one category / one browser" uploads valid.
+      transform({ body }) {
+        normaliseList(body, "categories");
+        normaliseList(body, "supportedBrowsers");
+        normaliseList(body, "hashtags");
+      },
+    },
   )
 
   .patch(
@@ -59,7 +69,11 @@ export const extensionRoutes = new Elysia({ prefix: "/extensions" })
         id: t.String({ format: "uuid" }),
       }),
     },
-  )
+  );
+
+export const extensionRoutes = new Elysia({ prefix: "/extensions" })
+  .use(authMiddleware)
+  .use(builderRoutes)
 
   .get(
     "/search/by-name",

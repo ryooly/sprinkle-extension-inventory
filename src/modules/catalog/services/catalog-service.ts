@@ -1,6 +1,12 @@
 import { AppError } from "@/errorhandler";
 import { browserEnum, categoryEnum, publisherTypeEnum } from "@/models";
-import type { Browser, Category, Extension, PublisherType } from "@/models";
+import type {
+  Browser,
+  BrowserPermission,
+  Category,
+  Extension,
+  PublisherType,
+} from "@/models";
 import { existsSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
 import { config } from "config";
@@ -10,6 +16,7 @@ import {
   findCatalogExtensions,
   findCategoriesByExtensionIds,
   findHashtagsByExtensionIds,
+  findPermissionsByExtensionIds,
   type CatalogListRow,
 } from "../repository/catalog-repository";
 
@@ -35,6 +42,7 @@ export interface CatalogSummaryExtension extends CatalogListRow {
 export interface CatalogDetailExtension extends Extension {
   categories: Category[];
   hashtags: string[];
+  permissions: BrowserPermission[];
 }
 
 export interface CatalogListResult {
@@ -165,15 +173,17 @@ export async function getCatalogExtension(
   }
 
   try {
-    const [categories, hashtags] = await Promise.all([
+    const [categories, hashtags, permissions] = await Promise.all([
       findCategoriesByExtensionIds([extension.id]),
       findHashtagsByExtensionIds([extension.id]),
+      findPermissionsByExtensionIds([extension.id]),
     ]);
 
     return {
       ...extension,
       categories: categories.get(extension.id) ?? [],
       hashtags: hashtags.get(extension.id) ?? [],
+      permissions: permissions.get(extension.id) ?? [],
     };
   } catch (err) {
     if (err instanceof AppError) throw err;
